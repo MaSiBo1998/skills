@@ -1,0 +1,22 @@
+{
+  "https://www.rapidcredito.co": {
+    "is_ok": true,
+    "last_alert_time": 0.0
+  },
+  "https://prestamo.crediprisa.com": {
+    "is_ok": true,
+    "last_alert_time": 0.0
+  },
+  "https://loan.apoyoya.co": {
+    "is_ok": true,
+    "last_alert_time": 0.0
+  },
+  "https://prestapro-h5.vekor.co": {
+    "is_ok": true,
+    "last_alert_time": 0.0
+  },
+  "https://credit.mxmegacash.com": {
+    "is_ok": true,
+    "last_alert_time": 0.0
+  }
+}
