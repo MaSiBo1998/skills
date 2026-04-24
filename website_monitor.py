@@ -4,10 +4,10 @@
 """网站可用性监听脚本。
 
 功能说明：
-1. 每 1 分钟轮询一次配置的网站。
+1. 每 10 分钟轮询一次配置的网站。
 2. 单次请求超时时间为 10 秒。
 3. 当网站访问异常时，通过飞书机器人发送告警消息。
-4. 首次异常立即推送，持续异常时每隔 3 分钟重复推送一次。
+4. 首次异常立即推送，持续异常时每隔 30 分钟重复推送一次。
 5. 网站恢复正常时不发送通知。
 """
 
@@ -21,9 +21,9 @@ from typing import Dict, List, Optional, Tuple, Union
 from urllib import error, request
 
 
-CHECK_INTERVAL_SECONDS = 60
+CHECK_INTERVAL_SECONDS = 600
 REQUEST_TIMEOUT_SECONDS = 10
-ALERT_INTERVAL_SECONDS = 180
+ALERT_INTERVAL_SECONDS = 1800
 FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/2b72b20a-0f76-437b-b577-bdf2463d2f25"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "monitor_config.json")
@@ -156,7 +156,7 @@ def format_alert_text(target: MonitorTarget, status_text: str) -> str:
     return (
         f"[网站异常告警]\n"
         f"时间: {now}\n"
-        f"App内嵌网页: {target.app_name}\n"
+        f"网页: {target.app_name}\n"
         f"网址: {target.url}\n"
         f"异常: {status_text}"
     )
