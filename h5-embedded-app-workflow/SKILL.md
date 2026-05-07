@@ -225,31 +225,65 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 
 项目目录结构：
 h5-project/
-├── static-app/          ★ 基线依赖（只给 App 打包用）
+├── static-app/          ★ 基线依赖（npm run build:static 生成，仅一次）
 │   ├── vendor.dll.js      ← React + ReactDOM + UI 库
 │   ├── vendor.dll.css     ← UI 库样式
-│   ├── react.js           ← 基础框架文件
-│   ├── ui.js              ← UI 库入口
-│   └── images/            ← 基准图片（图标、启动图等）
-│       ├── 123.png
+│   └── images/            ← 首次项目图片（build:static 从 src/assets 迁移至此，锁定到 App）
+│       ├── logo.png
 │       └── ...
 ├── src/                    ★ 业务源码
-│   ├── assets/             ← 项目新增图片（构建时正常处理）
+│   ├── assets/             ← 后续迭代新增的图片（正常打包到 dist/assets/）
 │   └── ...
 ├── index.html
 └── vite.config.js / webpack.config.js
 
 构建行为：
-npm run build 产出 dist/：
-  ├── assets/        ← src/assets/ 构建产物带 hash
+npm run build:static（仅首次/升级基线库时执行）：
+  → 打包框架依赖到 static-app/vendor.dll.js
+  → 将首次的 src/assets/ 图片迁移到 static-app/images/ 并删除原文件
+  → 这些基线图片锁定到 App 中，后续永不更新
+
+npm run build（每次 H5 更新时执行）：
   ├── app.{hash}.js  ← 业务代码（externals 排除框架）
+  ├── assets/        ← 后续新增的图片（src/assets/ 正常构建）
   └── index.html
 
-❌ dist/ 里没有 static-app/（构建不处理、不拷贝）
+❌ dist/ 里没有 static-app/（基线资源已在 App 内）
 
 开发时 index.html 中：
 <script src="/static-app/vendor.dll.js">
 dev server 需配置响应 /static-app/* 请求
+```
+
+#### 图片引用方式
+
+图片分为两类，引用方式不同：
+
+```
+基线图片（build:static 迁移到 static-app/images/ 的原始图片）：
+  - 已在 App 内，通过自定义协议加载
+  - 代码中用 STATIC_URL 引用：<img src={`${STATIC_URL}images/logo.png`} />
+
+后续新增图片（在 src/assets/ 中正常开发）：
+  - 在 src/assets/ 中正常 import 引用：import logo from '@/assets/new-banner.png'
+  - npm run build 正常打包到 dist/assets/ 带 hash
+  - 运行时从 OTA/CDN 加载相对路径：/assets/new-banner.abc123.png
+  - 不需要 STATIC_URL，不需要修改 index.html
+```
+
+```js
+// ★ 引用基线图片（build:static 迁移过的）：
+const STATIC_URL = document.querySelector('meta[name="app-resource"]')
+  ?.getAttribute('content') || '/static-app/'
+<img src={`${STATIC_URL}images/logo.png`} />
+// dev → /static-app/images/logo.png
+// build → local-resource://h5/static-app/images/logo.png
+
+// ★ 引用后续新增图片（仍在 src/assets/ 中）：
+import newIcon from '@/assets/new-icon.png'
+<img src={newIcon} />
+// dev → Vite HMR
+// build → /assets/new-icon.abc123.png
 ```
 
 #### 自定义协议与双模式构建
@@ -284,11 +318,8 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import fs from 'fs'
 
-// 自定义协议，由原生 App 拦截
-const APP_RESOURCE_BASE = 'local-resource://h5/'
-
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? APP_RESOURCE_BASE : '/',
+  base: '/',  // 保持相对路径，仅 static-app 手动使用自定义协议
 
   build: {
     rollupOptions: {
@@ -313,22 +344,46 @@ export default defineConfig(({ command }) => ({
 
 // Webpack 对应：
 // devServer: { static: ['static-app'] }
-// output.publicPath: process.env.NODE_ENV === 'production'
-//   ? 'local-resource://h5/'
-//   : '/'
 ```
+
+#### index.html 引用方式
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- ★ 通过 meta 标签注入 STATIC_URL，dev 和 build 自动切换 -->
+  <!-- dev:  /static-app/ -->
+  <!-- build: local-resource://h5/static-app/ -->
+  <meta name="app-resource" content="/static-app/">
+
+  <!-- ★ 只有 static-app/ 的引用使用自定义协议 -->
+  <script src="/static-app/vendor.dll.js"></script>
+  <link rel="stylesheet" href="/static-app/vendor.dll.css">
+</head>
+<body>
+  <div id="root"></div>
+  <!-- ★ 业务代码使用相对路径（Vite 自动注入，base: '/'） -->
+  <!-- 输出: <script type="module" src="/assets/app.abc123.js"></script> -->
+</body>
+</html>
+```
+
+> 注意：开发时 meta 和 script 都用 `/static-app/`（dev server 响应），发版时需根据环境替换为 `local-resource://h5/static-app/`。建议在 CI/CD 或构建脚本中自动完成替换，或使用 `env` 变量控制的 HTML 模板。
 
 #### 完整集成流程
 
 ```
 第 1 步：初始化（仅一次）
-  - npm run build:static → 生成 static-app/vendor.dll.js + 静态资源
+  - npm run build:static
+    → 打包框架依赖到 static-app/vendor.dll.js
+    → 迁移 src/assets/ 所有图片到 static-app/images/ 并删除原文件
   - static-app/ 整个目录交给 App 团队
   - App 打包到 assets/h5/static-app/
 
 第 2 步：日常开发
   - npm run dev → /static-app/xxx 由 dev server 响应
-  - 新图片放 src/assets/，import 引用
+  - 图片通过 STATIC_URL 常量引用（meta[name="app-resource"]）
   - 正常 HMR
 
 第 3 步：首次 H5 发版
@@ -339,8 +394,8 @@ export default defineConfig(({ command }) => ({
 第 4 步：后续 H5 热更新
   - npm run build → 新的 dist/（static-app/ 不参与）
   - 只上传 dist/ 到 OTA（static-app/ 已在 App 内不变）
-  - 新增图片在 src/assets/，正常打包到 dist/assets/
-  - 通过相对路径访问，不走 CDN
+  - 新增图片正常放入 src/assets/，import 引用，自动打包到 dist/assets/
+  - 基线图片仍通过 STATIC_URL 从 App 本地加载
 ```
 
 ---
@@ -358,7 +413,9 @@ export default defineConfig(({ command }) => ({
   - 配置业务构建的 externals（排除 react、react-dom 等框架依赖）
   - 配置双模式路径切换：dev `'/'` vs build `'local-resource://h5/'`
   - 配置 dev server 的中间件，挂载 `static-app/`（仅 dev，不进入 build）
-  - 更新 `index.html` 引用 `static-app/` 中的资源
+  - 更新 `index.html` 引用 `static-app/` 中的资源（vendor + meta 标签）
+  - 运行 `npm run build:static` → 打包框架依赖 + 将首次的 src/assets/ 图片迁移到 static-app/images/
+  - 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
   - **清理 package.json**：将 react、react-dom、UI 库等运行时依赖从 `dependencies` 移除，只保留 `@types/*` 在 `devDependencies`
 
 **第二阶段：按 Figma 设计替换页面（强制遵守 H5 内嵌约束）**
@@ -384,27 +441,30 @@ export default defineConfig(({ command }) => ({
 ```
 架构改造步骤：
 1. 技术栈评估 —— 识别当前项目构建工具和框架版本
-2. `npm run build:static` 脚本配置 —— 新增脚本，将框架依赖打包到 static-app/
+2. `npm run build:static` 脚本配置 —— 新增脚本，打包框架依赖到 static-app/ 并迁移图片
 3. externals 配置 —— 在业务构建中排除框架依赖
 4. 双模式路径配置 —— 设置 base：dev '/' → build 'local-resource://h5/'
-5. 静态资源迁移 —— 将基准图片从 src/assets 迁移到 static-app/images/
-6. Dev Server 配置 —— 添加 static-app/ 响应的中间件
-7. index.html 更新 —— script/src 路径指向 static-app/
+5. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
+6. Dev Server 配置 —— 添加 static-app/ 中间件（仅 dev）
+7. index.html 更新 —— script/src 指向 static-app/ + 添加 meta[name="app-resource"] 标签
 8. package.json 清理 —— 移除 react、react-dom 等运行时依赖，保留 @types/* 在 devDependencies
 9. 验证：
+   - npm run build:static 正常执行（vendor + 图片迁移）
    - npm run build 产物中不包含框架代码
    - npm run build 产物使用 local-resource://h5/ 协议
    - dist/ 中无 static-app/（在项目根目录，不在 public/ 内）
    - npm run dev 可正常启动并加载 static-app/ 资源
-   - 页面功能不受影响（业务代码无改动）
+   - 图片在 dev 环境通过 STATIC_URL 正常显示
+   - 页面功能不受影响
    - npm install 后 node_modules 中无 react/react-dom（但 @types 存在）
 
 改造范围约束：
-   ❌ 不改动任何业务代码（src/ 下的组件、页面、逻辑）
+   ❌ 不改动业务逻辑（组件、页面交互、接口请求等）
    ✅ 只改动构建配置（vite.config.js / webpack.config.js）
-   ✅ 只改动 index.html（资源路径）
+   ✅ 只改动 index.html（资源路径 + meta 标签）
    ✅ 只新增 static-app/ 目录（与 src/ 同级，不在 public/ 内）
-   ✅ 只迁移基准图片（从 src/assets 到 static-app/images/）
+   ✅ 只迁移图片文件（src/assets → static-app/images/）
+   ✅ 只修改图片引用方式（import → STATIC_URL 路径）
    ✅ 只修改 package.json（移除运行时依赖）
 ```
 

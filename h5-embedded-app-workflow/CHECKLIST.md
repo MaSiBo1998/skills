@@ -145,7 +145,8 @@
 - **方法**: 检查构建配置文件和构建产物
 - **检查项**:
   - `static-app/` 目录是否存在（与 `src/` 同级，不在 `public/` 内）
-  - 构建配置使用自定义协议 `local-resource://h5/`（非 file://）
+  - 构建配置使用 `base: '/'`（业务代码和 assets 走相对路径）
+  - `index.html` 中 `static-app/` 引用使用 `local-resource://h5/` 协议（非 `file://`）
   - DLL 构建配置是否正确
   - externals 配置是否正确（业务构建排除框架依赖）
   - dev server 是否配置了 static-app/ 的中间件（仅 dev，不进 build）
@@ -153,6 +154,9 @@
   - `npm run build` 产物中无 static-app/ 内容
   - `npm run dev` 可正常启动并加载 static-app/ 资源
   - `package.json` 中已移除 react、react-dom 等运行时依赖
+  - `npm run build:static` 能正常执行（打包 vendor + 迁移图片）
+  - `src/assets/` 中已无图片（已迁移到 static-app/images/）
+  - 代码中使用 `STATIC_URL` 路径引用图片（非 `import`）
 - **失败判定**: 架构配置不完整或双模式路径未正确切换
 
 ---

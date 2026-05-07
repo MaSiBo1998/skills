@@ -94,7 +94,7 @@ h5-project/
 ├── static-app/          ★ 基线依赖（App 打包一次，永久锁定）
 │   ├── vendor.dll.js      ← React + ReactDOM + UI 库
 │   └── images/            ← 基准图片
-├── src/assets/           ← 项目新增图片（构建时正常打包到 dist/）
+├── src/                   ← 业务源码（含 assets/ 用于后续新增图片）
 ├── dist/                 ← 构建产物（不含 static-app/）
 └── vite.config.js        ← 双模式路径配置
 ```
