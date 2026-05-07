@@ -103,7 +103,7 @@ h5-project/
 |------|----------|------|
 | `npm run dev` | `/static-app/xxx` | 本地开发，dev server 响应 |
 | `npm run build` | `file:///android_asset/h5/` | 生产构建，App 本地加载 |
-| `npm run build:dll` | 生成 static-app/ | 框架依赖打包，仅首次/升级 |
+| `npm run build:static` | 生成 static-app/ | 框架依赖打包，仅首次/升级 |
 
 ### 接口文档导入优先级
 

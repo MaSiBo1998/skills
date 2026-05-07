@@ -252,40 +252,77 @@ npm run build 产出 dist/：
 dev server 需配置响应 /static-app/* 请求
 ```
 
-#### Dev Server 配置参考
+#### 自定义协议与双模式构建
+
+```
+生产环境使用自定义协议 local-resource://h5/，由原生 App 拦截并映射到内部资源文件。
+
+工作原理：
+┌────────────────────────────────────────────────────────────┐
+│ H5 构建产物 index.html：                                   │
+│ <script src="local-resource://h5/static-app/vendor.dll.js">│
+│                                                            │
+│ 原生 App WebView 拦截：                                     │
+│ Android: WebViewClient.shouldInterceptRequest()            │
+│ iOS: WKURLSchemeHandler                                    │
+│                                                            │
+│ App 将路径映射：                                            │
+│ local-resource://h5/static-app/vendor.dll.js               │
+│               ↓                                            │
+│ 读取内部资源: assets/h5/static-app/vendor.dll.js           │
+│                                                            │
+│ 优势：比 file:// 更安全（无 CORS 限制），                   │
+│       App 可加入缓存、离线回退等逻辑                       │
+└────────────────────────────────────────────────────────────┘
+```
+
+#### 构建配置参考
 
 ```js
-// Vite 示例
+// Vite 示例 —— vite.config.js
 import { defineConfig } from 'vite'
 import path from 'path'
+import fs from 'fs'
 
-export default defineConfig({
-  base: process.env.NODE_ENV === 'production'
-    ? 'file:///android_asset/h5/'
-    : '/',
+// 自定义协议，由原生 App 拦截
+const APP_RESOURCE_BASE = 'local-resource://h5/'
+
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? APP_RESOURCE_BASE : '/',
+
   build: {
     rollupOptions: {
-      external: ['react', 'react-dom'],
-    }
+      external: ['react', 'react-dom', 'antd-mobile'],
+    },
+    outDir: 'dist',
   },
+
   configureServer(server) {
+    // 仅 dev 时提供 static-app/ 访问，不进入 build 产物
     server.middlewares.use('/static-app', (req, res, next) => {
-      const filePath = path.join(__dirname, 'static-app',
+      const filePath = path.join(process.cwd(), 'static-app',
         req.url.replace('/static-app/', ''))
-      // 读取并返回文件
+      if (fs.existsSync(filePath)) {
+        res.end(fs.readFileSync(filePath))
+      } else {
+        next()
+      }
     })
   }
-})
+}))
 
 // Webpack 对应：
 // devServer: { static: ['static-app'] }
+// output.publicPath: process.env.NODE_ENV === 'production'
+//   ? 'local-resource://h5/'
+//   : '/'
 ```
 
 #### 完整集成流程
 
 ```
 第 1 步：初始化（仅一次）
-  - npm run build:dll → 生成 static-app/vendor.dll.js
+  - npm run build:static → 生成 static-app/vendor.dll.js + 静态资源
   - static-app/ 整个目录交给 App 团队
   - App 打包到 assets/h5/static-app/
 
@@ -315,13 +352,14 @@ export default defineConfig({
 **第一阶段：复制基准项目并建立静态资源架构**
 - 使用 `cp -r` 或 `rsync` 完整复制基准项目到新目录（如 `新项目名/`）
 - 更新项目名称、包名等基础配置
-- 检查并建立 static-app/ 目录和 DLL + externals 构建架构：
-  - 如果已有 DLL 配置，记录 vendor 版本，新项目复用
-  - 如果没有，新增 DLL 构建配置，输出 static-app/vendor.dll.js
-  - 配置业务构建的 externals
-  - 配置双模式路径切换（dev '/' vs build 'file:///android_asset/h5/'）
-  - 配置 dev server 挂载 static-app/
-  - 更新 index.html 引用 static-app/ 路径
+- **检查并建立 static-app/ + DLL + externals + 自定义协议架构**：
+  - 创建 `static-app/` 目录（与 `src/` 同级，**不在** `public/` 内）
+  - 配置 `npm run build:static` 脚本，将框架依赖打包到 static-app/vendor.dll.js
+  - 配置业务构建的 externals（排除 react、react-dom 等框架依赖）
+  - 配置双模式路径切换：dev `'/'` vs build `'local-resource://h5/'`
+  - 配置 dev server 的中间件，挂载 `static-app/`（仅 dev，不进入 build）
+  - 更新 `index.html` 引用 `static-app/` 中的资源
+  - **清理 package.json**：将 react、react-dom、UI 库等运行时依赖从 `dependencies` 移除，只保留 `@types/*` 在 `devDependencies`
 
 **第二阶段：按 Figma 设计替换页面（强制遵守 H5 内嵌约束）**
 - 对照设计分析报告，逐页面/逐组件修改
@@ -346,24 +384,28 @@ export default defineConfig({
 ```
 架构改造步骤：
 1. 技术栈评估 —— 识别当前项目构建工具和框架版本
-2. DLL 构建配置 —— 新增 build:dll 脚本，将框架依赖打包到 static-app/
+2. `npm run build:static` 脚本配置 —— 新增脚本，将框架依赖打包到 static-app/
 3. externals 配置 —— 在业务构建中排除框架依赖
-4. 双模式路径配置 —— 设置 base 路径在 dev/build 间切换
+4. 双模式路径配置 —— 设置 base：dev '/' → build 'local-resource://h5/'
 5. 静态资源迁移 —— 将基准图片从 src/assets 迁移到 static-app/images/
 6. Dev Server 配置 —— 添加 static-app/ 响应的中间件
 7. index.html 更新 —— script/src 路径指向 static-app/
-8. 验证：
+8. package.json 清理 —— 移除 react、react-dom 等运行时依赖，保留 @types/* 在 devDependencies
+9. 验证：
    - npm run build 产物中不包含框架代码
+   - npm run build 产物使用 local-resource://h5/ 协议
+   - dist/ 中无 static-app/（在项目根目录，不在 public/ 内）
    - npm run dev 可正常启动并加载 static-app/ 资源
    - 页面功能不受影响（业务代码无改动）
-   - 构建产物可拷贝到 App 的 assets/h5/ 正常运行
+   - npm install 后 node_modules 中无 react/react-dom（但 @types 存在）
 
 改造范围约束：
    ❌ 不改动任何业务代码（src/ 下的组件、页面、逻辑）
    ✅ 只改动构建配置（vite.config.js / webpack.config.js）
    ✅ 只改动 index.html（资源路径）
-   ✅ 只新增 static-app/ 目录（基线依赖）
+   ✅ 只新增 static-app/ 目录（与 src/ 同级，不在 public/ 内）
    ✅ 只迁移基准图片（从 src/assets 到 static-app/images/）
+   ✅ 只修改 package.json（移除运行时依赖）
 ```
 
 ---
@@ -420,6 +462,8 @@ export default defineConfig({
 - 在接口文档和 Figma 已提供后，不要无必要地反复询问用户确认
 - 不要跳过测试说明和验收清单
 - 场景 C 不要修改任何业务逻辑代码
+- static-app/ 目录必须与 src/ 同级，不在 public/ 目录内
+- 构建产物必须使用自定义协议 local-resource://h5/，不可使用 file:// 或 CDN 路径
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
 
 ---
@@ -434,6 +478,8 @@ export default defineConfig({
 - 基于基准项目完成新项目开发并模拟测试验收
 - 把这个项目改成 static-app 双模式构建架构
 - 帮我配置 DLL + externals，让 H5 资源从 App 本地加载
+- 把项目改成 local-resource 自定义协议加载
+- 清理 package.json，把框架依赖从项目中移出去
 
 ---
 
@@ -446,6 +492,8 @@ export default defineConfig({
 - 尽量复用基准项目的旧逻辑和旧组件，而不是盲目重写（场景 A/B）
 - 页面视觉和交互尽量贴近 Figma 设计稿（场景 A/B）
 - 成功建立 static-app/ 基线依赖架构（所有场景）
+- 构建产物使用自定义协议 local-resource://h5/（所有场景）
 - 构建产物中业务代码不包含框架依赖（所有场景）
+- package.json 已移除 react、react-dom 等运行时依赖（所有场景）
 - 14 项测试 CheckList 逐项执行并输出结果
 - 交付一份清晰的测试和验收说明

@@ -144,13 +144,15 @@
 
 - **方法**: 检查构建配置文件和构建产物
 - **检查项**:
-  - `static-app/` 目录是否存在，内容是否完整
+  - `static-app/` 目录是否存在（与 `src/` 同级，不在 `public/` 内）
+  - 构建配置使用自定义协议 `local-resource://h5/`（非 file://）
   - DLL 构建配置是否正确
   - externals 配置是否正确（业务构建排除框架依赖）
-  - 双模式路径切换是否实现（dev '/' vs build 'file:///android_asset/h5/'）
-  - dev server 是否配置了 static-app/ 的访问
+  - dev server 是否配置了 static-app/ 的中间件（仅 dev，不进 build）
   - `npm run build` 产物中不包含框架代码
+  - `npm run build` 产物中无 static-app/ 内容
   - `npm run dev` 可正常启动并加载 static-app/ 资源
+  - `package.json` 中已移除 react、react-dom 等运行时依赖
 - **失败判定**: 架构配置不完整或双模式路径未正确切换
 
 ---
