@@ -96,9 +96,38 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 
 **核心原则：设计分析必须结合基准项目，不能脱离基准项目只看 Figma。**
 
-使用 WebFetch 读取 Figma 链接，同时分析基准项目现有组件体系，联合产出设计分析报告。
+使用 Figma REST API（通过 curl + X-Figma-Token）获取设计文件信息，同时分析基准项目现有组件体系，联合产出设计分析报告。
 
-#### Figma 侧分析
+#### Figma API 调用方式
+
+```
+1. 从用户提供的 Figma URL 提取 file_key：
+   https://www.figma.com/design/{file_key}/{title}?node-id={node_id}
+   例如：https://www.figma.com/design/riUDX8S403CFE8e2dadnhh/Untitled?node-id=0-1
+   file_key = riUDX8S403CFE8e2dadnhh
+   node_id = 0-1
+
+2. 调用 Figma API 获取完整文件结构：
+   curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+     "https://api.figma.com/v1/files/{file_key}"
+
+3. 如果指定了 node-id，获取特定节点：
+   curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+     "https://api.figma.com/v1/files/{file_key}/nodes?ids={node_id}"
+
+4. 关键返回字段说明：
+   - document.children → 页面结构树
+   - node.type → CANVAS/FRAME/矩形/文本等
+   - node.absoluteBoundingBox → 位置和尺寸
+   - node.fills[].color → 填充色（r/g/b 取值范围 0-1）
+   - node.style → 文本样式（字体、字号、字重）
+   - node.characters → 文本内容
+   - node.effects → 阴影/模糊等效果
+   - node.children → 子节点（FRAME 包含的组件）
+     (在 0-1 范围内转换为 0-255：r*255, g*255, b*255)
+```
+
+#### Figma 侧分析内容
 - 页面布局结构树（内容区域分区、弹窗层级、页面切换关系）
 - 每个区块的组件类型（列表 / 表单 / 卡片 / 按钮 / 弹窗）
 - 色值、字号、间距、圆角等样式 token
