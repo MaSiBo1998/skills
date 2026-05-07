@@ -92,18 +92,21 @@
 ```
 h5-project/
 ├── static-app/          ★ 基线依赖（App 打包一次，永久锁定）
-│   ├── vendor.dll.js      ← React + ReactDOM + UI 库
+│   ├── vendor/            ← 所有框架 JS 文件（script 标签引入）
+│   │   ├── react.production.min.js
+│   │   ├── antd-mobile.js
+│   │   └── ...
 │   └── images/            ← 基准图片
 ├── src/                   ← 业务源码（含 assets/ 用于后续新增图片）
 ├── dist/                 ← 构建产物（不含 static-app/）
-└── vite.config.js        ← 双模式路径配置
+└── vite.config.js        ← external + externalGlobals 配置
 ```
 
-| 命令 | 资源路径 | 用途 |
-|------|----------|------|
-| `npm run dev` | `/static-app/xxx` | 本地开发，dev server 响应 |
-| `npm run build` | `file:///android_asset/h5/` | 生产构建，App 本地加载 |
-| `npm run build:static` | 生成 static-app/ | 框架依赖打包，仅首次/升级 |
+| 命令 | 用途 |
+|------|------|
+| `npm run dev` | 本地开发，Vite 正常启动，框架从 node_modules 加载 |
+| `npm run build:static` | 生成 static-app/vendor/ + images/，仅首次/升级基线库 |
+| `npm run build` | 生产构建，自动注入 vendor script 标签，排除框架代码 |
 
 ### 接口文档导入优先级
 

@@ -1,6 +1,6 @@
 ---
 name: h5-embedded-app-workflow
-description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造现有项目为静态资源本地加载架构。自动完成设计图分析、接口文档解析、代码复现、双模式构建配置与全链路测试验收。当用户要派生新项目或改造构建架构时使用。
+description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造现有项目为静态资源本地加载架构。自动完成设计图分析、接口文档解析、代码复现、Vite external + script 标签加载配置与全链路测试验收。当用户要派生新项目或改造构建架构时使用。
 ---
 
 # H5 Embedded App Workflow
@@ -10,7 +10,7 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 它处理三类场景：
 - **场景 A — 完整复现**：基于基准项目 + 新接口文档 + 新 Figma 设计，自动复现一个全新的 H5 内嵌项目
 - **场景 B — 直接修改**：在基准项目上直接修改页面和接口，不做项目复制
-- **场景 C — 架构改造**：不改业务逻辑，只将项目改造为 DLL + externals 双模式构建架构（`static-app/` 基线依赖锁定）
+- **场景 C — 架构改造**：不改业务逻辑，将项目改造为 script 标签加载 + Vite external 架构（`static-app/vendor/` 框架 JS 文件本地加载）
 
 ---
 
@@ -22,7 +22,7 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 - 导入新的接口文档到新项目
 - 需要根据 Figma 设计稿进行像素级还原
 - 需要 Claude Code 自动完成开发并模拟测试验收
-- **想把项目改成静态资源本地加载架构（static-app/ + DLL + externals 双模式）**
+- **想把项目改成静态资源本地加载架构（static-app/vendor/ + script 标签加载）**
 - 用户已提供接口文档文件和 Figma 文档，希望直接完成新项目复现与开发任务
 
 即使用户说得比较口语化，也应触发，例如：
@@ -59,8 +59,8 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 │ 用户说"在这个项目上直接改" / "就在这个上面继续改"            │
 │   └→ 场景 B：直接修改                                      │
 ├─────────────────────────────────────────────────────────────┤
-│ 用户说"改成静态资源本地加载" / "改成 DLL 构建架构"          │
-│  / "配置 static-app 双模式"                                │
+│ 用户说"改成静态资源本地加载" / "改成 script 标签 + external 架构"│
+│  / "配置 static-app vendor"                                    │
 │   └→ 场景 C：架构改造                                      │
 ├─────────────────────────────────────────────────────────────┤
 │ 用户未明确说明：                                            │
@@ -171,19 +171,24 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 8. 确保 touch 事件和 click 事件都能正常工作（移动端 300ms 延迟问题）
 ```
 
-#### 加载性能约束
+#### 加载性能约束与分包策略
 
 ```
+加载性能：
 1. 首屏加载时间目标 < 1.5s（基于 3G 网络模拟）
-2. 代码分割 —— 按路由拆分页面，非首屏页面懒加载
-3. 资源压缩 —— 图片压缩、CSS/JS 压缩、Gzip/Brotli
-4. 骨架屏 —— 首屏内容加载完成前显示骨架屏，避免白屏
-5. 渐进式加载 —— 优先加载首屏可视区域内容，非首屏延迟加载
-6. 避免阻塞渲染的资源 —— CSS 内联关键样式，JS 使用 defer/async
-7. 图片懒加载 —— 首屏以下图片添加 loading="lazy"
-8. 缓存策略 —— 静态资源添加 hash 指纹，配置强缓存
-9. 减少 HTTP 请求 —— 合并 CSS/JS 文件，使用雪碧图或 iconfont
-10. 确保用户感知为原生体验 —— 无白屏闪烁、无跳转卡顿、无资源加载延迟感知
+2. 路由懒加载 —— 使用 React.lazy() + import() 按路由分包，非首屏路由延迟加载
+3. 分包策略 —— manualChunks 将 node_modules、公共组件、工具函数拆分为独立 chunk：
+   - vendor-{name}.js → 每个 npm 包单独一个 chunk（缓存友好）
+   - components.js → 共享 UI 组件
+   - utils.js → 工具函数 / hooks / API 层
+4. 资源压缩 —— 图片压缩、CSS/JS 压缩、Gzip/Brotli
+5. 骨架屏 —— 首屏内容加载完成前显示骨架屏，避免白屏
+6. 渐进式加载 —— 优先加载首屏可视区域内容，非首屏延迟加载
+7. 避免阻塞渲染的资源 —— CSS 内联关键样式，JS 使用 defer/async
+8. 图片懒加载 —— 首屏以下图片添加 loading="lazy"
+9. 缓存策略 —— 静态资源添加 hash 指纹，配置强缓存
+10. 减少 HTTP 请求 —— 合并 CSS/JS 文件，使用雪碧图或 iconfont
+11. 确保用户感知为原生体验 —— 无白屏闪烁、无跳转卡顿、无资源加载延迟感知
 ```
 
 ---
@@ -215,44 +220,54 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 
 ---
 
-### Step 3. 静态资源本地加载架构 —— 基线依赖锁定 + 双模式构建（所有场景执行）
+### Step 3. 静态资源本地加载架构 —— 框架 JS 文件直接引用（所有场景执行）
 
 **这是所有场景都必须检查/建立的基线架构。**
 
 ```
-核心理念：基线依赖放在 src/ 同级的 static-app/ 目录，构建时不打包进 dist/，
-直接交给 App 团队打包到 APK/IPA。开发时 dev server 单独挂载 static-app/ 路径。
+核心理念：每个框架库使用独立的 JS 文件（UMD 拷贝或 esbuild 打包的 IIFE），
+放在 static-app/vendor/ 目录，通过 index.html 的 <script> 标签直接加载。
+构建时不打包进 dist/，直接交给 App 团队打包到 APK/IPA。
 
 项目目录结构：
 h5-project/
-├── static-app/          ★ 基线依赖（npm run build:static 生成，仅一次）
-│   ├── vendor.dll.js      ← React + ReactDOM + UI 库
-│   ├── vendor.dll.css     ← UI 库样式
-│   └── images/            ← 首次项目图片（build:static 从 src/assets 迁移至此，锁定到 App）
+├── vendor-src/             ★ 预构建依赖库（你准备的框架 JS 文件，提交到 Git）
+├── static-app/             ★ 基线依赖（npm run build:static 从 vendor-src/ 拷贝）
+│   ├── vendor/             ← 有 UMD 的依赖库（从 node_modules 自动拷贝）
+│   │   ├── react.production.min.js     ← React UMD
+│   │   ├── react-dom.production.min.js ← ReactDOM UMD
+│   │   ├── react-router-dom.js         ← esbuild 打包
+│   │   ├── antd-mobile.js              ← esbuild 打包（含 CSS-in-JS）
+│   │   ├── antd-mobile-icons.js        ← esbuild 打包
+│   │   ├── redux-toolkit.js            ← esbuild 打包
+│   │   ├── react-redux.js              ← esbuild 打包
+│   │   ├── crypto-js.js                ← 有 UMD
+│   │   ├── jsencrypt.min.js            ← 有 UMD
+│   │   └── fingerprint.min.js          ← 有 UMD
+│   └── images/            ← 首次项目图片（build:static 从 src/assets 迁移至此）
 │       ├── logo.png
 │       └── ...
 ├── src/                    ★ 业务源码
 │   ├── assets/             ← 后续迭代新增的图片（正常打包到 dist/assets/）
 │   └── ...
 ├── index.html
-└── vite.config.js / webpack.config.js
+└── vite.config.js
 
 构建行为：
-npm run build:static（仅首次/升级基线库时执行）：
-  → 打包框架依赖到 static-app/vendor.dll.js
-  → 将首次的 src/assets/ 图片迁移到 static-app/images/ 并删除原文件
-  → 这些基线图片锁定到 App 中，后续永不更新
+npm run build:static（首次/升级依赖时执行）：
+  → 从 vendor-src/ 拷贝所有预构建依赖库到 static-app/vendor/
+  → 迁移 src/assets/ 图片到 static-app/images/ 并删除原文件
+  → 所有文件锁定到 App 中，后续永不更新
 
 npm run build（每次 H5 更新时执行）：
-  ├── app.{hash}.js  ← 业务代码（externals 排除框架）
+  ├── app.{hash}.js  ← 业务代码（external 排除框架）
   ├── assets/        ← 后续新增的图片（src/assets/ 正常构建）
   └── index.html
 
 ❌ dist/ 里没有 static-app/（基线资源已在 App 内）
 
-开发时 index.html 中：
-<script src="/static-app/vendor.dll.js">
-dev server 需配置响应 /static-app/* 请求
+开发时框架从 node_modules 正常加载，无 script 标签。
+dev server 需配置 static-app/images/ 路径访问（供基线图片使用）。
 ```
 
 #### 图片引用方式
@@ -268,7 +283,6 @@ dev server 需配置响应 /static-app/* 请求
   - 在 src/assets/ 中正常 import 引用：import logo from '@/assets/new-banner.png'
   - npm run build 正常打包到 dist/assets/ 带 hash
   - 运行时从 OTA/CDN 加载相对路径：/assets/new-banner.abc123.png
-  - 不需要 STATIC_URL，不需要修改 index.html
 ```
 
 ```js
@@ -292,260 +306,210 @@ import newIcon from '@/assets/new-icon.png'
 生产环境使用自定义协议 local-resource://h5/，由原生 App 拦截并映射到内部资源文件。
 
 工作原理：
-┌────────────────────────────────────────────────────────────┐
-│ H5 构建产物 index.html：                                   │
-│ <script src="local-resource://h5/static-app/vendor.dll.js">│
-│                                                            │
-│ 原生 App WebView 拦截：                                     │
-│ Android: WebViewClient.shouldInterceptRequest()            │
-│ iOS: WKURLSchemeHandler                                    │
-│                                                            │
-│ App 将路径映射：                                            │
-│ local-resource://h5/static-app/vendor.dll.js               │
-│               ↓                                            │
-│ 读取内部资源: assets/h5/static-app/vendor.dll.js           │
-│                                                            │
-│ 优势：比 file:// 更安全（无 CORS 限制），                   │
-│       App 可加入缓存、离线回退等逻辑                       │
-└────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ H5 构建产物 index.html：                                     │
+│ <script src="local-resource://h5/static-app/vendor/          │
+│   react.production.min.js"></script>                         │
+│                                                              │
+│ 原生 App WebView 拦截：                                       │
+│ Android: WebViewClient.shouldInterceptRequest()              │
+│ iOS: WKURLSchemeHandler                                      │
+│                                                              │
+│ App 将路径映射：                                              │
+│ local-resource://h5/static-app/vendor/react.production.min.js│
+│               ↓                                              │
+│ 读取内部资源: assets/h5/static-app/vendor/react.production.min.js│
+│                                                              │
+│ 优势：比 file:// 更安全（无 CORS 限制），                      │
+│       App 可加入缓存、离线回退等逻辑                          │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-#### 构建配置参考
+#### 构建与引用方式
 
-**1. vite.config.js**
+**1. `npm run build:static` 脚本 — `scripts/build-static.mjs`**
+
+有 UMD 构建的依赖库从 node_modules 拷贝，无 UMD 的由 Vite 正常打包：
 
 ```js
-// Vite 示例 —— vite.config.js
-import { defineConfig } from 'vite'
-import path from 'path'
+// scripts/build-static.mjs
 import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-export default defineConfig(({ command }) => ({
-  base: '/',  // 保持相对路径，仅 static-app 手动使用自定义协议
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const ROOT = path.resolve(__dirname, '..')
+const VENDOR_DIR = path.resolve(ROOT, 'static-app/vendor')
 
-  build: {
-    rollupOptions: {
-      external: ['react', 'react-dom', 'antd-mobile'],
-    },
-    outDir: 'dist',
-  },
+fs.rmSync(VENDOR_DIR, { recursive: true, force: true })
+fs.mkdirSync(VENDOR_DIR, { recursive: true })
 
-  configureServer(server) {
-    // 仅 dev 时提供 static-app/ 访问，不进入 build 产物
-    server.middlewares.use('/static-app', (req, res, next) => {
-      const filePath = path.join(process.cwd(), 'static-app',
-        req.url.replace('/static-app/', ''))
-      if (fs.existsSync(filePath)) {
-        res.end(fs.readFileSync(filePath))
-      } else {
-        next()
-      }
-    })
-  }
-}))
-
-// Webpack 对应：
-// devServer: { static: ['static-app'] }
-```
-
-**2. transform 插件 — `scripts/vite-plugin-dll-globals.mjs`**
-
-插件作用：将框架依赖的 `import` 语句替换为 `window.xxx` 全局变量引用。
-
-关键要求：
-- **副作用导入（`import 'xxx''）不能被注释掉**，否则 CSS-in-JS 等初始化逻辑丢失。应替换为 `void window.xxx` 确保 DLL 模块已加载
-- **JSX 运行时子模块（`react/jsx-dev-runtime`、`react/jsx-runtime`）和 `react-dom/client` 必须排除**，不经过 DLL 转换，保持真实 import。因为：
-  - 这些子模块被 `@vitejs/plugin-react` 自动注入，且需要在 node_modules 中正常解析
-  - 放在 DLL 中通过 window 全局传递会因依赖加载顺序等问题失败
-  - 它们已被列入 `devDependencies`，`npm install` 后可以直接引用
-
-```js
-// scripts/vite-plugin-dll-globals.mjs
-
-// 不经过 DLL 转换、保持真实 import 的子模块
-const KEEP_AS_REAL_IMPORTS = [
-  'react/jsx-dev-runtime',
-  'react/jsx-runtime',
-  'react-dom/client',
-]
-
-// DLL 模块 → window 全局变量映射表
-const DLL_GLOBALS = {
-  'react': 'React',
-  'react-dom': 'ReactDOM',
-  'react-router-dom': 'ReactRouterDOM',
-  'antd-mobile': 'AntdMobile',
-  'antd-mobile-icons': 'AntdMobileIcons',
-  '@reduxjs/toolkit': 'ReduxToolkit',
-  'react-redux': 'ReactRedux',
-  'crypto-js': 'CryptoJS',
-  'jsencrypt': 'JSEncrypt',
-  '@fingerprintjs/fingerprintjs': 'FingerprintJS',
+// ---- 拷贝有 UMD 构建的依赖库 ----
+const UMD_FILES = {
+  'node_modules/react/umd/react.production.min.js': 'react.production.min.js',
+  'node_modules/react-dom/umd/react-dom.production.min.js': 'react-dom.production.min.js',
+  'node_modules/crypto-js/crypto-js.js': 'crypto-js.js',
+  'node_modules/jsencrypt/bin/jsencrypt.min.js': 'jsencrypt.min.js',
+  'node_modules/@fingerprintjs/fingerprintjs/dist/fp.min.js': 'fingerprint.min.js',
+}
+for (const [src, dest] of Object.entries(UMD_FILES)) {
+  fs.copyFileSync(path.resolve(ROOT, src), path.join(VENDOR_DIR, dest))
 }
 
-function getDllGlobal(moduleName) {
-  // ★ JSX 运行时子模块不转换，保持真实 import
-  if (KEEP_AS_REAL_IMPORTS.includes(moduleName)) return null
-  for (const [dep, globalName] of Object.entries(DLL_GLOBALS)) {
-    if (moduleName === dep || moduleName.startsWith(dep + '/')) {
-      return globalName
-    }
-  }
-  return null
+// ---- 迁移首次图片 ----
+const IMG_SRC = path.resolve(ROOT, 'src/assets')
+const IMG_DEST = path.resolve(ROOT, 'static-app/images')
+if (fs.existsSync(IMG_SRC)) {
+  fs.cpSync(IMG_SRC, IMG_DEST, { recursive: true })
+  fs.rmSync(IMG_SRC, { recursive: true, force: true })
 }
-
-function replaceDllImports(code) {
-  const IMPORT_RE = /import\s+(?:(?:(?!type)(\w+)\s*,?\s*)?(?:\{([^}]*)\})|(?:(?!type)\*\s+as\s+(\w+)))?\s+from\s+['"]([^'"]+)['"]|import\s+(?!type)['"]([^'"]+)['"]/g
-
-  return code.replace(IMPORT_RE, (match, defaultImport, namedImports, namespace, fromModule, sideEffectModule) => {
-    const moduleName = fromModule || sideEffectModule
-    if (!moduleName) return match
-
-    const globalName = getDllGlobal(moduleName)
-    if (!globalName) return match
-    if (/^import\s+type\b/.test(match)) return match
-
-    // ★ 关键：副作用导入必须保留初始化代码
-    if (sideEffectModule) {
-      return `void window.${globalName} /* side-effect: ${moduleName} */`
-    }
-
-    if (defaultImport) {
-      let stmts = `const ${defaultImport} = window.${globalName}`
-      if (namedImports) {
-        const cleaned = namedImports.replace(/\btype\s+/g, '').trim()
-        if (cleaned) stmts += `; const { ${cleaned} } = window.${globalName}`
-      }
-      return stmts
-    }
-
-    if (namespace) return `const ${namespace} = window.${globalName}`
-    if (namedImports) {
-      const cleaned = namedImports.replace(/\btype\s+/g, '').trim()
-      if (!cleaned) return match
-      return `const { ${cleaned} } = window.${globalName}`
-    }
-    return match
-  })
-}
-
-export default function dllGlobalsPlugin() {
-  return {
-    name: 'dll-globals',
-    enforce: 'post',
-    transform(code, id) {
-      const result = replaceDllImports(code)
-      return result !== code ? { code: result, map: null } : null
-    },
-  }
-}
+console.log('✅ build:static 完成')
 ```
 
-**3. DLL 入口 — `scripts/vendor-entry.js`**
+> 无 UMD 构建的库（antd-mobile、react-router-dom、@reduxjs/toolkit 等）由 Vite 正常打包到 `dist/assets/`，不走 vendor 本地加载。
 
-关键要求：
-- **必须包含 `import 'antd-mobile/es/global'`** —— antd-mobile 的 CSS-in-JS 等副作用初始化
-- 所有依赖挂到 `window.xxx` 全局变量
-- **不要处理 `react/jsx-dev-runtime`、`react/jsx-runtime`、`react-dom/client`**——这些是真实 import，Vite 从 node_modules 解析
-
-```js
-// scripts/vendor-entry.js
-import React from 'react'
-import ReactDOM from 'react-dom'
-import * as ReactRouterDOM from 'react-router-dom'
-import * as AntdMobile from 'antd-mobile'
-import * as AntdMobileIcons from 'antd-mobile-icons'
-// ... 其他 DLL_GLOBALS 中的依赖
-
-// ★ antd-mobile 全局初始化副作用（丢失会导致 CSS-in-JS 不生效）
-import 'antd-mobile/es/global'
-
-// 挂到 window
-window.React = React
-window.ReactDOM = ReactDOM
-window.ReactRouterDOM = ReactRouterDOM
-window.AntdMobile = AntdMobile
-// ... 其他 globals
-```
-
-配置 `vite.config.js` 引入该插件，注意 `external` 要**精确列出主模块**，不要用正则全覆盖 `react/.*`（否则 JSX 运行时子模块也会被外部化）：
-
-```js
-// vite.config.js 中引用
-import react from '@vitejs/plugin-react'
-import dllGlobals from './scripts/vite-plugin-dll-globals.mjs'
-
-export default defineConfig({
-  plugins: [
-    dllGlobals(),
-    react(),
-  ],
-  build: {
-    rollupOptions: {
-      // ★ 只外部化主模块，react/jsx-dev-runtime 等子模块保持真实 import
-      external: [
-        'react',
-        'react-dom',
-        'react-router-dom',
-        /^antd-mobile(\/.*)?$/,
-        /^antd-mobile-icons(\/.*)?$/,
-        /^@reduxjs\/toolkit(\/.*)?$/,
-        /^react-redux(\/.*)?$/,
-        'crypto-js',
-        'jsencrypt',
-        '@fingerprintjs/fingerprintjs',
-      ],
-    },
-  },
-})
-```
-
-> 为什么 JSX 运行时子模块不走 DLL：`@vitejs/plugin-react` 会自动向每个 JSX 文件注入 `import { jsxDEV } from 'react/jsx-dev-runtime'`。这个子模块由 React 内部管理，通过 window 全局传递会因加载顺序等问题不可靠。`react` 和 `react-dom` 应保留在 `devDependencies` 中（不会被打包进 dist，因为做了 external），JSX 运行时子模块直接从 `node_modules` 解析。
-
-#### index.html 引用方式
+**2. index.html — 干净简洁，不包含框架 script 标签**
 
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <!-- ★ 通过 meta 标签注入 STATIC_URL，dev 和 build 自动切换 -->
-  <!-- dev:  /static-app/ -->
-  <!-- build: local-resource://h5/static-app/ -->
   <meta name="app-resource" content="/static-app/">
-
-  <!-- ★ 只有 static-app/ 的引用使用自定义协议 -->
-  <script src="/static-app/vendor.dll.js"></script>
-  <link rel="stylesheet" href="/static-app/vendor.dll.css">
+  <!-- ★ 框架 JS 在 build 时由 Vite 插件自动注入，dev 时用 node_modules -->
 </head>
 <body>
   <div id="root"></div>
-  <!-- ★ 业务代码使用相对路径（Vite 自动注入，base: '/'） -->
-  <!-- 输出: <script type="module" src="/assets/app.abc123.js"></script> -->
 </body>
 </html>
 ```
 
-> 注意：开发时 meta 和 script 都用 `/static-app/`（dev server 响应），发版时需根据环境替换为 `local-resource://h5/static-app/`。建议在 CI/CD 或构建脚本中自动完成替换，或使用 `env` 变量控制的 HTML 模板。
+> 框架 script 标签（`<script src="local-resource://h5/static-app/vendor/xxx.js">`）由 Vite 插件在 `npm run build` 时自动注入，`npm run dev` 时不存在，dev 模式使用 node_modules 正常解析。
+
+**3. vite.config.js — build 时才启用 externalization**
+
+```js
+import react from '@vitejs/plugin-react'
+import externalGlobals from 'rollup-plugin-external-globals'
+
+// ★ App 资源前缀 —— 原生 App 拦截此协议映射到内部资源文件
+// 可根据实际 App 协议修改，例如 'local-resource://h5/'、'app-asset://h5/' 等
+const APP_RESOURCE_PREFIX = 'local-resource://h5/'
+
+// 框架全局变量映射（仅 build 使用，仅限有 UMD 的库）
+const FRAMEWORK_GLOBALS = {
+  'react': 'React',
+  'react-dom': 'ReactDOM',
+  'crypto-js': 'CryptoJS',
+  'jsencrypt': 'JSEncrypt',
+  '@fingerprintjs/fingerprintjs': 'FingerprintJS',
+}
+
+// build 时注入 vendor script 标签的插件（放在 </body> 前）
+function vendorScriptsPlugin(prefix) {
+  const VENDOR_SCRIPTS = [
+    'react.production.min.js',
+    'react-dom.production.min.js',
+    'crypto-js.js',
+    'jsencrypt.min.js',
+    'fingerprint.min.js',
+  ]
+    'jsencrypt.min.js',
+    'fingerprint.min.js',
+  ]
+  const tags = VENDOR_SCRIPTS
+    .map(f => `<script src="${prefix}static-app/vendor/${f}"></script>`)
+    .join('\n  ')
+  return {
+    name: 'vendor-scripts',
+    transformIndexHtml(html) {
+      return html.replace('</body>', `  ${tags}\n</body>`)
+    },
+  }
+}
+
+export default defineConfig(({ command }) => ({
+  base: '/',
+
+  plugins: [
+    react(),
+    // ★ 仅在 build 时启用 externalization + 注入 vendor script 标签
+    ...(command === 'build' ? [
+      externalGlobals(FRAMEWORK_GLOBALS),
+      vendorScriptsPlugin(APP_RESOURCE_PREFIX),
+    ] : []),
+  ],
+
+  build: {
+    rollupOptions: {
+      // ★ 仅在 build 时外部化框架主模块（dev 时从 node_modules 正常解析）
+      external: command === 'build'
+        ? Object.keys(FRAMEWORK_GLOBALS)
+        : [],
+      output: {
+        // ★ 不强制分包 node_modules，Vite 自动处理
+        // 只对项目代码做合理拆分
+        manualChunks(id) {
+          // 公共组件 → components chunk（多页面复用时提取）
+          if (id.includes('/src/components/')) return 'components'
+          // 工具函数 / hooks / API → utils chunk
+          if (id.includes('/src/utils/') || id.includes('/src/hooks/') || id.includes('/src/api/')) return 'utils'
+        },
+      },
+    },
+    outDir: 'dist',
+    target: 'es2015',
+    cssTarget: 'chrome61',
+  },
+
+  configureServer(server) {
+    // 仅 dev 时提供 static-app/ 目录访问（供基线图片使用）
+    // 框架 JS 在 dev 时不走 static-app，从 node_modules 加载
+  },
+}))
+```
+
+> **为什么 dev 和 build 分开**：
+> - `npm run dev`：esbuild 预构建依赖 + node_modules 正常解析，HMR、热更新不受任何影响。`externalGlobals` 不启用，避免与 esbuild 预构建冲突。
+> - `npm run build`：启用 `externalGlobals` 将框架 import 映射到 window 全局变量，`external` 排除框架代码，`vendorScriptsPlugin` 自动注入 script 标签。
+> - dev 和 build 使用同一套代码，不需要两套 index.html。
+
+#### 命令速查
+
+```
+# 1. 本地开发
+npm run dev                 # Vite 正常启动，框架从 node_modules 加载，HMR 正常
+
+# 2. 升级基线依赖（仅必要时）
+npm run build:static        # 从 node_modules 拷贝有 UMD 的库 + 迁移图片
+git add static-app/
+git commit -m "chore: update static-app vendor bundles"
+
+# 3. 构建发版
+npm run build               # 自动注入 vendor script 标签 + externalization
+                            # 交付 dist/ + static-app/ 给 App 团队
+```
 
 #### 完整集成流程
 
 ```
 第 1 步：初始化（仅一次）
   - npm run build:static
-    → 打包框架依赖到 static-app/vendor.dll.js
+    → 从 node_modules 拷贝有 UMD 的库到 static-app/vendor/
+    → 迁移 src/assets/ 所有图片到 static-app/images/ 并删除原文件
     → 迁移 src/assets/ 所有图片到 static-app/images/ 并删除原文件
   - static-app/ 整个目录交给 App 团队
   - App 打包到 assets/h5/static-app/
 
 第 2 步：日常开发
-  - npm run dev → /static-app/xxx 由 dev server 响应
-  - 图片通过 STATIC_URL 常量引用（meta[name="app-resource"]）
-  - 正常 HMR
+  - npm run dev → 正常 Vite dev server，esbuild 预构建依赖
+  - 框架从 node_modules 正常加载，HMR 不受限制
+  - 基线图片通过 STATIC_URL 常量引用（meta[name="app-resource"]）
+  - dev server 提供 /static-app/images/ 访问
 
 第 3 步：首次 H5 发版
-  - npm run build → dist/（不含 static-app/）
+  - npm run build → build 时自动注入 vendor script 标签 + externalization
   - dist/ + static-app/ 一起拷贝到 App assets/h5/
-  - App 发布后 → 所有资源从本地加载，瞬间展示
+  - App 发布后 → 框架 JS 和基线图片从本地加载，业务代码从 OTA 加载
 
 第 4 步：后续 H5 热更新
   - npm run build → 新的 dist/（static-app/ 不参与）
@@ -563,23 +527,21 @@ export default defineConfig({
 **第一阶段：复制基准项目并建立静态资源架构**
 - 使用 `cp -r` 或 `rsync` 完整复制基准项目到新目录（如 `新项目名/`）
 - 更新项目名称、包名等基础配置
-- **检查并建立 static-app/ + DLL + externals + 自定义协议架构**：
-  - 创建 `static-app/` 目录（与 `src/` 同级，**不在** `public/` 内）
-  - 配置 `npm run build:static` 脚本，将框架依赖打包到 static-app/vendor.dll.js
-  - 配置业务构建的 externals（排除 react、react-dom 等框架依赖）
-  - 配置双模式路径切换：dev `'/'` vs build `'local-resource://h5/'`
-  - 配置 dev server 的中间件，挂载 `static-app/`（仅 dev，不进入 build）
-  - 更新 `index.html` 引用 `static-app/` 中的资源（vendor + meta 标签）
-  - **创建 `scripts/vendor-entry.js`**（DLL 入口）：
-    - `import` 所有框架依赖 + `import 'antd-mobile/es/global'` 副作用
-    - 全部挂到 `window.xxx` 全局变量
-  - **创建 `scripts/vite-plugin-dll-globals.mjs`**（transform 插件）：
-    - 将框架 import 替换为 `window.xxx` 引用
-    - **副作用导入必须用 `void window.xxx` 而非注释**，保留初始化
-  - 在 `vite.config.js` 中引入该插件，`external` 精确列出主模块（不包含 JSX 运行时子路径）
-  - 运行 `npm run build:static` → 打包框架依赖 + 将首次的 src/assets/ 图片迁移到 static-app/images/
+- **建立 static-app/vendor/ + external 架构**：
+  - 创建 `static-app/vendor/` 目录（与 `src/` 同级，**不在** `public/` 内）
+  - **创建 `scripts/build-static.mjs`**（拷贝有 UMD 的库）：
+    - 从 node_modules 拷贝 React、ReactDOM、crypto-js 等 UMD 文件到 `static-app/vendor/`
+    - 迁移 `src/assets/` 首次图片到 `static-app/images/`
+  - 配置 `package.json` 的 `build:static` 脚本
+  - **index.html 保持简洁**，不写 framework script 标签，build 时由 vendorScriptsPlugin 自动注入
+  - **配置 `vite.config.js`**（build 时启用，dev 时从 node_modules 正常加载）：
+    - 安装 `rollup-plugin-external-globals`，配置所有框架的 import → window 映射
+    - 创建 `vendorScriptsPlugin`，build 时自动注入 `<script>` 标签到 index.html
+    - `build.rollupOptions.external` 精确列出主模块（不含子路径）
+    - dev server 中间件挂载 `static-app/`（仅用于基线图片）
+  - 运行 `npm run build:static` → 生成 static-app/vendor/ + 迁移图片
   - 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
-  - **清理 package.json**：将 react、react-dom、UI 库等运行时依赖从 `dependencies` 移除，只保留 `@types/*` 在 `devDependencies`
+  - **确保框架库在 `devDependencies` 中**（JSX 运行时子模块等需要从 node_modules 解析，不要移出）
 
 **第二阶段：按 Figma 设计替换页面（强制遵守 H5 内嵌约束）**
 - 对照设计分析报告，逐页面/逐组件修改
@@ -603,35 +565,30 @@ export default defineConfig({
 
 ```
 架构改造步骤：
-1. 技术栈评估 —— 识别当前项目构建工具和框架版本
-2. 创建 `scripts/vendor-entry.js` —— DLL 入口，ESM + require 混合导入，副作用 + JSX 运行时挂到 window
-3. 创建 `scripts/vite-plugin-dll-globals.mjs` —— transform 插件，将框架 import 替换为 window 全局变量
-4. `npm run build:static` 脚本配置 —— 新增脚本，用 webpack 打包 vendor-entry.js 到 static-app/vendor.dll.js
-5. externals 配置 —— 在业务构建中排除框架依赖
-4. 双模式路径配置 —— 设置 base：dev '/' → build 'local-resource://h5/'
-5. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
-6. Dev Server 配置 —— 添加 static-app/ 中间件（仅 dev）
-7. index.html 更新 —— script/src 指向 static-app/ + 添加 meta[name="app-resource"] 标签
-8. package.json 清理 —— 移除 react、react-dom 等运行时依赖，保留 @types/* 在 devDependencies
+1. 技术栈评估 —— 识别当前项目构建工具和框架版本，确认所有框架库在 devDependencies 中
+2. 创建 `scripts/build-static.mjs` —— 从 node_modules 拷贝有 UMD 的库（react、crypto-js 等）
+3. 安装 `rollup-plugin-external-globals` —— build 时配置有 UMD 库的 import → window 映射
+4. 配置 vite.config.js —— build 时启用 externalGlobals + vendorScriptsPlugin，仅 externalize 有 UMD 的库
+5. index.html 保持简洁 —— 不写 script 标签，build 时由 vendorScriptsPlugin 自动注入
+6. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
+7. 配置 package.json 的 `build:static` 脚本
+8. 运行 `npm run build:static` —— 拷贝 UMD + 迁移图片
 9. 验证：
-   - npm run build:static 正常执行（vendor + 图片迁移）
-   - npm run build 产物中不包含框架代码
-   - npm run build 产物使用 local-resource://h5/ 协议
-   - dist/ 中无 static-app/（在项目根目录，不在 public/ 内）
-   - npm run dev 可正常启动并加载 static-app/ 资源
-   - 图片在 dev 环境通过 STATIC_URL 正常显示
+   - npm run dev 正常启动，HMR 正常
+   - npm run build 产物中 5 个 UMD 库（react、react-dom、crypto-js、jsencrypt、fingerprintjs）不包含在 dist/ 中
+   - npm run build 产物 index.html 中自动注入了对应 5 个 vendor script 标签
+   - 无 UMD 的库（antd-mobile、react-router-dom 等）正常打包到 dist/assets/
+   - antd-mobile 样式正常（CSS-in-JS 不受影响）
    - 页面功能不受影响
-   - npm install 后 node_modules 中无 react/react-dom（但 @types 存在）
 
 改造范围约束：
    ❌ 不改动业务逻辑（组件、页面交互、接口请求等）
-   ✅ 只改动构建配置（vite.config.js / webpack.config.js）
-   ✅ 只改动 index.html（资源路径 + meta 标签）
-   ✅ 只新增 static-app/ 目录（与 src/ 同级，不在 public/ 内）
+   ✅ 只改动构建配置（vite.config.js）
+   ✅ 只新增 scripts/build-static.mjs（esbuild 打包脚本）
    ✅ 只迁移图片文件（src/assets → static-app/images/）
    ✅ 只修改图片引用方式（import → STATIC_URL 路径）
-   ✅ 只修改 package.json（移除运行时依赖）
 ```
+	
 
 ---
 
@@ -653,7 +610,7 @@ export default defineConfig({
 □ 10. 异常态检查 —— 检查加载态/空态/错误态 UI
 □ 11. H5 内嵌规范检查 —— 无顶部状态栏、底部导航正确、触摸区域 ≥ 44px、安全区域适配
 □ 12. 浏览器兼容检查 —— 无 ES6+ 语法问题、CSS 前缀完整、无 CSS Grid 独占布局
-□ 13. 构建架构检查 —— DLL + externals 配置正确，业务代码不包含框架依赖，双模式路径切换已实现
+□ 13. 构建架构检查 —— static-app/vendor/ 框架 JS 文件齐全，external + externalGlobals 配置正确，子路径不受影响
 □ 14. 性能检查 —— 确认代码分割、懒加载、骨架屏、资源压缩已实施
 ```
 
@@ -690,8 +647,8 @@ export default defineConfig({
 - static-app/ 目录必须与 src/ 同级，不在 public/ 目录内
 - 构建产物必须使用自定义协议 local-resource://h5/，不可使用 file:// 或 CDN 路径
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
-- `react` 和 `react-dom` 必须在 `devDependencies` 中保留（JSX 运行时子模块需从 node_modules 解析）
-- `external` 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖
+- 所有框架库必须保留在 devDependencies 中（JSX 运行时子模块需从 node_modules 解析）
+- external 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖（避免误外部化子路径）
 
 ---
 
@@ -703,10 +660,9 @@ export default defineConfig({
 - 这个接口结构一样，但参数名变了，你按基准项目复现并改好
 - 按新的 Figma 设计稿把这个新 H5 项目页面做成一模一样
 - 基于基准项目完成新项目开发并模拟测试验收
-- 把这个项目改成 static-app 双模式构建架构
-- 帮我配置 DLL + externals，让 H5 资源从 App 本地加载
+- 把这个项目改成 static-app vendor 框架本地加载架构
+- 帮我配置 static-app/vendor 框架依赖
 - 把项目改成 local-resource 自定义协议加载
-- 清理 package.json，把框架依赖从项目中移出去
 
 ---
 
@@ -720,7 +676,7 @@ export default defineConfig({
 - 页面视觉和交互尽量贴近 Figma 设计稿（场景 A/B）
 - 成功建立 static-app/ 基线依赖架构（所有场景）
 - 构建产物使用自定义协议 local-resource://h5/（所有场景）
-- 构建产物中业务代码不包含框架依赖（所有场景）
-- package.json 已移除 react、react-dom 等运行时依赖（所有场景）
+- 构建产物中业务代码不包含框架代码（所有场景）
+- 框架库保留在 devDependencies 中，node_modules 可正常解析子路径（所有场景）
 - 14 项测试 CheckList 逐项执行并输出结果
 - 交付一份清晰的测试和验收说明

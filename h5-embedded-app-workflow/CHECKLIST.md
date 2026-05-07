@@ -144,17 +144,16 @@
 
 - **方法**: 检查构建配置文件和构建产物
 - **检查项**:
-  - `static-app/` 目录是否存在（与 `src/` 同级，不在 `public/` 内）
-  - 构建配置使用 `base: '/'`（业务代码和 assets 走相对路径）
-  - `index.html` 中 `static-app/` 引用使用 `local-resource://h5/` 协议（非 `file://`）
-  - DLL 构建配置是否正确
-  - externals 配置是否正确（业务构建排除框架依赖）
-  - dev server 是否配置了 static-app/ 的中间件（仅 dev，不进 build）
+  - `static-app/vendor/` 目录是否存在，各框架 JS 文件齐全
+  - `index.html` 中所有框架 JS 通过 `<script>` 标签加载，使用 `local-resource://h5/` 协议
+  - `vite.config.js` 配置了 `rollup-plugin-external-globals` 映射所有框架
+  - `build.rollupOptions.external` 精确列出主模块（不含 `react/jsx-dev-runtime` 等子路径）
+  - dev server 配置了 `static-app/` 的中间件（仅 dev，不进 build）
   - `npm run build` 产物中不包含框架代码
-  - `npm run build` 产物中无 static-app/ 内容
-  - `npm run dev` 可正常启动并加载 static-app/ 资源
-  - `package.json` 中已移除 react、react-dom 等运行时依赖
-  - `npm run build:static` 能正常执行（打包 vendor + 迁移图片）
+  - `npm run build` 产物中无 `static-app/` 内容
+  - `npm run dev` 可正常启动，script 标签加载的框架 JS 正常
+  - `npm run build:static` 能正常执行（esbuild 打包 + UMD 拷贝 + 图片迁移）
+  - 所有框架库保留在 `devDependencies` 中（`node_modules` 可解析子路径）
   - `src/assets/` 中已无图片（已迁移到 static-app/images/）
   - 代码中使用 `STATIC_URL` 路径引用图片（非 `import`）
 - **失败判定**: 架构配置不完整或双模式路径未正确切换
@@ -165,7 +164,8 @@
 
 - **方法**: 检查代码和构建配置
 - **检查项**:
-  - 路由是否配置了懒加载（`() => import()`）
+  - 路由是否配置了懒加载（`React.lazy()` + `import()`）
+  - `vite.config.js` 是否配置了 `manualChunks` 分包策略
   - 是否实现了骨架屏（首屏加载完成前展示）
   - 图片是否配置了懒加载（`loading="lazy"` 或 IntersectionObserver）
   - CSS/JS 是否配置了压缩（css-minimizer / terser）
@@ -196,7 +196,7 @@
 | 10 | 异常态检查 | ❌ 失败 | 列表页缺少空态组件 |
 | 11 | H5 内嵌规范 | ✅ 通过 | 无状态栏、触摸区域合规 |
 | 12 | 浏览器兼容 | ✅ 通过 | ES5 + Autoprefixer 已配置 |
-| 13 | 构建架构 | ✅ 通过 | DLL + externals + 双模式正常 |
+| 13 | 构建架构 | ✅ 通过 | external + externalGlobals 正常 |
 | 14 | 性能检查 | ✅ 通过 | 懒加载/骨架屏/压缩已实施 |
 
 **通过率**: 13/14 (92.8%)
