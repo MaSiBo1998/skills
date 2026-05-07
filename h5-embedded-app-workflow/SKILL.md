@@ -312,6 +312,8 @@ import newIcon from '@/assets/new-icon.png'
 
 #### 构建配置参考
 
+**1. vite.config.js**
+
 ```js
 // Vite 示例 —— vite.config.js
 import { defineConfig } from 'vite'
@@ -345,6 +347,160 @@ export default defineConfig(({ command }) => ({
 // Webpack 对应：
 // devServer: { static: ['static-app'] }
 ```
+
+**2. transform 插件 — `scripts/vite-plugin-dll-globals.mjs`**
+
+插件作用：将框架依赖的 `import` 语句替换为 `window.xxx` 全局变量引用。
+
+关键要求：
+- **副作用导入（`import 'xxx''）不能被注释掉**，否则 CSS-in-JS 等初始化逻辑丢失。应替换为 `void window.xxx` 确保 DLL 模块已加载
+- **JSX 运行时子模块（`react/jsx-dev-runtime`、`react/jsx-runtime`）和 `react-dom/client` 必须排除**，不经过 DLL 转换，保持真实 import。因为：
+  - 这些子模块被 `@vitejs/plugin-react` 自动注入，且需要在 node_modules 中正常解析
+  - 放在 DLL 中通过 window 全局传递会因依赖加载顺序等问题失败
+  - 它们已被列入 `devDependencies`，`npm install` 后可以直接引用
+
+```js
+// scripts/vite-plugin-dll-globals.mjs
+
+// 不经过 DLL 转换、保持真实 import 的子模块
+const KEEP_AS_REAL_IMPORTS = [
+  'react/jsx-dev-runtime',
+  'react/jsx-runtime',
+  'react-dom/client',
+]
+
+// DLL 模块 → window 全局变量映射表
+const DLL_GLOBALS = {
+  'react': 'React',
+  'react-dom': 'ReactDOM',
+  'react-router-dom': 'ReactRouterDOM',
+  'antd-mobile': 'AntdMobile',
+  'antd-mobile-icons': 'AntdMobileIcons',
+  '@reduxjs/toolkit': 'ReduxToolkit',
+  'react-redux': 'ReactRedux',
+  'crypto-js': 'CryptoJS',
+  'jsencrypt': 'JSEncrypt',
+  '@fingerprintjs/fingerprintjs': 'FingerprintJS',
+}
+
+function getDllGlobal(moduleName) {
+  // ★ JSX 运行时子模块不转换，保持真实 import
+  if (KEEP_AS_REAL_IMPORTS.includes(moduleName)) return null
+  for (const [dep, globalName] of Object.entries(DLL_GLOBALS)) {
+    if (moduleName === dep || moduleName.startsWith(dep + '/')) {
+      return globalName
+    }
+  }
+  return null
+}
+
+function replaceDllImports(code) {
+  const IMPORT_RE = /import\s+(?:(?:(?!type)(\w+)\s*,?\s*)?(?:\{([^}]*)\})|(?:(?!type)\*\s+as\s+(\w+)))?\s+from\s+['"]([^'"]+)['"]|import\s+(?!type)['"]([^'"]+)['"]/g
+
+  return code.replace(IMPORT_RE, (match, defaultImport, namedImports, namespace, fromModule, sideEffectModule) => {
+    const moduleName = fromModule || sideEffectModule
+    if (!moduleName) return match
+
+    const globalName = getDllGlobal(moduleName)
+    if (!globalName) return match
+    if (/^import\s+type\b/.test(match)) return match
+
+    // ★ 关键：副作用导入必须保留初始化代码
+    if (sideEffectModule) {
+      return `void window.${globalName} /* side-effect: ${moduleName} */`
+    }
+
+    if (defaultImport) {
+      let stmts = `const ${defaultImport} = window.${globalName}`
+      if (namedImports) {
+        const cleaned = namedImports.replace(/\btype\s+/g, '').trim()
+        if (cleaned) stmts += `; const { ${cleaned} } = window.${globalName}`
+      }
+      return stmts
+    }
+
+    if (namespace) return `const ${namespace} = window.${globalName}`
+    if (namedImports) {
+      const cleaned = namedImports.replace(/\btype\s+/g, '').trim()
+      if (!cleaned) return match
+      return `const { ${cleaned} } = window.${globalName}`
+    }
+    return match
+  })
+}
+
+export default function dllGlobalsPlugin() {
+  return {
+    name: 'dll-globals',
+    enforce: 'post',
+    transform(code, id) {
+      const result = replaceDllImports(code)
+      return result !== code ? { code: result, map: null } : null
+    },
+  }
+}
+```
+
+**3. DLL 入口 — `scripts/vendor-entry.js`**
+
+关键要求：
+- **必须包含 `import 'antd-mobile/es/global'`** —— antd-mobile 的 CSS-in-JS 等副作用初始化
+- 所有依赖挂到 `window.xxx` 全局变量
+- **不要处理 `react/jsx-dev-runtime`、`react/jsx-runtime`、`react-dom/client`**——这些是真实 import，Vite 从 node_modules 解析
+
+```js
+// scripts/vendor-entry.js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import * as ReactRouterDOM from 'react-router-dom'
+import * as AntdMobile from 'antd-mobile'
+import * as AntdMobileIcons from 'antd-mobile-icons'
+// ... 其他 DLL_GLOBALS 中的依赖
+
+// ★ antd-mobile 全局初始化副作用（丢失会导致 CSS-in-JS 不生效）
+import 'antd-mobile/es/global'
+
+// 挂到 window
+window.React = React
+window.ReactDOM = ReactDOM
+window.ReactRouterDOM = ReactRouterDOM
+window.AntdMobile = AntdMobile
+// ... 其他 globals
+```
+
+配置 `vite.config.js` 引入该插件，注意 `external` 要**精确列出主模块**，不要用正则全覆盖 `react/.*`（否则 JSX 运行时子模块也会被外部化）：
+
+```js
+// vite.config.js 中引用
+import react from '@vitejs/plugin-react'
+import dllGlobals from './scripts/vite-plugin-dll-globals.mjs'
+
+export default defineConfig({
+  plugins: [
+    dllGlobals(),
+    react(),
+  ],
+  build: {
+    rollupOptions: {
+      // ★ 只外部化主模块，react/jsx-dev-runtime 等子模块保持真实 import
+      external: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        /^antd-mobile(\/.*)?$/,
+        /^antd-mobile-icons(\/.*)?$/,
+        /^@reduxjs\/toolkit(\/.*)?$/,
+        /^react-redux(\/.*)?$/,
+        'crypto-js',
+        'jsencrypt',
+        '@fingerprintjs/fingerprintjs',
+      ],
+    },
+  },
+})
+```
+
+> 为什么 JSX 运行时子模块不走 DLL：`@vitejs/plugin-react` 会自动向每个 JSX 文件注入 `import { jsxDEV } from 'react/jsx-dev-runtime'`。这个子模块由 React 内部管理，通过 window 全局传递会因加载顺序等问题不可靠。`react` 和 `react-dom` 应保留在 `devDependencies` 中（不会被打包进 dist，因为做了 external），JSX 运行时子模块直接从 `node_modules` 解析。
 
 #### index.html 引用方式
 
@@ -414,6 +570,13 @@ export default defineConfig(({ command }) => ({
   - 配置双模式路径切换：dev `'/'` vs build `'local-resource://h5/'`
   - 配置 dev server 的中间件，挂载 `static-app/`（仅 dev，不进入 build）
   - 更新 `index.html` 引用 `static-app/` 中的资源（vendor + meta 标签）
+  - **创建 `scripts/vendor-entry.js`**（DLL 入口）：
+    - `import` 所有框架依赖 + `import 'antd-mobile/es/global'` 副作用
+    - 全部挂到 `window.xxx` 全局变量
+  - **创建 `scripts/vite-plugin-dll-globals.mjs`**（transform 插件）：
+    - 将框架 import 替换为 `window.xxx` 引用
+    - **副作用导入必须用 `void window.xxx` 而非注释**，保留初始化
+  - 在 `vite.config.js` 中引入该插件，`external` 精确列出主模块（不包含 JSX 运行时子路径）
   - 运行 `npm run build:static` → 打包框架依赖 + 将首次的 src/assets/ 图片迁移到 static-app/images/
   - 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
   - **清理 package.json**：将 react、react-dom、UI 库等运行时依赖从 `dependencies` 移除，只保留 `@types/*` 在 `devDependencies`
@@ -441,8 +604,10 @@ export default defineConfig(({ command }) => ({
 ```
 架构改造步骤：
 1. 技术栈评估 —— 识别当前项目构建工具和框架版本
-2. `npm run build:static` 脚本配置 —— 新增脚本，打包框架依赖到 static-app/ 并迁移图片
-3. externals 配置 —— 在业务构建中排除框架依赖
+2. 创建 `scripts/vendor-entry.js` —— DLL 入口，ESM + require 混合导入，副作用 + JSX 运行时挂到 window
+3. 创建 `scripts/vite-plugin-dll-globals.mjs` —— transform 插件，将框架 import 替换为 window 全局变量
+4. `npm run build:static` 脚本配置 —— 新增脚本，用 webpack 打包 vendor-entry.js 到 static-app/vendor.dll.js
+5. externals 配置 —— 在业务构建中排除框架依赖
 4. 双模式路径配置 —— 设置 base：dev '/' → build 'local-resource://h5/'
 5. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
 6. Dev Server 配置 —— 添加 static-app/ 中间件（仅 dev）
@@ -525,6 +690,8 @@ export default defineConfig(({ command }) => ({
 - static-app/ 目录必须与 src/ 同级，不在 public/ 目录内
 - 构建产物必须使用自定义协议 local-resource://h5/，不可使用 file:// 或 CDN 路径
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
+- `react` 和 `react-dom` 必须在 `devDependencies` 中保留（JSX 运行时子模块需从 node_modules 解析）
+- `external` 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖
 
 ---
 
