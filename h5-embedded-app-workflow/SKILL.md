@@ -489,7 +489,7 @@ const FRAMEWORK_GLOBALS = {
   'react-redux': 'ReactRedux',
 }
 
-// build 时注入 vendor script 标签
+// build 时注入 vendor script 标签（defer 在 head 顶部，解析完成后执行，确保 DOM 就绪）
 function vendorScriptsPlugin(prefix) {
   const files = [
     'react.production.min.js',
@@ -502,11 +502,11 @@ function vendorScriptsPlugin(prefix) {
     'redux-toolkit.js',
     'react-redux.js',
   ]
-  const tags = files.map(f => `<script src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
+  const tags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
   return {
     name: 'vendor-scripts',
     transformIndexHtml(html) {
-      return html.replace('</body>', `  ${tags}\n</body>`)
+      return html.replace('<head>', `<head>\n  ${tags}`)
     },
   }
 }
