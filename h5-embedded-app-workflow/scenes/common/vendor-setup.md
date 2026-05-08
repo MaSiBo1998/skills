@@ -2,6 +2,14 @@
 
 所有需要 vendor 架构的场景共用此模块。将框架依赖库预构建为独立 JS 文件，通过 `<script>` 标签加载，构建时排除框架代码。
 
+## 约束
+
+- 构建产物必须使用自定义协议 `local-resource://h5/`（或 `APP_RESOURCE_PREFIX` 配置），不可使用 `file://` 或 CDN 路径
+- 构建产物中不得包含框架代码（必须通过 externals 排除）
+- `static-app/` 目录必须与 `src/` 同级，不在 `public/` 目录内
+- 所有框架库必须保留在 `devDependencies` 中（JSX 运行时子模块需从 node_modules 解析）
+- `external` 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖
+
 ## 处理范围
 
 vendor 固定处理以下 7 个库，其他库由 Vite 正常打包到 `dist/assets/`：
@@ -223,3 +231,10 @@ npm run dev
 npm run build
 # → 自动注入 vendor script 标签 + externalization
 ```
+
+## 成功标准
+
+- vendor 脚本成功注入 index.html，加载后页面功能正常
+- 构建产物（dist/）中不包含框架代码
+- 所有 vendor 文件全局变量名与 FRAMEWORK_GLOBALS 映射一致
+- dev 模式下框架从 node_modules 正常加载，不受 vendor 配置影响
