@@ -6,6 +6,8 @@
 
 ## API 调用
 
+前置检查：确认 `$FIGMA_TOKEN` 环境变量已设置，未设置则提示用户先配置 Figma Access Token。
+
 使用 Figma REST API 获取设计文件信息：
 
 ```

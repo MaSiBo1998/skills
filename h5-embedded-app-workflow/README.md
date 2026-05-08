@@ -9,9 +9,9 @@
 
 <br>
 
-**场景 A — 完整复现**：基准项目 + 新接口文档 + 新 Figma → 自动完成开发与测试验收<br>
-**场景 B — 直接修改**：在当前项目上直接修改页面和接口<br>
-**场景 C — 架构改造**：不改业务逻辑，配置 DLL + externals 双模式构建，将基线依赖锁定在 static-app/ 目录
+**场景 A — 架构改造**：不改业务逻辑，只改构建配置，建立 static-app/vendor 本地加载架构<br>
+**场景 B — 首复贷功能开发**：新项目开发 + 可选 vendor 架构 + Figma 还原 + 接口适配<br>
+**场景 C — 进件功能开发**：新增或修改进件申请流程 + 可选 vendor + Figma + 接口适配，只改 Apply 相关页面
 
 </div>
 
@@ -19,7 +19,7 @@
 
 ## 效果示例
 
-### 场景 A：用户提供基准项目 + 接口文档 + Figma
+### 场景 B（首复贷功能开发）：用户提供基准项目 + 接口文档 + Figma
 
 ```
 你基于这个 H5 基准项目复现一个新项目，这是新的接口文档和 Figma 链接，直接做完并自测。
@@ -35,19 +35,22 @@
   8. 执行 14 项自动化测试，输出测试报告
 ```
 
-### 场景 B：直接修改
+### 场景 C（进件功能开发）：新增进件申请流程
 
 ```
-就在这个项目上继续改，按新的 Figma 调整页面，接口不变。
+在这个项目上新增进件申请流程，这是新的 Figma 设计图和接口文档。
 
-→ 跳过复制阶段，在当前项目上直接执行：
-  1. Figma 分析 + 组件复用评估
-  2. 页面修改（H5 内嵌规范）
-  3. 构建架构检查
-  4. 自动化测试
+→ 按进件工作流执行：
+  1. 询问 vendor 架构
+  2. Figma 分析进件各步骤页面
+  3. 解析接口文档，输出字段映射表
+  4. 按需建立 vendor 架构
+  5. 开发 Apply 各步骤页面（WorkInfo/ContactsInfo/PersonalInfo/IdInfo/FaceCapture/BankInfo）
+  6. 集成原生交互（相机/相册/通讯录）
+  7. 执行 14 项通用 + 进件专项测试
 ```
 
-### 场景 C：架构改造
+### 场景 A（架构改造）：改造构建架构
 
 ```
 把这个项目改成 static-app 双模式构建架构，让 H5 资源从 App 本地加载。
@@ -78,12 +81,12 @@
 
 ```
 用户输入 → 场景识别 → 资料收集
-                         ├── 场景 A → Figma 分析 → 接口解析 → 复制项目 → 修改页面/接口 → 测试验收
-                         ├── 场景 B → Figma 分析 → 接口解析 → 修改页面/接口 → 测试验收
-                         └── 场景 C → 技术栈评估 → 建立 static-app/ + DLL + externals → 双模式配置 → 验证
+                         ├── 场景 A（架构改造）→ 技术栈评估 → vendor 建立 → 图片迁移 → 测试验收
+                         ├── 场景 B（首复贷）→ 询问 vendor → Figma 分析 → 接口解析 → 开发 → 测试验收
+                         └── 场景 C（进件开发）→ 询问 vendor → Figma 分析 → 接口解析 → vendor 建立 → 功能开发 → 测试验收
 ```
 
-详细工作流步骤见 [SKILL.md](SKILL.md)。
+详细工作流步骤见各场景文件：[scene-a.md](scenes/scene-a.md)、[scene-b.md](scenes/scene-b.md)、[scene-c.md](scenes/scene-c.md)。
 
 ### 静态资源架构说明
 
@@ -146,7 +149,17 @@ h5-embedded-app-workflow/
 ├── CHECKLIST.md              ★ 14 项自动化测试验收标准
 ├── examples/
 │   └── demo-conversation.md  ★ 示例对话
+├── scenes/
+│   ├── scene-a.md            ★ 场景 A — 架构改造
+│   ├── scene-b.md            ★ 场景 B — 首复贷功能开发
+│   ├── scene-c.md            ★ 场景 C — 进件功能开发
+│   └── common/
+│       ├── figma-analysis.md ★ Figma 设计图自动分析
+│       ├── api-parsing.md    ★ JSON 接口文档自动解析
+│       ├── vendor-setup.md   ★ vendor 架构建立
+│       └── testing.md        ★ 自动测试验收
 └── references/
+    ├── native-methods.md     ★ H5-App 原生交互协议
     └── design/
         ├── 01-positioning.md
         ├── 02-api-doc-and-mapping.md

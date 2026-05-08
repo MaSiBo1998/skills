@@ -27,7 +27,7 @@
 - Markdown 作为人工辅助
 - HTML 只作为最后兜底参考
 
-## 自动化解析流程（SKILL.md Step 2.5）
+## 自动化解析流程（scenes/common/api-parsing.md）
 
 当 Claude Code 读取 JSON 接口文档时的动作：
 
