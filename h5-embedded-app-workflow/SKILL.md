@@ -47,6 +47,8 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 ## 全局强约束
 
+- 工作流执行过程中持续监控上下文占用，超过 50% 时主动执行 `/compact` 精简上下文
+
 - 构建产物必须使用自定义协议 `local-resource://h5/`（或 `APP_RESOURCE_PREFIX` 配置），不可使用 `file://` 或 CDN 路径
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
 - `static-app/` 目录必须与 `src/` 同级，不在 `public/` 目录内
