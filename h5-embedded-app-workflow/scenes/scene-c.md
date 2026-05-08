@@ -11,7 +11,9 @@
 2. Figma 设计图链接（可选，有则做设计还原）
 3. JSON 接口文档（可选，有则做接口适配）
 
-**→ 更新 checkpoint**: Step 1（输入收集）完成---
+**→ 更新 checkpoint**: Step 1（输入收集）完成
+
+---
 
 ## Step 2. 询问 vendor 架构
 
