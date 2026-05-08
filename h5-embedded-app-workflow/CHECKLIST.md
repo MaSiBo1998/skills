@@ -160,6 +160,19 @@
 
 ---
 
+## 15. 依赖清理检查
+
+- **方法**: 扫描 `src/` 中的 import/require 语句，对照 `package.json` 全量 dependencies
+- **检查项**:
+  - 对 `package.json` 中每个依赖包，在 `src/` 中搜索是否有对应的 `import` 或 `require`
+  - 未在代码中引用的包标记为"可能未使用"
+  - 确认可移除后执行 `npm uninstall <包名>`
+  - **注意**：不要移除 `react`、`react-dom` 等框架库（它们在代码中通过 window 全局引用，无 import 语句）
+  - **注意**：不要移除插件类包（`@vitejs/plugin-react`、`eslint` 等 vite/eslint 配置中引用的包）
+- **失败判定**: 存在明显未使用的依赖包未清理
+
+---
+
 ## 14. 性能检查
 
 - **方法**: 检查代码和构建配置
