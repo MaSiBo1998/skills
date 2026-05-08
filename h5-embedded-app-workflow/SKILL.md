@@ -1,6 +1,6 @@
 ---
 name: h5-embedded-app-workflow
-description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造现有项目为静态资源本地加载架构。自动完成设计图分析、接口文档解析、代码复现、Vite external + script 标签加载配置与全链路测试验收。当用户要派生新项目或改造构建架构时使用。
+description: 基于 H5 内嵌 app 基准项目进行新项目开发或架构改造。自动完成设计图分析、接口文档解析、vendor 架构建立、Vite external + script 标签加载配置与全链路测试验收。
 ---
 
 # H5 Embedded App Workflow
@@ -8,29 +8,30 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 这是一个面向 Claude Code 的自动化开发工作流 Skill。
 
 它处理三类场景：
-- **场景 A — 完整复现**：基于基准项目 + 新接口文档 + 新 Figma 设计，自动复现一个全新的 H5 内嵌项目
-- **场景 B — 直接修改**：在基准项目上直接修改页面和接口，不做项目复制
-- **场景 C — 架构改造**：不改业务逻辑，将项目改造为 script 标签加载 + Vite external 架构（`static-app/vendor/` 框架 JS 文件本地加载）
+- **场景 A — 新app首复贷功能实现**：在基准项目上直接开发新 app 首复贷功能 + 建立 vendor 架构
+- **场景 B — 架构改造**：不改业务逻辑，将项目改造为 script 标签加载 + Vite external 架构（`static-app/vendor/` 框架 JS 文件本地加载）
+- **场景 C — 增加进件功能模块**：参考基准项目的 Apply 模块，新增标准化的进件申请流程，含多步骤表单、文件上传、原生交互
 
 ---
 
 ## 什么时候必须触发
 
 当用户出现以下意图时，应优先调用本 Skill：
-- 基于现有 H5 内嵌基准项目复现一个新项目
-- 参考基准项目做一个新的 H5 项目
-- 导入新的接口文档到新项目
+- 导入新的接口文档到 H5 项目
 - 需要根据 Figma 设计稿进行像素级还原
-- 需要 Claude Code 自动完成开发并模拟测试验收
-- **想把项目改成静态资源本地加载架构（static-app/vendor/ + script 标签加载）**
-- 用户已提供接口文档文件和 Figma 文档，希望直接完成新项目复现与开发任务
+- 需要在新项目或现有项目中建立 static-app/vendor/ 静态资源本地加载架构
+- 需要在完成页面/接口修改后自动测试验收
+- **需要新增或重构进件申请流程（Apply 模块）**
+- **需要实现多步骤表单 + 文件上传 + 原生交互的进件功能**
 
 即使用户说得比较口语化，也应触发，例如：
 - "就在这个 H5 项目上继续改"
 - "这次换一套接口文档，但结构差不多"
 - "按新的 Figma 改成一模一样"
-- "你直接在基准项目上做完，并自测一下"
+- "你直接在这个项目上做完，并自测一下"
 - "把这个项目改成 static-app 本地加载架构"
+- "增加进件功能，参考现有 Apply 页面"
+- "做申请流程，包含工作信息、身份证、人脸验证、银行卡"
 
 ---
 
@@ -53,20 +54,23 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 ```
 场景判断规则：
 ┌─────────────────────────────────────────────────────────────┐
-│ 用户说"基于这个项目复现一个新项目" + 提供了接口文档 + Figma │
-│   └→ 场景 A：完整复现                                      │
-├─────────────────────────────────────────────────────────────┤
 │ 用户说"在这个项目上直接改" / "就在这个上面继续改"            │
-│   └→ 场景 B：直接修改                                      │
+│  + 提供了接口文档 / Figma                                   │
+│   └→ 场景 A：新app首复贷功能实现（vendor 架构 + 页面/接口修改）        │
 ├─────────────────────────────────────────────────────────────┤
 │ 用户说"改成静态资源本地加载" / "改成 script 标签 + external 架构"│
 │  / "配置 static-app vendor"                                    │
-│   └→ 场景 C：架构改造                                      │
+│   └→ 场景 B：架构改造                                      │
+├─────────────────────────────────────────────────────────────┤
+│ 用户说"增加进件功能" / "做申请流程" / "参考 Apply 模块"     │
+│  / "实现工作信息/身份证/人脸验证/银行卡"                    │
+│  + 提供了接口文档 / Figma                                   │
+│   └→ 场景 C：增加进件功能模块                               │
 ├─────────────────────────────────────────────────────────────┤
 │ 用户未明确说明：                                            │
-│   - 有接口文档 + Figma         → 场景 A                    │
-│   - 有 Figma 或接口文档之一     → 场景 B（指出缺失项）      │
-│   - 没有新输入，只说架构改造    → 场景 C                    │
+│   - 有 Figma 或接口文档之一     → 场景 A（指出缺失项）      │
+│   - 没有新输入，只说架构改造    → 场景 B                    │
+│   - 提及进件/申请/Apply        → 场景 C                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -94,22 +98,23 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 根据识别的场景收集对应输入：
 
 **场景 A 需要**：
-1. 基准 H5 项目文件夹（当前工作目录）
-2. Figma 设计图链接
-3. JSON 接口文档（优先 `swaggerApi.json`，备选 `api.json` / `api.md` / `api.html`）
+1. 当前 H5 项目文件夹
+2. Figma 设计图链接（可选，有则做设计还原）
+3. JSON 接口文档（可选，有则做接口适配）
 
 **场景 B 需要**：
 1. 当前项目文件夹
-2. 至少提供 Figma 或接口文档之一
 
 **场景 C 需要**：
-1. 当前项目文件夹
+1. 当前 H5 项目文件夹
+2. 接口文档（各步骤的保存/查询 API）
+3. Figma 设计图链接（可选，各步骤页面设计稿）
 
 列出当前已拿到和缺失的输入。如果缺失关键输入导致无法继续，明确列出并要求补充。
 
 ---
 
-### Step 2. Figma 设计图自动分析（场景 A/B 执行）
+### Step 2. Figma 设计图自动分析（场景 A/C 执行）
 
 **核心原则：设计分析必须结合基准项目，不能脱离基准项目只看 Figma。**
 
@@ -209,7 +214,7 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 
 ---
 
-### Step 2.5. JSON 接口文档自动解析（场景 A/B 执行）
+### Step 2.5. JSON 接口文档自动解析（场景 A/C 执行）
 
 比当前更具体的指令链：
 
@@ -588,29 +593,28 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 
 ---
 
-### Step 4. 项目复现 / 架构改造
+### Step 4. 项目开发 / 架构改造
 
-#### 场景 A：完整复现三阶段
+#### 场景 A：新app首复贷功能实现（包含建立 vendor + Figma 还原 + 接口适配）
 
-**第一阶段：复制基准项目并建立静态资源架构**
-- 使用 `cp -r` 或 `rsync` 完整复制基准项目到新目录（如 `新项目名/`）
+**第一阶段：建立 vendor 架构 + 基础配置**
 - 更新项目名称、包名等基础配置
-  - **建立 static-app/vendor/ + external 架构**：
-    - 创建 `static-app/vendor/` 目录（与 `src/` 同级，**不在** `public/` 内）
-  - **vendor 使用固定列表**（参考 Step 3 中的 7 个库），不依赖 Step 1.5 结果
-  - **创建 `scripts/build-static.mjs`**（UMD 拷贝 + esbuild 打包 ESM）：
-    - 从 node_modules 拷贝 React、ReactDOM 的 UMD 文件
-    - esbuild + alias 打包 antd-mobile、react-router-dom 等为 IIFE
-    - 迁移 `src/assets/` 首次图片到 `static-app/images/`
-  - 配置 `package.json` 的 `build:static` 脚本
-  - **index.html 保持简洁**，不写 framework script 标签，build 时由 vendorScriptsPlugin 自动注入
-  - **配置 `vite.config.js`**（build 时启用，dev 时从 node_modules 正常加载）：
-    - 安装 `rollup-plugin-external-globals`，配置实际用到库的 import → window 映射
-    - 创建 `vendorScriptsPlugin`，build 时自动注入 `<script>` 标签到 index.html
-    - `build.rollupOptions.external` 只列出在 `src/` 中有引用的模块
-    - dev server 中间件挂载 `static-app/`（仅用于基线图片）
-  - 运行 `npm run build:static` → 生成 static-app/vendor/ + 迁移图片
-  - 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
+- **建立 static-app/vendor/ + external 架构**：
+  - 创建 `static-app/vendor/` 目录（与 `src/` 同级，**不在** `public/` 内）
+- **vendor 使用固定列表**（参考 Step 3 中的 7 个库）
+- **创建 `scripts/build-static.mjs`**（UMD 拷贝 + esbuild 打包 ESM）：
+  - 从 node_modules 拷贝 React、ReactDOM 的 UMD 文件
+  - esbuild + alias 打包 antd-mobile、react-router-dom 等为 IIFE
+  - 迁移 `src/assets/` 首次图片到 `static-app/images/`
+- 配置 `package.json` 的 `build:static` 脚本
+- **index.html 保持简洁**，不写 framework script 标签，build 时由 vendorScriptsPlugin 自动注入
+- **配置 `vite.config.js`**（build 时启用，dev 时从 node_modules 正常加载）：
+  - 安装 `rollup-plugin-external-globals`，配置固定 7 个库的 import → window 映射
+  - 创建 `vendorScriptsPlugin`，build 时自动注入 `<script>` 标签到 index.html
+  - `build.rollupOptions.external` 列出固定 7 个模块
+  - dev server 中间件挂载 `static-app/`（仅用于基线图片）
+- 运行 `npm run build:static` → 生成 static-app/vendor/ + 迁移图片
+- 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
 
 **第二阶段：按 Figma 设计替换页面（强制遵守 H5 内嵌约束）**
 - 对照设计分析报告，逐页面/逐组件修改
@@ -625,12 +629,9 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 
 **修复阶段**：修复类型错误、构建错误
 
-#### 场景 B：直接修改
-与场景 A 相同但跳过"复制基准项目"阶段。直接在当前项目上执行阶段二和阶段三。
+#### 场景 B：架构改造专属流程
 
-#### 场景 C：架构改造专属流程
-
-仅当识别为场景 C 时执行，替代 Step 2 ~ Step 4：
+仅当识别为场景 B 时执行，替代 Step 2 ~ Step 4：
 
 ```
 架构改造步骤：
@@ -694,26 +695,166 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 
 交付输出必须包含：
 - 本次执行的场景（A/B/C）
-- 场景 A/B：基于哪个基准模块或页面完成新项目复现
-- 场景 A/B：接口映射汇总（哪些地址/参数已替换，映射表）
-- 场景 A/B：设计还原汇总（按 Figma 还原了哪些页面）
-- 场景 C：架构改造清单（改了哪些配置文件）
+- 场景 A：基于哪些模块或页面完成了修改
+- 场景 A：接口映射汇总（哪些地址/参数已替换，映射表）
+- 场景 A：设计还原汇总（按 Figma 还原了哪些页面）
+- 场景 B：架构改造清单（改了哪些配置文件）
+- 场景 C：新增了哪些进件步骤页面及对应的 API 映射
 - 测试结果（14 项 CheckList 每项通过/失败）
 - 还需要用户做哪些真实验收或联调验证
+
+---
+
+### Step 7. 进件功能模块开发（场景 C 执行）
+
+参考基准项目的 `pages/Apply` 模块，新增标准化的进件申请流程。
+
+#### 7.1. 目录结构与路由规范
+
+```
+src/pages/Apply/
+├── progress.ts                   ← 步骤进度路由逻辑（getNextStep）
+├── ApplyPublic.module.css        ← 共享样式
+├── WorkInfo.tsx                  ← 工作信息
+├── ContactsInfo.tsx              ← 联系人信息
+├── PersonalInfo.tsx              ← 个人信息
+├── IdInfo.tsx                    ← 身份证信息（含 OCR / 拍照）
+├── FaceCapture.tsx               ← 人脸验证（摄像头拍照）
+├── BankInfo.tsx                  ← 银行信息（含 Bre-B / 电子钱包）
+├── components/
+│   ├── ApplySteps.tsx            ← 步骤条（进度指示器）
+│   ├── BankListPopup.tsx         ← 银行选择弹窗（带字母索引）
+│   └── RetentionModal.tsx        ← 退出留存/挽留弹窗
+```
+
+路由配置：
+
+| 路径 | 组件 | 步骤键 | 说明 |
+|------|------|--------|------|
+| `/work` | WorkInfo | workInfo | 工作信息 |
+| `/contacts` | ContactsInfo | contactInfo | 联系人信息 |
+| `/personal` | PersonalInfo | personalInfo | 个人信息 |
+| `/id` | IdInfo | identityInfo | 身份证 OCR |
+| `/face-capture` | FaceCapture | faceInfo | 人脸验证 |
+| `/bank` | BankInfo | bankInfo | 银行信息 |
+
+步骤路由使用 `AuthGuard` 包裹（需要登录），不嵌在 `AppLayout` 内（无底部导航栏，全屏表单）。
+
+#### 7.2. 步骤进度控制（progress.ts）
+
+```typescript
+// 核心逻辑：getNextStep() 通过后端接口获取步骤完成状态，
+// 自动计算当前步骤完成后应跳转的下一步路径。
+// 所有步骤完成后跳转首页。
+
+export function getNextStep(currentPath?: string): string {
+  // 1. 调用 getUserDetail() 获取 steps 完成状态数组
+  // 2. 数组中 leonora === 0 表示未完成
+  // 3. 如果当前路径等于第一个未完成 → 跳第二个未完成
+  // 4. 否则跳第一个未完成
+  // 5. 全部完成 → 跳首页 /
+}
+```
+
+步骤映射定义需包含所有 6 个步骤的路径与键名对应关系。
+
+#### 7.3. 各页面规范
+
+每个表单页面遵循统一模式：
+
+```
+1. 挂载时：
+   - 从 localStorage 恢复草稿数据
+   - 从 localStorage 加载配置（getStepConfigInfo 结果）
+   - 调用 getNextStep() 获取下一步路径
+   - 初始化风险追踪 hook（useReduxRiskTracking）
+
+2. 表单交互：
+   - 选择器自动步进：确认一个字段后 350ms 自动弹出下一个空白字段
+   - Entry 模式支持：?entry=profile / homeEdit / firstEdit / reEdit
+   - 数据缓存：离开时保存到 localStorage，挂载时恢复
+
+3. 提交时：
+   - 调用对应保存 API
+   - 成功后调用 getNextStep() 跳转下一步
+   - 失败时提示错误
+
+4. 返回拦截：
+   - 通过 RetentionModal 拦截浏览器返回/手势
+   - 退出前保存草稿到 localStorage
+```
+
+#### 7.4. 各步骤业务说明
+
+| 步骤 | 关键字段 | API | 备注 |
+|------|---------|-----|------|
+| WorkInfo | 工作类型、薪资、公司信息 | saveWorkInfo | 受薪员工显示额外公司字段 |
+| ContactsInfo | 3 个联系人（手机+关系） | saveContactInfo | 前 2 必填，第 3 选填 |
+| PersonalInfo | 教育、婚姻、性别、住址等 | savePersonalInfo | 级联地址选择器 |
+| IdInfo | 身份证正反面照片 | idcardOcr → saveIdInfo | 相机/相册 → OCR → 自动填充 |
+| FaceCapture | 人脸自拍 | saveFaceInfo | 前置摄像头 → 裁剪 → 压缩提交 |
+| BankInfo | 银行卡 / 电子钱包 / Bre-B | saveBankInfo | 动态账户类型配置 |
+
+#### 7.5. 原生交互方法集成
+
+进件流程中涉及以下原生交互，后续提供 `NativeBridge` 方法文档后按规范接入：
+
+| 功能 | 当前实现方式 | 后续原生替代 |
+|------|------------|-------------|
+| 身份证拍照 | `<input capture="environment">` | 原生相机 SDK |
+| 人脸自拍 | `navigator.mediaDevices.getUserMedia()` | 原生活体检测 SDK |
+| 相册选择 | `<input type="file">` | 原生相册 API |
+| 留存弹窗 | `useBlocker` + 自定义弹窗 | 原生对话框 |
+| 银行列表 | 本地静态数据 + 弹窗 | 原生 Picker |
+| 风险追踪 | `useReduxRiskTracking` HTTP 上报 | 原生 SDK 上报 |
+
+放置原生交互方法在 `src/services/nativeBridge.ts`，统一管理所有 JS bridge 调用。
+
+#### 7.6. API 层规范
+
+```typescript
+// src/services/api/apply.ts
+// 所有 API 调用通过 request() 工具函数发送
+// 响应使用 decodeNautch() 解码
+// 接口路径建议使用混淆命名（与后端约定保持一致）
+
+export function saveWorkInfo(data)  // POST 保存工作信息
+export function saveContactInfo(data)  // POST 保存联系人
+export function savePersonalInfo(data)  // POST 保存个人信息
+export function idcardOcr(file)  // POST OCR 识别
+export function saveIdInfo(data)  // POST 保存身份证
+export function saveFaceInfo(file)  // POST 保存人脸
+export function saveBankInfo(data)  // POST 保存银行卡
+export function getBankList()  // GET 获取银行列表
+export function getStepConfigInfo()  // POST 获取步骤配置
+```
+
+#### 7.7. 验收清单
+
+完成进件模块后，除 Step 5 通用测试外，额外检查：
+
+- 6 个步骤页面路由是否正确，顺序是否完整
+- 每步表单数据是否正常缓存和恢复
+- getNextStep 进度逻辑是否正确（跳过已完成步骤）
+- 原生交互（相机/相册/弹窗）是否正常触发
+- Entry 参数是否正确处理（profile/homeEdit 等模式）
+- 步骤条展示逻辑是否正确（仅前 3 步展示）
+- 退出拦截留存弹窗是否正常
+- API 字段映射是否正确（新旧接口对照）
+- 风险埋点是否正确集成
 
 ---
 
 ## 强约束
 
 - 不要把已有基准项目当成新项目重做
-- 不要在原基准项目内直接堆叠式开发新项目逻辑（场景 A 必须复制）
 - 不要忽略"结构相同、字段名变化"这个核心前提
 - 不要脱离接口文档手工猜测字段映射关系
 - 不要在页面层到处写散乱的字段转换
 - 不要为追求视觉还原而推翻整个原有组件体系
 - 在接口文档和 Figma 已提供后，不要无必要地反复询问用户确认
 - 不要跳过测试说明和验收清单
-- 场景 C 不要修改任何业务逻辑代码
+- 场景 B 不要修改任何业务逻辑代码
 - static-app/ 目录必须与 src/ 同级，不在 public/ 目录内
 - 构建产物必须使用自定义协议 local-resource://h5/，不可使用 file:// 或 CDN 路径
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
@@ -724,29 +865,27 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 
 ## 推荐触发语句
 
-- 用 H5 基准项目复现工作流帮我做这个需求
-- 基于这个 H5 基准项目复现一个新项目
-- 参考基准项目做一个新的 H5 项目，接口和设计都换新的
-- 这个接口结构一样，但参数名变了，你按基准项目复现并改好
-- 按新的 Figma 设计稿把这个新 H5 项目页面做成一模一样
-- 基于基准项目完成新项目开发并模拟测试验收
+- 参考基准项目做 H5 项目开发，接口和设计都换新的
+- 按新的 Figma 设计稿把这个 H5 项目页面做成一模一样
+- 在项目上完成开发并模拟测试验收
 - 把这个项目改成 static-app vendor 框架本地加载架构
-- 帮我配置 static-app/vendor 框架依赖
-- 把项目改成 local-resource 自定义协议加载
+- 新增进件申请流程，参考现有 Apply 模块
+- 实现工作信息 → 身份证 → 人脸 → 银行卡的申请流程
 
 ---
 
 ## 成功标准
 
 一次合格执行应满足：
-- 正确识别当前基准项目及可复用模块
+- 正确识别当前项目结构及可复用模块
 - 正确识别用户意图对应的场景（A/B/C）
-- 正确完成新旧接口地址与参数映射（场景 A/B）
-- 尽量复用基准项目的旧逻辑和旧组件，而不是盲目重写（场景 A/B）
-- 页面视觉和交互尽量贴近 Figma 设计稿（场景 A/B）
+- 正确完成新旧接口地址与参数映射（场景 A/C）
+- 尽量复用基准项目的旧逻辑和旧组件，而不是盲目重写（场景 A/C）
+- 页面视觉和交互尽量贴近 Figma 设计稿（场景 A/C）
 - 成功建立 static-app/ 基线依赖架构（所有场景）
 - 构建产物使用自定义协议 local-resource://h5/（所有场景）
 - 构建产物中业务代码不包含框架代码（所有场景）
 - 框架库保留在 devDependencies 中，node_modules 可正常解析子路径（所有场景）
+- 场景 C 的 6 个进件步骤完整、进度逻辑正确、原生交互占位就绪
 - 14 项测试 CheckList 逐项执行并输出结果
 - 交付一份清晰的测试和验收说明
