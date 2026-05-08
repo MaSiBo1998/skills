@@ -765,6 +765,7 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 - 场景 C：新增了哪些进件步骤页面及对应的 API 映射
 - 测试结果（14 项 CheckList 每项通过/失败）
 - 还需要用户做哪些真实验收或联调验证
+- **Skill 改进建议**：本次执行中发现了哪些 SKILL.md 未覆盖的问题、用户提出了哪些优化建议、哪些步骤可以优化，以及对应的改进方案（同步更新到 `C:\Users\11731\Desktop\skills\h5-embedded-app-workflow\SKILL.md` 和 `.claude\skills\` 中的对应文件）
 
 ---
 
@@ -924,6 +925,7 @@ export function getStepConfigInfo()  // POST 获取步骤配置
 - 所有框架库必须保留在 devDependencies 中（JSX 运行时子模块需从 node_modules 解析）
 - external 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖（避免误外部化子路径）
 - `build:static` 生成的 vendor 文件必须通过全局变量名校验，确保 `FRAMEWORK_GLOBALS` 中的命名与 vendor 文件实际暴露的 window 变量名一致。常见不匹配：文件暴露 `window.antdMobile` 但配置写的是 `AntdMobile`。同时检查 esbuild 是否产出了同名的 `.css` 文件（如 `antd-mobile.css`），如有则需确保被加载
+- **执行中发现 Skill 自身的疏漏或用户提出优化建议，必须在修复项目的同时同步更新本文件（`C:\Users\11731\Desktop\skills\h5-embedded-app-workflow\` 下所有相关文件），确保下次执行不再出现同样问题。**.claude 已软链接，自动同步。
 
 ---
 
