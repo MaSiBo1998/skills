@@ -442,6 +442,8 @@ for (const { entry, file, global, cssinjs } of ESM_BUNDLES) {
   })
   console.log(`  ✅ ${file}`)
 }
+// 注意：esbuild 打包 antd-mobile 时可能产出同名的 .css 文件（antd-mobile.css）
+// vendorScriptsPlugin 会自动检测并注入 <link> 标签，无需额外处理
 
 // 迁移首次图片
 const IMG_SRC = path.resolve(ROOT, 'src/assets')
@@ -451,8 +453,8 @@ if (fs.existsSync(IMG_SRC)) {
   fs.rmSync(IMG_SRC, { recursive: true, force: true })
 }
 
-// 校验 vendor 文件是否暴露了正确的 window 全局变量
-console.log('\n🔍 校验 vendor 全局变量...')
+// ====== 校验 vendor 全局变量 + 检测 CSS 文件 + 检查残留图片引用 ======
+console.log('\n🔍 校验 vendor 文件...')
 const EXPECTED_GLOBALS = {
   'react.production.min.js':     'React',
   'react-dom.production.min.js': 'ReactDOM',
@@ -477,6 +479,34 @@ for (const [file, expected] of Object.entries(EXPECTED_GLOBALS)) {
 if (!allPass) {
   console.error('❌ vendor 全局变量校验失败，请检查 FRAMEWORK_GLOBALS 中的命名与 vendor 文件暴露的全局名是否一致')
   process.exit(1)
+}
+
+// 检查是否有同名的 .css 文件需要加载
+const cssFiles = fs.readdirSync(VENDOR_DIR).filter(f => f.endsWith('.css'))
+for (const css of cssFiles) {
+  console.log(`  📄 检测到 CSS 文件: ${css}（vendorScriptsPlugin 会自动加载）`)
+}
+
+// 排查 src/ 中是否还有引用已迁移图片的 import（需替换为 STATIC_URL）
+const IMPORT_RE = /from\s+['"]@\/assets\/([^'"]+)['"]/g
+const srcFiles = fs.readdirSync(path.resolve(ROOT, 'src'), { recursive: true })
+  .filter(f => f.endsWith('.tsx') || f.endsWith('.ts') || f.endsWith('.jsx') || f.endsWith('.js'))
+let brokenImports = 0
+for (const file of srcFiles) {
+  const content = fs.readFileSync(path.resolve(ROOT, 'src', file), 'utf-8')
+  const match = IMPORT_RE.exec(content)
+  if (match) {
+    console.warn(`  ⚠️  ${file} 引用了已迁移的图片: ${match[1]}，需替换为 STATIC_URL`)
+    brokenImports++
+  }
+}
+if (brokenImports > 0) {
+  console.warn(`\n⚠️  发现 ${brokenImports} 个残留图片 import，npm run build 前需手动替换为 STATIC_URL 路径`)
+}
+
+// 清理临时垫片文件
+for (const tmp of ['_react.cjs', '_react-dom.cjs', '_cssinjs.cjs', '_jsx-entry.js']) {
+  if (fs.existsSync(path.join(VENDOR_DIR, tmp))) fs.rmSync(path.join(VENDOR_DIR, tmp))
 }
 
 console.log('✅ build:static 完成')
