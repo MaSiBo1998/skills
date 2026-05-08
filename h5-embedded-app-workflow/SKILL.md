@@ -1,11 +1,13 @@
 ---
 name: h5-embedded-app-workflow
-description: H5 内嵌 app 项目全流程工作流。支持新项目开发、架构改造、进件功能开发。自动完成设计图分析、接口文档解析、vendor 架构建立、Vite external 配置与全链路测试验收。
+description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成设计图分析、接口文档解析、vendor 架构建立与全链路测试验收。
 ---
 
-# H5 Embedded App Workflow
+# 专属开发工作流程
 
-这是一个面向 Claude Code 的自动化开发工作流 Skill，处理三类场景：
+这是一个面向 Claude Code 的开发助手 Skill，目前处理三类场景：
+
+## 场景定义
 
 | 场景 | 说明 |
 |------|------|
@@ -67,6 +69,7 @@ description: H5 内嵌 app 项目全流程工作流。支持新项目开发、�
 
 ## 推荐触发语句
 
+- 小马帮我处理工作
 - 用 h5 工作流帮我做这个需求
 - 使用 h5-embedded-app-workflow
 - 跑一下 h5 工作流

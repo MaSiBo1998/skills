@@ -2,7 +2,7 @@
 
 # h5-embedded-app-workflow
 
-> *基于 H5 内嵌 app 基准项目自动复现新项目，或将现有项目改造为静态资源本地加载架构的 Claude Code 自动化工作流。*
+> *基于基准项目自动复现新项目，或将现有项目改造为静态资源本地加载架构的 Claude Code 自动化工作流。*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
@@ -68,7 +68,7 @@
 
 这个 Skill 适合以下项目模式：
 
-- 已有一个可运行的 H5 内嵌 app 基准项目
+- 已有一个可运行的基准项目
 - 需要以这个基准项目为蓝本复现一个新项目
 - 业务模型相似，接口返回结构和取值语义大体一致
 - 需要将现有项目改造为基线依赖本地加载的架构（static-app/ + DLL + externals）
@@ -122,7 +122,7 @@ h5-project/
 
 建议一次性提供以下资料：
 
-1. 基准 H5 内嵌 app 项目代码
+1. 基准项目代码
 2. 接口文档文件，优先 `swaggerApi.json`
 3. Figma 链接或设计图文件
 
@@ -173,13 +173,13 @@ h5-embedded-app-workflow/
 放入 Claude Code 全局 Skill 目录后，在实际项目里直接说：
 
 ```text
-用 H5 基准项目复现工作流帮我做这个需求
+用基准项目复现工作流帮我做这个需求
 ```
 
 也可以这样说：
 
 ```text
-基于这个 H5 基准项目复现一个新项目，并导入新的接口文档完成开发
+基于这个基准项目复现一个新项目，并导入新的接口文档完成开发
 这个接口结构一样，但参数名变了，你按基准项目复现并改好
 按新的 Figma 设计稿把这个新项目页面一比一做出来，并模拟测试验收
 把这个项目改成 static-app 双模式构建架构
