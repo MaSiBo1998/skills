@@ -21,7 +21,7 @@ antd-mobile + antd-mobile-icons → esbuild IIFE（antd-mobile 共享 CSS-in-JS 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { buildSync } from 'esbuild'
+import { buildSync, build } from 'esbuild'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -35,16 +35,29 @@ fs.writeFileSync(path.join(VENDOR_DIR, '_react.cjs'), 'module.exports = React;')
 fs.writeFileSync(path.join(VENDOR_DIR, '_react-dom.cjs'), 'module.exports = ReactDOM;')
 fs.writeFileSync(path.join(VENDOR_DIR, '_cssinjs.cjs'), 'module.exports = window.AntdCSSinJS;')
 
-// JSX 运行时垫片
+// JSX 运行时垫片（使用 async build 以支持 plugins）
 fs.writeFileSync(path.join(VENDOR_DIR, '_jsx-entry.js'), [
   "import * as R from 'react/jsx-runtime';",
   "import * as D from 'react/jsx-dev-runtime';",
   'Object.assign(React, R); React.jsxDEV = D.jsxDEV;',
 ].join('\n'))
-buildSync({
+await build({
   entryPoints: [path.join(VENDOR_DIR, '_jsx-entry.js')],
   bundle: true, format: 'iife', outfile: path.join(VENDOR_DIR, 'react-jsx-runtime.js'),
-  alias: { react: path.join(VENDOR_DIR, '_react.cjs') }, minify: true,
+  plugins: [{
+    name: 'react-alias',
+    setup(build) {
+      // 精确匹配 'react' 裸包名 → CJS 垫片（引用全局 React）
+      build.onResolve({ filter: /^react$/ }, () => ({
+        path: path.join(VENDOR_DIR, '_react.cjs'),
+      }))
+      // 'react/*' 子路径 → node_modules 实际文件
+      build.onResolve({ filter: /^react\// }, (args) => ({
+        path: path.join(ROOT, 'node_modules', args.path + '.js'),
+      }))
+    },
+  }],
+  minify: true,
 })
 
 // UMD 拷贝

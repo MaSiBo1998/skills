@@ -31,4 +31,12 @@
 
 ## Skill 改进建议
 
-验收时输出本次执行中发现的 SKILL.md 未覆盖问题、用户提出的优化建议，同步更新到技能文件。
+验收时列出本次执行中发现的 SKILL.md 未覆盖问题、用户提出的优化建议。
+
+**列出后必须询问用户**：发现的问题是否要更新到技能文件中？用户确认后立即修改：
+
+- `C:\Users\11731\Desktop\skills\h5-embedded-app-workflow\SKILL.md`
+- `C:\Users\11731\Desktop\skills\h5-embedded-app-workflow\scenes\` 下对应场景文件
+- `C:\Users\11731\Desktop\skills\h5-embedded-app-workflow\scenes\common\` 下对应通用模块
+
+**用户拒绝**则仅在本轮交付中记录，不下写到技能文件。
