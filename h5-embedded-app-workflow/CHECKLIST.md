@@ -31,6 +31,15 @@
 
 ---
 
+## 3.5. vendor 完整性校验
+
+- **方法**: 对比 `src/` 中的 import 和 `FRAMEWORK_GLOBALS` 配置
+- **检查项**:
+  - 对 `src/` 中每个 `import ... from 'xxx'`（第三方包），确认 `FRAMEWORK_GLOBALS` 中已包含
+  - 如果某包有 import 但不在 FRAMEWORK_GLOBALS 中 → 需手动添加到 vendor 配置（`build-static.mjs` + `FRAMEWORK_GLOBALS` + `VENDOR_SCRIPTS`）
+  - 如果某包在 FRAMEWORK_GLOBALS 中但 src/ 中无 import → 无需处理（react 等通过 window 全局引用）
+- **失败判定**: `npm run build` 后 `dist/` 中包含已被 import 但未配置 vendor 的第三方库代码
+
 ## 4. 页面渲染检查
 
 - **方法**: 检查新增/修改的页面组件代码
@@ -169,6 +178,7 @@
   - 确认可移除后执行 `npm uninstall <包名>`
   - **注意**：不要移除 `react`、`react-dom` 等框架库（它们在代码中通过 window 全局引用，无 import 语句）
   - **注意**：不要移除插件类包（`@vitejs/plugin-react`、`eslint` 等 vite/eslint 配置中引用的包）
+  - **vendor 校验**：对 `FRAMEWORK_GLOBALS` 中每个模块，确认 `src/` 中有对应的 `import ... from '模块名'`。未被引用的模块应从 `FRAMEWORK_GLOBALS`、`VENDOR_SCRIPTS`、`build-static.mjs` 中移除，避免生成多余的 vendor 文件
 - **失败判定**: 存在明显未使用的依赖包未清理
 
 ---

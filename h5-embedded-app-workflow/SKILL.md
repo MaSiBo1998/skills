@@ -72,7 +72,24 @@ description: 基于 H5 内嵌 app 基准项目自动复现新项目，或改造�
 
 ---
 
-### Step 1. 输入识别与资料收集
+### Step 1.5. 依赖清理（所有场景执行）
+
+在开始任何开发任务前，先清理项目中的多余依赖，确保 vendor 配置只处理实际用到的库。
+
+```
+操作步骤：
+1. 扫描 src/ 中所有 import/require 语句，提取引用的第三方包名
+2. 对照 package.json 的 dependencies 和 devDependencies，标记未引用的包
+3. 逐项确认后移除：
+   npm uninstall <包名>
+4. 确定最终实际使用的第三方包列表
+
+注意事项：
+- 不要移除 react、react-dom——它们通过 window 全局引用，src/ 中可能无 import
+- 不要移除 vite 插件类（@vitejs/plugin-xxx、eslint 等）——它们在 vite.config 中引用
+- 不要移除 esbuild、typescript 等构建工具——它们在 node_modules 中被子依赖引用
+- 重点清理的是 src/ 中已不引用但 package.json 仍列着的业务依赖（如删了某个页面但忘了移依赖）
+```
 
 根据识别的场景收集对应输入：
 
@@ -233,16 +250,14 @@ h5-project/
 ├── static-app/             ★ 基线依赖（npm run build:static 生成，仅首次）
 │   ├── vendor/             ← 所有框架依赖库（UMD 拷贝 + esbuild 打包）
 │   │   ├── react.production.min.js     ← React（node_modules/umd 拷贝）
+│   │   ├── react-jsx-runtime.js        ← jsx/jsxs/jsxDEV 垫片（挂到 window.React）
 │   │   ├── react-dom.production.min.js ← ReactDOM（node_modules/umd 拷贝）
 │   │   ├── antd-cssinjs.js             ← @ant-design/cssinjs 独立打包（CSS-in-JS 共享实例）
 │   │   ├── react-router-dom.js         ← esbuild 打包 ESM → IIFE
 │   │   ├── antd-mobile.js              ← esbuild 打包（引用共享 CSS-in-JS 实例）
 │   │   ├── antd-mobile-icons.js        ← esbuild 打包
 │   │   ├── redux-toolkit.js            ← esbuild 打包
-│   │   ├── react-redux.js              ← esbuild 打包
-│   │   ├── crypto-js.js                ← node_modules 拷贝
-│   │   ├── jsencrypt.min.js            ← node_modules 拷贝
-│   │   └── fingerprint.min.js          ← node_modules 拷贝
+│   │   └── react-redux.js              ← esbuild 打包
 │   └── images/            ← 首次项目图片（build:static 从 src/assets 迁移至此）
 │       ├── logo.png
 │       └── ...
@@ -326,9 +341,19 @@ import newIcon from '@/assets/new-icon.png'
 
 #### 构建与引用方式
 
-**1. `npm run build:static` 脚本 — `scripts/build-static.mjs`**
+**vendor 固定处理以下库，其他库由 Vite 正常打包到 `dist/assets/`：**
 
-有 UMD 的直接拷贝，无 UMD 的用 esbuild + alias 打包为 IIFE：
+```
+react                 → vendor（UMD 拷贝）
+react-dom             → vendor（UMD 拷贝）
+react-router-dom      → vendor（esbuild 打包）
+antd-mobile           → vendor（esbuild 打包 + 共享 CSS-in-JS 实例）
+antd-mobile-icons     → vendor（esbuild 打包）
+@reduxjs/toolkit      → vendor（esbuild 打包）
+react-redux           → vendor（esbuild 打包）
+```
+
+**1. `npm run build:static` — `scripts/build-static.mjs`**
 
 ```js
 // scripts/build-static.mjs
@@ -344,59 +369,76 @@ const VENDOR_DIR = path.resolve(ROOT, 'static-app/vendor')
 fs.rmSync(VENDOR_DIR, { recursive: true, force: true })
 fs.mkdirSync(VENDOR_DIR, { recursive: true })
 
-// ---- 拷贝有 UMD 的库 ----
-const UMD_FILES = {
-  'node_modules/react/umd/react.production.min.js': 'react.production.min.js',
-  'node_modules/react-dom/umd/react-dom.production.min.js': 'react-dom.production.min.js',
-  'node_modules/crypto-js/crypto-js.js': 'crypto-js.js',
-  'node_modules/jsencrypt/bin/jsencrypt.min.js': 'jsencrypt.min.js',
-  'node_modules/@fingerprintjs/fingerprintjs/dist/fp.min.js': 'fingerprint.min.js',
-}
-for (const [src, dest] of Object.entries(UMD_FILES)) {
-  fs.copyFileSync(path.resolve(ROOT, src), path.join(VENDOR_DIR, dest))
-}
-
-// ---- CJS 垫片 — esbuild alias 指向此文件，内联 window.React/ReactDOM ----
+// CJS 垫片（esbuild alias 指向这些文件，内联 window 全局变量）
 fs.writeFileSync(path.join(VENDOR_DIR, '_react.cjs'), 'module.exports = React;')
 fs.writeFileSync(path.join(VENDOR_DIR, '_react-dom.cjs'), 'module.exports = ReactDOM;')
 fs.writeFileSync(path.join(VENDOR_DIR, '_cssinjs.cjs'), 'module.exports = window.AntdCSSinJS;')
 
-// ---- 打包 @ant-design/cssinjs 为独立 IIFE（共享 CSS-in-JS 实例，防止样式丢失）----
+// ====== React JSX 运行时垫片（将 jsx/jsxs/jsxDEV 挂到 window.React 上）======
+// React UMD 不包含 react/jsx-runtime，需单独注入
+fs.writeFileSync(path.join(VENDOR_DIR, '_jsx-entry.js'), `
+import * as R from 'react/jsx-runtime';
+import * as D from 'react/jsx-dev-runtime';
+Object.assign(React, R);
+React.jsxDEV = D.jsxDEV;
+`)
 buildSync({
-  entryPoints: [path.resolve(ROOT, 'node_modules/@ant-design/cssinjs/es/index.js')],
-  bundle: true, format: 'iife', globalName: 'AntdCSSinJS',
-  outfile: path.join(VENDOR_DIR, 'antd-cssinjs.js'),
+  entryPoints: [path.join(VENDOR_DIR, '_jsx-entry.js')],
+  bundle: true, format: 'iife', outfile: path.join(VENDOR_DIR, 'react-jsx-runtime.js'),
   alias: { react: path.join(VENDOR_DIR, '_react.cjs') },
   minify: true,
 })
 
-// ---- esbuild 打包 ESM 库为 IIFE（无 UMD 的库）----
-const ESM_BUNDLES = [
-  { entry: 'node_modules/react-router-dom/dist/index.js',  outfile: 'react-router-dom.js',  global: 'ReactRouterDOM' },
-  { entry: 'node_modules/antd-mobile/es/index.js',         outfile: 'antd-mobile.js',       global: 'AntdMobile' },
-  { entry: 'node_modules/antd-mobile-icons/cjs/index.js',  outfile: 'antd-mobile-icons.js', global: 'AntdMobileIcons' },
-  { entry: 'node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs', outfile: 'redux-toolkit.js', global: 'ReduxToolkit' },
-  { entry: 'node_modules/react-redux/dist/react-redux.browser.mjs',       outfile: 'react-redux.js', global: 'ReactRedux' },
+// ====== UMD 拷贝 ======
+const UMD_FILES = [
+  { src: 'node_modules/react/umd/react.production.min.js',          file: 'react.production.min.js' },
+  { src: 'node_modules/react-dom/umd/react-dom.production.min.js',  file: 'react-dom.production.min.js' },
 ]
-for (const { entry, outfile, global } of ESM_BUNDLES) {
+for (const { src, file } of UMD_FILES) {
+  const srcPath = path.resolve(ROOT, src)
+  if (fs.existsSync(srcPath)) {
+    fs.copyFileSync(srcPath, path.join(VENDOR_DIR, file))
+    console.log(`  ✅ ${file}`)
+  }
+}
+
+// ====== 打包 @ant-design/cssinjs 独立 IIFE（共享 CSS-in-JS 实例）======
+if (fs.existsSync(path.resolve(ROOT, 'node_modules/@ant-design/cssinjs'))) {
+  buildSync({
+    entryPoints: [path.resolve(ROOT, 'node_modules/@ant-design/cssinjs/es/index.js')],
+    bundle: true, format: 'iife', globalName: 'AntdCSSinJS',
+    outfile: path.join(VENDOR_DIR, 'antd-cssinjs.js'),
+    alias: { react: path.join(VENDOR_DIR, '_react.cjs') },
+    minify: true,
+  })
+  console.log('  ✅ antd-cssinjs.js')
+}
+
+// ====== ESM → esbuild 打包 ======
+const ESM_BUNDLES = [
+  { entry: 'node_modules/react-router-dom/dist/index.js',           file: 'react-router-dom.js',  global: 'ReactRouterDOM' },
+  { entry: 'node_modules/antd-mobile/es/index.js',                  file: 'antd-mobile.js',       global: 'AntdMobile',       cssinjs: true },
+  { entry: 'node_modules/antd-mobile-icons/cjs/index.js',           file: 'antd-mobile-icons.js', global: 'AntdMobileIcons' },
+  { entry: 'node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs', file: 'redux-toolkit.js', global: 'ReduxToolkit' },
+  { entry: 'node_modules/react-redux/dist/react-redux.browser.mjs',        file: 'react-redux.js',   global: 'ReactRedux' },
+]
+for (const { entry, file, global, cssinjs } of ESM_BUNDLES) {
   const alias = {
     react: path.join(VENDOR_DIR, '_react.cjs'),
     'react-dom': path.join(VENDOR_DIR, '_react-dom.cjs'),
   }
-  // antd-mobile 使用共享的 CSS-in-JS 实例，不自己打包
-  if (outfile === 'antd-mobile.js') {
-    alias['@ant-design/cssinjs'] = path.join(VENDOR_DIR, '_cssinjs.cjs')
-  }
+  if (cssinjs) alias['@ant-design/cssinjs'] = path.join(VENDOR_DIR, '_cssinjs.cjs')
+
   buildSync({
     entryPoints: [path.resolve(ROOT, entry)],
     bundle: true, format: 'iife', globalName: global,
-    outfile: path.join(VENDOR_DIR, outfile),
-    alias,
-    minify: true,
+    outfile: path.join(VENDOR_DIR, file),
+    alias, minify: true,
   })
+  console.log(`  ✅ ${file}`)
 }
 
-// ---- 迁移首次图片 ----
+// 迁移首次图片
 const IMG_SRC = path.resolve(ROOT, 'src/assets')
 const IMG_DEST = path.resolve(ROOT, 'static-app/images')
 if (fs.existsSync(IMG_SRC)) {
@@ -405,8 +447,6 @@ if (fs.existsSync(IMG_SRC)) {
 }
 console.log('✅ build:static 完成')
 ```
-
-> esbuild 使用 `alias` 而非 `external`，将 `react`/`react-dom` 指向 CJS 垫片文件（`module.exports = React`），垫片指向已在浏览器中加载的 `window.React`/`window.ReactDOM`。产物体内不含 `require()` 调用。
 
 **2. index.html — 干净简洁，不包含框架 script 标签**
 
@@ -425,17 +465,15 @@ console.log('✅ build:static 完成')
 
 > 框架 script 标签（`<script src="local-resource://h5/static-app/vendor/xxx.js">`）由 Vite 插件在 `npm run build` 时自动注入，`npm run dev` 时不存在，dev 模式使用 node_modules 正常解析。
 
-**3. vite.config.js — build 时才启用 externalization**
+**3. vite.config.js**
 
 ```js
 import react from '@vitejs/plugin-react'
 import externalGlobals from 'rollup-plugin-external-globals'
 
-// ★ App 资源前缀 —— 原生 App 拦截此协议映射到内部资源文件
-// 可根据实际 App 协议修改，例如 'local-resource://h5/'、'app-asset://h5/' 等
 const APP_RESOURCE_PREFIX = 'local-resource://h5/'
 
-// 框架全局变量映射（仅 build 使用，所有通过 build:static 预构建的库）
+// vendor 处理的库（与 build-static.mjs 保持一致的固定列表）
 const FRAMEWORK_GLOBALS = {
   'react': 'React',
   'react-dom': 'ReactDOM',
@@ -444,30 +482,22 @@ const FRAMEWORK_GLOBALS = {
   'antd-mobile-icons': 'AntdMobileIcons',
   '@reduxjs/toolkit': 'ReduxToolkit',
   'react-redux': 'ReactRedux',
-  '@ant-design/cssinjs': 'AntdCSSinJS',
-  'crypto-js': 'CryptoJS',
-  'jsencrypt': 'JSEncrypt',
-  '@fingerprintjs/fingerprintjs': 'FingerprintJS',
 }
 
-// build 时注入 vendor script 标签的插件（放在 </body> 前）
+// build 时注入 vendor script 标签
 function vendorScriptsPlugin(prefix) {
-  const VENDOR_SCRIPTS = [
+  const files = [
     'react.production.min.js',
+    'react-jsx-runtime.js',
     'react-dom.production.min.js',
-    'antd-cssinjs.js',        // ★ 必须在 antd-mobile.js 之前
+    'antd-cssinjs.js',
     'react-router-dom.js',
     'antd-mobile.js',
     'antd-mobile-icons.js',
     'redux-toolkit.js',
     'react-redux.js',
-    'crypto-js.js',
-    'jsencrypt.min.js',
-    'fingerprint.min.js',
   ]
-  const tags = VENDOR_SCRIPTS
-    .map(f => `<script src="${prefix}static-app/vendor/${f}"></script>`)
-    .join('\n  ')
+  const tags = files.map(f => `<script src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
   return {
     name: 'vendor-scripts',
     transformIndexHtml(html) {
@@ -481,7 +511,6 @@ export default defineConfig(({ command }) => ({
 
   plugins: [
     react(),
-    // ★ 仅在 build 时启用 externalization + 注入 vendor script 标签
     ...(command === 'build' ? [
       externalGlobals(FRAMEWORK_GLOBALS),
       vendorScriptsPlugin(APP_RESOURCE_PREFIX),
@@ -490,17 +519,10 @@ export default defineConfig(({ command }) => ({
 
   build: {
     rollupOptions: {
-      // ★ 仅在 build 时外部化框架主模块（dev 时从 node_modules 正常解析）
-      external: command === 'build'
-        ? Object.keys(FRAMEWORK_GLOBALS)
-        : [],
+      external: command === 'build' ? Object.keys(FRAMEWORK_GLOBALS) : [],
       output: {
-        // ★ 不强制分包 node_modules，Vite 自动处理
-        // 只对项目代码做合理拆分
         manualChunks(id) {
-          // 公共组件 → components chunk（多页面复用时提取）
           if (id.includes('/src/components/')) return 'components'
-          // 工具函数 / hooks / API → utils chunk
           if (id.includes('/src/utils/') || id.includes('/src/hooks/') || id.includes('/src/api/')) return 'utils'
         },
       },
@@ -511,16 +533,14 @@ export default defineConfig(({ command }) => ({
   },
 
   configureServer(server) {
-    // 仅 dev 时提供 static-app/ 目录访问（供基线图片使用）
-    // 框架 JS 在 dev 时不走 static-app，从 node_modules 加载
+    server.middlewares.use('/static-app', (req, res, next) => {
+      const filePath = path.join(process.cwd(), 'static-app',
+        req.url.replace('/static-app/', '').split('?')[0])
+      if (fs.existsSync(filePath)) { res.end(fs.readFileSync(filePath)) } else { next() }
+    })
   },
 }))
 ```
-
-> **为什么 dev 和 build 分开**：
-> - `npm run dev`：esbuild 预构建依赖 + node_modules 正常解析，HMR、热更新不受任何影响。`externalGlobals` 不启用，避免与 esbuild 预构建冲突。
-> - `npm run build`：启用 `externalGlobals` 将框架 import 映射到 window 全局变量，`external` 排除框架代码，`vendorScriptsPlugin` 自动注入 script 标签。
-> - dev 和 build 使用同一套代码，不需要两套 index.html。
 
 #### 命令速查
 
@@ -575,23 +595,22 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 **第一阶段：复制基准项目并建立静态资源架构**
 - 使用 `cp -r` 或 `rsync` 完整复制基准项目到新目录（如 `新项目名/`）
 - 更新项目名称、包名等基础配置
-- **建立 static-app/vendor/ + external 架构**：
-  - 创建 `static-app/vendor/` 目录（与 `src/` 同级，**不在** `public/` 内）
+  - **建立 static-app/vendor/ + external 架构**：
+    - 创建 `static-app/vendor/` 目录（与 `src/` 同级，**不在** `public/` 内）
+  - **vendor 使用固定列表**（参考 Step 3 中的 7 个库），不依赖 Step 1.5 结果
   - **创建 `scripts/build-static.mjs`**（UMD 拷贝 + esbuild 打包 ESM）：
-    - 从 node_modules 拷贝 React、ReactDOM、crypto-js 等 UMD 文件
+    - 从 node_modules 拷贝 React、ReactDOM 的 UMD 文件
     - esbuild + alias 打包 antd-mobile、react-router-dom 等为 IIFE
     - 迁移 `src/assets/` 首次图片到 `static-app/images/`
   - 配置 `package.json` 的 `build:static` 脚本
   - **index.html 保持简洁**，不写 framework script 标签，build 时由 vendorScriptsPlugin 自动注入
   - **配置 `vite.config.js`**（build 时启用，dev 时从 node_modules 正常加载）：
-    - 安装 `rollup-plugin-external-globals`，配置所有框架的 import → window 映射
+    - 安装 `rollup-plugin-external-globals`，配置实际用到库的 import → window 映射
     - 创建 `vendorScriptsPlugin`，build 时自动注入 `<script>` 标签到 index.html
-    - `build.rollupOptions.external` 精确列出主模块（不含子路径）
+    - `build.rollupOptions.external` 只列出在 `src/` 中有引用的模块
     - dev server 中间件挂载 `static-app/`（仅用于基线图片）
   - 运行 `npm run build:static` → 生成 static-app/vendor/ + 迁移图片
   - 将代码中引用**被迁移的图片**的 `import` 替换为 `STATIC_URL` 路径引用（后续新增图片仍用 import）
-  - **确保框架库在 `devDependencies` 中**（JSX 运行时子模块等需要从 node_modules 解析，不要移出）
-  - **清理未使用的依赖**：扫描 `src/` 中的 import 语句，对照 `package.json` 中的 dependencies + devDependencies，找出未在代码中引用的包，确认后可移除
 
 **第二阶段：按 Figma 设计替换页面（强制遵守 H5 内嵌约束）**
 - 对照设计分析报告，逐页面/逐组件修改
@@ -616,17 +635,17 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 ```
 架构改造步骤：
 1. 技术栈评估 —— 识别当前项目构建工具和框架版本，确认所有框架库在 devDependencies 中
-2. 创建 `scripts/build-static.mjs` —— UMD 拷贝 + esbuild 打包 ESM + @ant-design/cssinjs 独立打包
-3. 安装 `rollup-plugin-external-globals` —— build 时将所有框架库 import → window 映射
-4. 配置 vite.config.js —— build 时启用 externalGlobals + vendorScriptsPlugin，externalize 所有框架库
-5. index.html 保持简洁 —— 不写 script 标签，build 时由 vendorScriptsPlugin 自动注入
-6. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
-7. 配置 package.json 的 `build:static` 脚本
-8. 运行 `npm run build:static` —— 生成所有 vendor 文件 + 迁移图片
-9. 清理未使用的依赖 —— 扫描代码中的 import，对照 package.json 移除未引用的包
+2. 扫描依赖 —— 搜索 src/ 中所有 import，清理未引用的包（Step 1.5）
+3. 创建 `scripts/build-static.mjs` —— 按固定列表处理 7 个库（UMD 拷贝 + esbuild 打包 + @ant-design/cssinjs）
+4. 安装 `rollup-plugin-external-globals` —— 配置固定 7 个库的 import → window 映射
+5. 配置 vite.config.js —— externalize 固定 7 个库，vendorScriptsPlugin 注入对应的 script 标签
+6. index.html 保持简洁 —— 不写 script 标签，build 时由 vendorScriptsPlugin 自动注入
+7. 迁移图片并替换引用 —— 将 src/assets 图片移到 static-app/images/，代码中 import 替换为 STATIC_URL 路径
+8. 配置 package.json 的 `build:static` 脚本
+9. 运行 `npm run build:static` —— 生成所有 vendor 文件 + 迁移图片
 10. 验证：
     - npm run dev 正常启动，HMR 正常
-    - npm run build 产物中不含任何框架库代码
+    - npm run build 产物中不含 7 个 vendor 库代码
     - npm run build 产物 index.html 中自动注入了 vendor script 标签（antd-cssinjs.js 在 antd-mobile.js 前）
     - antd-mobile 样式正常（CSS-in-JS 共享同一实例）
     - 页面功能不受影响
@@ -651,6 +670,7 @@ npm run build               # 自动注入 vendor script 标签 + externalizatio
 □ 1. 类型检查 —— 运行 npm run type-check 或 tsc --noEmit
 □ 2. Lint 检查 —— 运行 npm run lint 或 eslint
 □ 3. 构建测试 —— 运行 npm run build
+□ 3a. vendor 完整性校验 —— 确认 `dist/` 中不包含 react、react-dom 等 7 个 vendor 库的代码
 □ 4. 页面渲染检查 —— 检查新增/修改的页面组件导入是否正常
 □ 5. 路由检查 —— 检查路由配置是否包含新页面
 □ 6. 接口请求检查 —— 检查所有 API 请求是否指向新地址
