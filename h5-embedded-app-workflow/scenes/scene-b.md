@@ -12,24 +12,9 @@
 
 ---
 
-## Step 2. vendor 架构建立（同场景 A Step 4.2）
+## Step 2. vendor 架构建立
 
-vendor 固定处理以下 7 个库：
-
-```
-react / react-dom              → UMD 拷贝
-react-router-dom               → esbuild IIFE
-antd-mobile + antd-mobile-icons → esbuild IIFE
-@reduxjs/toolkit + react-redux → esbuild IIFE
-```
-
-创建文件并配置：
-
-- `scripts/build-static.mjs`（同 scene-a.md 中的模板）
-- 更新 `vite.config.js`（externalGlobals + vendorScriptsPlugin + dev server 中间件）
-- 更新 `index.html`（加 meta[name="app-resource"] 标签）
-- 配置 `package.json` 的 `build:static` 脚本
-- 运行 `npm run build:static`
+完整步骤见 `scenes/common/vendor-setup.md`。创建 `scripts/build-static.mjs`、更新 `vite.config.js`、更新 `index.html`、配置 `package.json`，然后执行 `npm run build:static`。
 
 ---
 

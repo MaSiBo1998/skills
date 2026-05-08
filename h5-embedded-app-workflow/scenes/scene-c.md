@@ -29,7 +29,7 @@
 
 ## Step 4. vendor 架构建立
 
-同场景 A Step 4.2。完全相同的 vendor 配置（7 个库）。
+完整步骤见 `scenes/common/vendor-setup.md`。按该文档创建相关文件并执行 `npm run build:static`。
 
 ---
 
@@ -77,23 +77,46 @@ getNextStep() 通过后端接口获取步骤完成状态：
 5. 全部完成 → 跳首页
 ```
 
-### 5.4 各页面规范
+### 5.4 Entry 模式与提交后跳转逻辑
+
+进件流程支持多种进入渠道，通过 URL 参数 `entry` 区分。提交成功后根据 entry 值执行不同操作：
+
+| entry 取值 | 进入渠道 | URL 示例 | 提交成功后 |
+|------------|---------|----------|-----------|
+| `home` | 首页点击进件 | `www.baidu.com/work?entry=home` | 调用 `getNextStep()` 跳转下一步 |
+| `profile` | 个人中心进入 | `www.baidu.com/work?entry=profile` | 调用原生 `goProfile()` |
+| `firstEdit` | 首贷修改（被拒后改银行卡） | `www.baidu.com/bank?entry=firstEdit` | 调用原生 `goFirstloan()` |
+| `reloanEdit` | 复贷修改（被拒后改银行卡） | `www.baidu.com/bank?entry=reloanEdit` | 调用原生 `goReloan()` |
+
+每个页面在挂载时从 URL 中读取 `entry` 参数，提交成功后按上表逻辑处理：
+
+```
+提交成功后：
+  switch (entry):
+    'home'      → getNextStep(currentPath) → 跳转下一步
+    'profile'   → window.NativeBridge.goProfile() → 原生跳转个人中心
+    'firstEdit' → window.NativeBridge.goFirstloan() → 原生跳转首贷
+    'reloanEdit' → window.NativeBridge.goReloan() → 原生跳转复贷
+    default     → getNextStep(currentPath) → 跳转下一步
+```
+
+### 5.5 各页面规范
 
 ```
 挂载时：
   - 从 localStorage 恢复草稿
   - 加载配置（getStepConfigInfo）
   - 调用 getNextStep() 获取下一步路径
+  - 从 URL 读取 entry 参数
   - 初始化风险追踪 hook
 
 表单交互：
   - 选择器自动步进（确认后 350ms 弹出下一个字段）
-  - Entry 模式支持（?entry=profile / homeEdit 等）
   - 离开时数据缓存到 localStorage
 
 提交时：
   - 调用对应保存 API
-  - 成功后 getNextStep() 跳转
+  - 成功后根据 entry 值跳转或调原生方法
   - 失败提示错误
 
 返回拦截：
@@ -101,7 +124,7 @@ getNextStep() 通过后端接口获取步骤完成状态：
   - 退出前保存草稿
 ```
 
-### 5.5 各步骤说明
+### 5.6 各步骤说明
 
 | 步骤 | 关键字段 | API | 备注 |
 |------|---------|-----|------|
@@ -112,22 +135,40 @@ getNextStep() 通过后端接口获取步骤完成状态：
 | FaceCapture | 人脸自拍 | saveFaceInfo | 前置摄像头 → 裁剪 → 压缩提交 |
 | BankInfo | 银行卡/电子钱包/Bre-B | saveBankInfo | 动态账户类型配置 |
 
-### 5.6 原生交互集成
+### 5.8 原生交互集成
+
+完整原生方法协议请参考 `references/native-methods.md`。
 
 ```
-功能         当前实现                    后续原生替代
-────────────────────────────────────────────────────
-身份证拍照    <input capture="environment">   原生相机 SDK
-人脸自拍      navigator.mediaDevices.getUserMedia()  原生活体检测
-相册选择      <input type="file">             原生相册 API
-留存弹窗      useBlocker + 自定义弹窗           原生对话框
-银行列表      本地数据 + 弹窗                   原生 Picker
-风险追踪      useReduxRiskTracking HTTP 上报   原生 SDK
+功能                  调用方式                              原生方法      type 参数
+──────────────────────────────────────────────────────────────────────────
+身份证正面拍照         window.NativeBridge.openCamera()      openCamera   type: 0
+身份证反面拍照         window.NativeBridge.openCamera()      openCamera   type: 1
+自拍                  window.NativeBridge.openCamera()      openCamera   type: 2
+相册选身份证正面       window.NativeBridge.openAlbum()       openAlbum    type: 0
+相册选身份证反面       window.NativeBridge.openAlbum()       openAlbum    type: 1
+相册选自拍            window.NativeBridge.openAlbum()        openAlbum    type: 2
+选择联系人            window.NativeBridge.openContact()     openContact  index: 0-2
+获取 Token           window.NativeBridge.getToken()         getToken     → getTokenCallBack
+获取设备信息          window.NativeBridge.getDeviceInfo()   getDeviceInfo → getDeviceInfoCallBack
+获取权限状态          window.NativeBridge.getAllPermissions() getAllPermissions → getAllPermissionsCallBack
+退出登录             window.NativeBridge.logOut()           logOut       H5 清登录态 + 原生跳转登录页
 ```
 
-原生交互方法统一放 `src/services/nativeBridge.ts`。
+原生回调方法（原生侧调用 H5 全局方法）：
 
-### 5.7 API 层规范
+```
+window.getTokenCallBack(payload)
+window.getDeviceInfoCallBack(payload)
+window.getAllPermissionsCallBack(payload)
+window.openCameraCallBack(payload)
+window.openAlbumCallBack(payload)
+window.openContactCallBack(payload)
+```
+
+原生交互方法统一封装在 `src/services/nativeBridge.ts`，各页面引用该模块调用，不直接操作 window。
+
+### 5.9 API 层规范
 
 ```typescript
 // src/services/api/apply.ts
@@ -143,7 +184,7 @@ export function getBankList()
 export function getStepConfigInfo()
 ```
 
-### 5.8 修改范围约束
+### 5.10 修改范围约束
 
 ```
 ✅ 修改 src/pages/Apply/ 下的所有文件
