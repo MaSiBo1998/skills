@@ -19,6 +19,15 @@
 
 ---
 
+## Step 2.5. 询问 vendor 架构
+
+询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）：
+
+- **是** → 执行 Step 4 vendor 架构建立
+- **否** → 跳过 Step 4
+
+---
+
 ## Step 3. JSON 接口文档自动解析
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
