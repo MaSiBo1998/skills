@@ -157,6 +157,7 @@ h5-embedded-app-workflow/
 │       ├── figma-analysis.md ★ Figma 设计图自动分析
 │       ├── api-parsing.md    ★ JSON 接口文档自动解析
 │       ├── vendor-setup.md   ★ vendor 架构建立
+│       ├── checkpoint.md     ★ 中断恢复 checkpoint
 │       └── testing.md        ★ 自动测试验收
 └── references/
     ├── native-methods.md     ★ H5-App 原生交互协议

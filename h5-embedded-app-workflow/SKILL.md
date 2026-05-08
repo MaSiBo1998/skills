@@ -23,9 +23,9 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 **Step 1.** 触发本 Skill（说"用 h5 工作流"或类似语句）
 
-**Step 2.** 选择场景：Claude 会列出 A/B/C 让你选。先确定工作方向，再了解项目细节。当前场景 A/B/C 均在当前工作目录执行。
+**Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C 让你选。先确定工作方向，再了解项目细节。当前场景 A/B/C 均在当前工作目录执行。
 
-**Step 3.** Claude 读取对应场景的详细流程文件并执行
+**Step 3.** Claude 读取对应场景的详细流程文件并执行。每完成一个 Step 后按 `scenes/common/checkpoint.md` 更新 checkpoint。
 
 ---
 
@@ -49,6 +49,8 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 - 工作流执行过程中持续监控上下文占用，超过 50% 时主动执行 `/compact` 精简上下文
 - 执行中发现 Skill 自身疏漏或用户提出优化建议，必须同步更新本 Skill 文件
+- 每个 Step 完成后必须按 `scenes/common/checkpoint.md` 更新 `.workflow-checkpoint.json`
+- 工作流全部完成后立即删除 `.workflow-checkpoint.json`
 
 ---
 
@@ -59,6 +61,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 14 项测试 CheckList 逐项执行并输出结果
 - 交付清晰的测试和验收说明
 - Skill 改进建议输出并同步更新
+- `.workflow-checkpoint.json` 在工作流完成后已清理
 
 ---
 

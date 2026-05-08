@@ -9,11 +9,15 @@
 - 识别当前项目构建工具（Vite / Webpack）、框架版本
 - 确认 `react`、`react-dom` 等框架库在 `devDependencies` 中
 
+**→ 更新 checkpoint**: Step 1（技术栈评估）完成
+
 ---
 
 ## Step 2. vendor 架构建立
 
 完整步骤见 `scenes/common/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
+
+**→ 更新 checkpoint**: Step 2（vendor 架构建立）完成
 
 ---
 
@@ -21,11 +25,15 @@
 
 `build:static` 会自动将 `src/assets/` 迁移到 `static-app/images/`。将代码中残留的 `import from '@/assets/...'` 替换为 STATIC_URL。
 
+**→ 更新 checkpoint**: Step 3（图片迁移）完成
+
 ---
 
 ## Step 4. 自动测试验收
 
 完整步骤见 `scenes/common/testing.md`。重点检查 1/2/3/3a/11/12/13/14，跳过 4-10（未改业务逻辑）。
+
+**→ 更新 checkpoint**: Step 4（自动测试验收）完成
 
 ---
 
@@ -35,6 +43,8 @@
 - 场景 A — 架构改造清单（改了哪些配置文件）
 - 测试结果
 - Skill 改进建议：列出问题 → **询问用户是否更新技能文件**，确认后立即修改对应文件
+
+**→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 
 ---
 
