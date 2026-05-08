@@ -161,9 +161,7 @@ h5-embedded-app-workflow/
 └── references/
     ├── native-methods.md     ★ H5-App 原生交互协议
     └── design/
-        ├── 01-positioning.md
-        ├── 02-api-doc-and-mapping.md
-        └── 03-figma-and-acceptance.md
+        └── 01-positioning.md  ★ 项目定位
 ```
 
 ---
