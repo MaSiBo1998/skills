@@ -450,6 +450,35 @@ if (fs.existsSync(IMG_SRC)) {
   fs.cpSync(IMG_SRC, IMG_DEST, { recursive: true })
   fs.rmSync(IMG_SRC, { recursive: true, force: true })
 }
+
+// 校验 vendor 文件是否暴露了正确的 window 全局变量
+console.log('\n🔍 校验 vendor 全局变量...')
+const EXPECTED_GLOBALS = {
+  'react.production.min.js':     'React',
+  'react-dom.production.min.js': 'ReactDOM',
+  'react-jsx-runtime.js':        'React',       // 挂载到 React 上
+  'antd-cssinjs.js':             'AntdCSSinJS',
+  'react-router-dom.js':         'ReactRouterDOM',
+  'antd-mobile.js':              'AntdMobile',
+  'antd-mobile-icons.js':        'AntdMobileIcons',
+  'redux-toolkit.js':            'ReduxToolkit',
+  'react-redux.js':              'ReactRedux',
+}
+let allPass = true
+for (const [file, expected] of Object.entries(EXPECTED_GLOBALS)) {
+  const content = fs.readFileSync(path.join(VENDOR_DIR, file), 'utf-8')
+  if (content.includes(expected)) {
+    console.log(`  ✅ ${file} → window.${expected}`)
+  } else {
+    console.error(`  ❌ ${file} 未包含 ${expected}，全局变量名可能不匹配`)
+    allPass = false
+  }
+}
+if (!allPass) {
+  console.error('❌ vendor 全局变量校验失败，请检查 FRAMEWORK_GLOBALS 中的命名与 vendor 文件暴露的全局名是否一致')
+  process.exit(1)
+}
+
 console.log('✅ build:static 完成')
 ```
 
@@ -473,6 +502,7 @@ console.log('✅ build:static 完成')
 **3. vite.config.js**
 
 ```js
+import fs from 'fs'
 import react from '@vitejs/plugin-react'
 import externalGlobals from 'rollup-plugin-external-globals'
 
@@ -489,7 +519,7 @@ const FRAMEWORK_GLOBALS = {
   'react-redux': 'ReactRedux',
 }
 
-// build 时注入 vendor script 标签（defer 在 head 顶部，解析完成后执行，确保 DOM 就绪）
+// build 时注入 vendor script 标签 + CSS 文件（defer 在 head 顶部）
 function vendorScriptsPlugin(prefix) {
   const files = [
     'react.production.min.js',
@@ -502,11 +532,14 @@ function vendorScriptsPlugin(prefix) {
     'redux-toolkit.js',
     'react-redux.js',
   ]
-  const tags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
+  const jsTags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
+  // 自动注入同名的 .css 文件（如 antd-mobile.css、antd-mobile-icons.css）
+  const cssFiles = files.filter(f => fs.existsSync(`static-app/vendor/${f.replace('.js', '.css')}`))
+  const cssTags = cssFiles.map(f => `<link rel="stylesheet" href="${prefix}static-app/vendor/${f.replace('.js', '.css')}" />`).join('\n  ')
   return {
     name: 'vendor-scripts',
     transformIndexHtml(html) {
-      return html.replace('<head>', `<head>\n  ${tags}`)
+      return html.replace('<head>', `<head>\n  ${cssTags}${cssTags ? '\n  ' : ''}${jsTags}`)
     },
   }
 }
@@ -860,6 +893,7 @@ export function getStepConfigInfo()  // POST 获取步骤配置
 - 构建产物中不得包含框架代码（必须通过 externals 排除）
 - 所有框架库必须保留在 devDependencies 中（JSX 运行时子模块需从 node_modules 解析）
 - external 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖（避免误外部化子路径）
+- `build:static` 生成的 vendor 文件必须通过全局变量名校验，确保 `FRAMEWORK_GLOBALS` 中的命名与 vendor 文件实际暴露的 window 变量名一致。常见不匹配：文件暴露 `window.antdMobile` 但配置写的是 `AntdMobile`。同时检查 esbuild 是否产出了同名的 `.css` 文件（如 `antd-mobile.css`），如有则需确保被加载
 
 ---
 
