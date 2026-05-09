@@ -54,8 +54,8 @@
 | 场景 | 推荐 context 字段 |
 |------|-------------------|
 | A | `{}` |
-| B | `{ vendor_enabled, figma_url, api_doc_path }` |
-| C | `{ vendor_enabled, figma_url, api_doc_path }` |
+| B | `{ vendor_enabled, figma_url, api_doc_path, project_config }` |
+| C | `{ vendor_enabled, figma_url, api_doc_path, project_config }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 

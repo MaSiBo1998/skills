@@ -4,7 +4,9 @@
 
 设计分析必须结合基准项目，不能脱离基准项目只看 Figma。
 
-## API 调用
+## 输入方式（按优先级）
+
+### 方式一：Figma API（在线）
 
 前置检查：确认 `$FIGMA_TOKEN` 环境变量已设置，未设置则提示用户先配置 Figma Access Token。
 
@@ -19,6 +21,37 @@ node_id:   从 URL 提取（可选）
 ```
 
 关键字段：`document.children`、`node.type`、`node.absoluteBoundingBox`、`node.fills[].color`（范围 0-1，转 0-255 需 *255）、`node.style`、`node.characters`、`node.effects`。
+
+**限流处理**：Figma API 可能返回 429 (Rate Limit Exceeded)。首次请求失败后等待 60 秒重试，最多 3 次。如果仍然失败，自动切换到方式二。
+
+### 方式二：本地设计图文件夹（离线/限流降级）
+
+当 Figma API 不可用（Token 未配置、限流、网络问题）时，使用本地文件夹中的设计截图进行分析。
+
+**约定目录结构**：
+```
+designs/           ← 设计截图（页面级别的完整截图）
+  home.png         ← 首页
+  login.png        ← 登录页
+  status-xxx.png   ← 各状态页
+  ...
+designs/cutouts/   ← 需要的切图素材（图标、背景等）
+  icon-xxx.png
+  bg-xxx.png
+  ...
+```
+
+**分析流程**：
+1. 检测项目根目录是否存在 `designs/` 文件夹
+2. 读取文件夹中的所有图片文件（PNG/JPG/WEBP）
+3. 对每张设计截图进行视觉分析，提取布局结构、组件类型、色值、字号、间距
+4. 将 `designs/cutouts/` 中的切图素材复制到 `static-app/images/` 或 `src/assets/`
+5. 输出与 Figma 分析相同格式的设计分析报告
+
+**触发条件**（满足任一即使用此方式）：
+- Figma API 返回 429 超过 3 次
+- `$FIGMA_TOKEN` 未设置且 `designs/` 文件夹存在
+- 用户主动指定使用本地设计图
 
 ## Figma 侧分析
 

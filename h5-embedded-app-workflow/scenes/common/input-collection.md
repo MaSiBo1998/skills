@@ -5,11 +5,18 @@
 ## 需要收集
 
 1. 当前项目文件夹（即工作目录，本场景始终在当前项目执行）
-2. Figma 设计图链接（可选，有则做设计还原）
+2. Figma 设计图链接（可选）或本地设计图文件夹 `designs/`（可选，有其一则做设计还原）
 3. JSON 接口文档（可选，有则做接口适配）
 
 ## 执行规则
 
 - 列出已拿到和缺失的输入
 - 缺失关键输入时明确列出并要求补充
-- 将收集到的输入路径写入 checkpoint context（`figma_url`、`api_doc_path`）
+- 将收集到的输入路径写入 checkpoint context（`figma_url`、`api_doc_path`、`project_config`）
+
+## 可选：项目配置信息
+
+完成前 3 项收集后，询问用户"是否需要提供项目配置信息（如 app 名称、业务线、域名、加密规则、响应码等）？"
+
+- **用户选择"是"**→ 收集用户提供的配置项（参考 `references/project-config.md` 中的配置项清单），写入 checkpoint context 的 `project_config` 字段
+- **用户选择"否"**→ 跳过，使用代码中现有配置
