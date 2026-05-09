@@ -25,7 +25,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 **Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C 让你选。先确定工作方向，再了解项目细节。当前场景 A/B/C 均在当前工作目录执行。
 
-**Step 3.** Claude 读取对应场景的详细流程文件并执行。每完成一个 Step 后按 `scenes/common/checkpoint.md` 更新 checkpoint。
+**Step 3.** Claude 读取对应场景的详细流程文件并执行。**每完成一个 Step 立即写入 checkpoint**，再进入下一步。
 
 ---
 
@@ -49,7 +49,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 - 工作流执行过程中持续监控上下文占用，超过 50% 时主动执行 `/compact` 精简上下文
 - 执行中发现 Skill 自身疏漏或用户提出优化建议，必须同步更新本 Skill 文件
-- 每个 Step 完成后必须按 `scenes/common/checkpoint.md` 更新 `.workflow-checkpoint.json`
+- 每个 Step 执行完成后立即写入 `.workflow-checkpoint.json`（不论该步骤是否修改了代码），再进入下一步
 - 工作流全部完成后立即删除 `.workflow-checkpoint.json`
 
 ---
