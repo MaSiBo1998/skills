@@ -12,7 +12,14 @@
 
 ## 写入规则
 
-每个 Step 执行完成后立即写入 checkpoint，**不论该步骤是否修改了代码**。格式：
+每个 Step 执行完成后立即写入 checkpoint，**不论该步骤是否修改了代码**。
+
+**强约束**：
+- 第一个 Step 完成时，创建完整的 checkpoint 文件，包含 `scene`、`last_completed_step`、`step_names`（全部步骤）、`context`、`updated_at`
+- 后续 Step 完成时，**只更新** `last_completed_step` 和 `updated_at` 字段，不得删除或覆盖其他字段
+- **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
+
+格式：
 
 ```json
 {

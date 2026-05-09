@@ -17,8 +17,13 @@ vendor 固定处理以下 7 个库，其他库由 Vite 正常打包到 `dist/ass
 ```
 react / react-dom              → UMD 拷贝
 react-router-dom               → esbuild IIFE
-antd-mobile + antd-mobile-icons → esbuild IIFE（antd-mobile 共享 CSS-in-JS 实例）
+antd-mobile + antd-mobile-icons → esbuild IIFE
 @reduxjs/toolkit + react-redux → esbuild IIFE
+
+注意：@ant-design/cssinjs 仅在使用 antd v5+（PC 端）时需要单独构建 IIFE。
+antd-mobile v5 不依赖 @ant-design/cssinjs，无需生成 cssinjs 垫片和 IIFE 文件。
+脚本中的 cssinjs 相关代码（_cssinjs.cjs 垫片、独立 IIFE 构建、alias 注入）
+应通过 fs.existsSync 检测 node_modules/@ant-design/cssinjs 后按需执行。
 ```
 
 ## 创建脚本
@@ -41,7 +46,9 @@ fs.mkdirSync(VENDOR_DIR, { recursive: true })
 // CJS 垫片
 fs.writeFileSync(path.join(VENDOR_DIR, '_react.cjs'), 'module.exports = React;')
 fs.writeFileSync(path.join(VENDOR_DIR, '_react-dom.cjs'), 'module.exports = ReactDOM;')
-fs.writeFileSync(path.join(VENDOR_DIR, '_cssinjs.cjs'), 'module.exports = window.AntdCSSinJS;')
+// cssinjs 垫片仅在安装了 @ant-design/cssinjs 时创建（antd v5+ PC 端需要，antd-mobile v5 不需要）
+const HAS_CSSINJS = fs.existsSync(path.resolve(ROOT, 'node_modules/@ant-design/cssinjs'))
+if (HAS_CSSINJS) fs.writeFileSync(path.join(VENDOR_DIR, '_cssinjs.cjs'), 'module.exports = window.AntdCSSinJS;')
 
 // JSX 运行时垫片（使用 async build 以支持 plugins）
 fs.writeFileSync(path.join(VENDOR_DIR, '_jsx-entry.js'), [
@@ -77,8 +84,8 @@ for (const [src, file] of [
   if (fs.existsSync(sp)) fs.copyFileSync(sp, path.join(VENDOR_DIR, file))
 }
 
-// @ant-design/cssinjs 独立 IIFE（仅当安装时）
-if (fs.existsSync(path.resolve(ROOT, 'node_modules/@ant-design/cssinjs'))) {
+// @ant-design/cssinjs 独立 IIFE（仅 antd v5+ PC 端需要，antd-mobile v5 不需要）
+if (HAS_CSSINJS) {
   buildSync({
     entryPoints: [path.resolve(ROOT, 'node_modules/@ant-design/cssinjs/es/index.js')],
     bundle: true, format: 'iife', globalName: 'AntdCSSinJS',
@@ -88,15 +95,16 @@ if (fs.existsSync(path.resolve(ROOT, 'node_modules/@ant-design/cssinjs'))) {
 }
 
 // ESM → IIFE
-for (const { entry, file, global, cssinjs } of [
+for (const { entry, file, global } of [
   { entry: 'node_modules/react-router-dom/dist/index.js',         file: 'react-router-dom.js',    global: 'ReactRouterDOM' },
-  { entry: 'node_modules/antd-mobile/es/index.js',                file: 'antd-mobile.js',         global: 'AntdMobile',       cssinjs: true },
+  { entry: 'node_modules/antd-mobile/es/index.js',                file: 'antd-mobile.js',         global: 'AntdMobile' },
   { entry: 'node_modules/antd-mobile-icons/cjs/index.js',         file: 'antd-mobile-icons.js',   global: 'AntdMobileIcons' },
   { entry: 'node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs', file: 'redux-toolkit.js', global: 'ReduxToolkit' },
   { entry: 'node_modules/react-redux/dist/react-redux.browser.mjs',       file: 'react-redux.js',   global: 'ReactRedux' },
 ]) {
   const alias = { react: path.join(VENDOR_DIR, '_react.cjs'), 'react-dom': path.join(VENDOR_DIR, '_react-dom.cjs') }
-  if (cssinjs) alias['@ant-design/cssinjs'] = path.join(VENDOR_DIR, '_cssinjs.cjs')
+  // antd v5+ PC 端构建 antd-mobile 时需注入 cssinjs alias
+  if (HAS_CSSINJS) alias['@ant-design/cssinjs'] = path.join(VENDOR_DIR, '_cssinjs.cjs')
   buildSync({ entryPoints: [path.resolve(ROOT, entry)], bundle: true, format: 'iife', globalName: global,
     outfile: path.join(VENDOR_DIR, file), alias, minify: true })
 }
@@ -128,7 +136,7 @@ for (const f of fs.readdirSync(path.resolve(ROOT, 'src'), { recursive: true }).f
   if (m) { console.warn(`  ⚠️  ${f} 残留图片引用: ${m[1]}`); broken++ }
 }
 if (broken) console.warn(`⚠️  共 ${broken} 个残留 import`)
-for (const t of ['_react.cjs','_react-dom.cjs','_cssinjs.cjs','_jsx-entry.js']) {
+for (const t of ['_react.cjs', '_react-dom.cjs', '_cssinjs.cjs', '_jsx-entry.js']) {
   try { fs.rmSync(path.join(VENDOR_DIR, t)) } catch {}
 }
 console.log('✅ build:static 完成')
