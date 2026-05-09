@@ -68,10 +68,40 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 ## 全局强约束
 
-- **上下文管理**：Figma API 返回的原始 JSON 应立即解析为设计分析报告后丢弃原始数据；接口文档应立即解析为字段映射表后丢弃原文；源代码按需读取单文件，不整目录加载。超过 50% 上下文时主动**提醒用户**执行 `/compact`
+- **上下文管理**：Figma API 返回的原始 JSON 应立即解析为设计分析报告后丢弃原始数据；接口文档应立即解析为字段映射表后丢弃原文；源代码按需读取单文件，不整目录加载
 - 执行中发现 Skill 自身疏漏或用户提出优化建议，在交付步骤中统一处理（见 `scenes/common/delivery.md`）
 - 每个 Step 执行完成后立即写入 `.workflow-checkpoint.json`（不论该步骤是否修改了代码），再进入下一步
 - 工作流全部完成后立即删除 `.workflow-checkpoint.json`
+
+---
+
+## 上下文精简规则
+
+建议在目标项目的 `.claude/settings.json` 中配置自动精简阈值：
+
+```json
+{
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"
+  }
+}
+```
+
+自动精简或手动执行 `/compact` 时，**必须保留**以下工作流状态：
+
+- 当前场景（A/B/C）和已完成到哪个 Step
+- `.workflow-checkpoint.json` 的当前内容（scene、last_completed_step、context）
+- 设计分析报告（组件复用评估表 + 样式 token 清单）——如已产出
+- 字段映射表（旧路径/参数 → 新路径/参数）——如已产出
+- 已修改的文件路径清单
+- 未解决的错误和待确认项
+
+**可以丢弃**的内容：
+
+- Figma API 原始 JSON 响应
+- 接口文档原文（swaggerApi.json 等）
+- 已成功执行的命令输出（npm run build 等）
+- 已读取但未修改的源代码文件内容
 
 ---
 
