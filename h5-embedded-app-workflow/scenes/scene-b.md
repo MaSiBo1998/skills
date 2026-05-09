@@ -6,12 +6,7 @@
 
 ## Step 1. 输入收集
 
-需要：
-1. 当前项目文件夹（即工作目录，本场景始终在当前项目执行）
-2. Figma 设计图链接（可选，有则做设计还原）
-3. JSON 接口文档（可选，有则做接口适配）
-
-列出已拿到和缺失的输入。缺失关键输入时明确列出并要求补充。
+完整步骤见 `scenes/common/input-collection.md`。收集项目、Figma 链接、接口文档。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -30,6 +25,8 @@
 
 ## Step 3. Figma 设计图自动分析
 
+如 Step 1 未提供 Figma 链接，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
+
 完整步骤见 `scenes/common/figma-analysis.md`。使用 Figma API + 结合基准项目组件体系进行联合分析。
 
 **→ 写入 checkpoint**: Step 3（Figma 设计图分析）完成
@@ -37,6 +34,8 @@
 ---
 
 ## Step 4. JSON 接口文档自动解析
+
+如 Step 1 未提供接口文档，跳过本步骤，直接写入 checkpoint 并进入 Step 5。
 
 完整步骤见 `scenes/common/api-parsing.md`。按优先级读取文档，输出字段映射表，修改接口层代码。
 
@@ -46,22 +45,22 @@
 
 ## Step 5. 项目开发
 
-### 5.1 依赖清理
-
-扫描 `src/` 中所有 import，对照 `package.json` 移除未引用的包。注意不要移除 `react`/`react-dom`（window 全局引用）、vite 插件类、构建工具类。
-
-### 5.2 vendor 架构建立（按需）
+### 5.1 vendor 架构建立（按需）
 
 如 Step 2 确认为需要，执行 `scenes/common/vendor-setup.md` 创建相关文件并运行 `npm run build:static`。
 
+### 5.2 依赖清理
+
+扫描 `src/` 中所有 import，对照 `package.json` 移除未引用的包。注意不要移除 `FRAMEWORK_GLOBALS` 中的库（vendor 模式下通过 window 全局引用，无 import 语句）、vite 插件类、构建工具类。
+
 ### 5.3 阶段执行
 
-**第一阶段：按 Figma 设计替换页面**
+**第一阶段：按 Figma 设计替换页面**（如 Step 3 已执行）
 - 对照设计分析报告逐页面/逐组件修改
 - 优先复用现有组件体系
 - 遵守 H5 内嵌设计约束
 
-**第二阶段：按映射表适配接口**
+**第二阶段：按映射表适配接口**（如 Step 4 已执行）
 - 基于字段映射表修改接口层代码
 - 确保请求指向新地址、新参数
 
@@ -79,12 +78,7 @@
 
 ## Step 7. 交付
 
-输出：
-- 场景 B — 基于哪些模块或页面完成了修改
-- 接口映射汇总 + 设计还原汇总
-- 测试结果
-- 需用户真实验收或联调验证的部分
-- Skill 改进建议：列出问题 → **询问用户是否更新技能文件**，确认后立即修改对应文件
+完整步骤见 `scenes/common/delivery.md`。输出修改说明、接口映射汇总、设计还原汇总、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 

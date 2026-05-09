@@ -146,7 +146,7 @@ h5-embedded-app-workflow/
 ├── README.md
 ├── LICENSE
 ├── SKILL.md                  ★ 核心自动化工作流指令
-├── CHECKLIST.md              ★ 15 项自动化测试验收标准
+├── CHECKLIST.md              ★ 自动化测试验收标准
 ├── examples/
 │   └── demo-conversation.md  ★ 示例对话
 ├── scenes/
@@ -158,9 +158,12 @@ h5-embedded-app-workflow/
 │       ├── api-parsing.md    ★ JSON 接口文档自动解析
 │       ├── vendor-setup.md   ★ vendor 架构建立
 │       ├── checkpoint.md     ★ 中断恢复 checkpoint
-│       └── testing.md        ★ 自动测试验收
+│       ├── testing.md        ★ 自动测试验收
+│       ├── input-collection.md ★ 输入收集
+│       └── delivery.md       ★ 交付
 └── references/
     ├── native-methods.md     ★ H5-App 原生交互协议
+    ├── apply-flow.md         ★ 进件申请流程参考
     └── design/
         └── 01-positioning.md  ★ 项目定位
 ```

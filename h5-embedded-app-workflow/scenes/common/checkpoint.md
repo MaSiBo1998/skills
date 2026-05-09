@@ -44,8 +44,18 @@
 | `scene` | 场景标识：A / B / C |
 | `last_completed_step` | 已完成的最后一个 Step 编号 |
 | `step_names` | 各步骤名称映射 |
-| `context` | 关键上下文（如 `vendor_enabled: true`、`entry_mode: home`） |
+| `context` | 关键上下文，恢复时用于还原决策和输入信息 |
 | `updated_at` | ISO 时间戳 |
+
+### context 字段规范
+
+各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
+
+| 场景 | 推荐 context 字段 |
+|------|-------------------|
+| A | `{}` |
+| B | `{ vendor_enabled, figma_url, api_doc_path }` |
+| C | `{ vendor_enabled, figma_url, api_doc_path }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -64,7 +74,8 @@
 工作流重新触发时：
 
 1. **检测**：项目根目录是否存在 `.workflow-checkpoint.json`
-2. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始
+2. **解析校验**：读取并解析 JSON，如解析失败（文件损坏）则删除并重新开始
+3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始
 3. **询问用户**：
    ```
    检测到未完成的工作流（场景 {scene}，已完成到 Step {last_completed_step}：{step_names[last_completed_step]}）。

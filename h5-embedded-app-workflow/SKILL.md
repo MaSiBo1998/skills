@@ -1,5 +1,6 @@
 ---
 name: h5-embedded-app-workflow
+version: 2.0.0
 description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成设计图分析、接口文档解析、vendor 架构建立与全链路测试验收。
 ---
 
@@ -17,6 +18,15 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 ---
 
+## 前置条件
+
+- **构建工具**：Vite（不支持 Webpack）
+- **包管理器**：npm（不支持 yarn/pnpm）
+- **运行环境**：Node.js >= 16
+- **可选**：`$FIGMA_TOKEN` 环境变量（Figma 设计图分析需要）
+
+---
+
 ## 使用方式
 
 触发后按以下顺序执行：
@@ -25,7 +35,16 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 **Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C 让你选。先确定工作方向，再了解项目细节。当前场景 A/B/C 均在当前工作目录执行。
 
-**Step 3.** Claude 读取对应场景的详细流程文件并执行。**每完成一个 Step 立即写入 checkpoint**，再进入下一步。
+**Step 3.** Claude 读取对应场景的详细流程文件并执行。**每完成一个 Step 立即写入 checkpoint**（格式见 `scenes/common/checkpoint.md`），再进入下一步。
+
+---
+
+## 执行时文件加载
+
+执行工作流时**只加载**当前场景需要的文件，**不加载**以下文件：
+- `README.md`（仓库说明，非执行指令）
+- `examples/demo-conversation.md`（示例对话，非执行指令）
+- `references/design/01-positioning.md`（项目定位，非执行指令）
 
 ---
 
@@ -42,13 +61,15 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 从零新建项目脚手架
 - 纯后端开发、数据库设计、运维部署
 - 单纯生成 Git 分支名、发布 Tag、处理飞书 Bug
+- Webpack 项目（当前仅支持 Vite 构建工具）
+- 使用 yarn/pnpm 的项目（当前仅支持 npm）
 
 ---
 
 ## 全局强约束
 
-- 工作流执行过程中持续监控上下文占用，超过 50% 时主动**提醒用户**执行 `/compact` 精简上下文
-- 执行中发现 Skill 自身疏漏或用户提出优化建议，必须同步更新本 Skill 文件
+- **上下文管理**：Figma API 返回的原始 JSON 应立即解析为设计分析报告后丢弃原始数据；接口文档应立即解析为字段映射表后丢弃原文；源代码按需读取单文件，不整目录加载。超过 50% 上下文时主动**提醒用户**执行 `/compact`
+- 执行中发现 Skill 自身疏漏或用户提出优化建议，在交付步骤中统一处理（见 `scenes/common/delivery.md`）
 - 每个 Step 执行完成后立即写入 `.workflow-checkpoint.json`（不论该步骤是否修改了代码），再进入下一步
 - 工作流全部完成后立即删除 `.workflow-checkpoint.json`
 
@@ -58,9 +79,8 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 - 正确识别并执行所选场景
 - 成功建立 static-app/ 基线依赖架构（如果场景包含）
-- 15 项测试 CheckList 逐项执行并输出结果
-- 交付清晰的测试和验收说明
-- Skill 改进建议输出并同步更新
+- CHECKLIST.md 中所有适用检查项逐项执行并输出结果
+- 交付清晰的测试和验收说明（见 `scenes/common/delivery.md`）
 - `.workflow-checkpoint.json` 在工作流完成后已清理
 
 ---

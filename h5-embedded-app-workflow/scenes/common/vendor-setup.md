@@ -109,10 +109,21 @@ for (const { entry, file, global } of [
     outfile: path.join(VENDOR_DIR, file), alias, minify: true })
 }
 
-// 迁移图片
+// 迁移图片（仅图片类文件，保留字体/JSON 等非图片资源）
 const IMG_SRC = path.resolve(ROOT, 'src/assets')
 const IMG_DEST = path.resolve(ROOT, 'static-app/images')
-if (fs.existsSync(IMG_SRC)) { fs.cpSync(IMG_SRC, IMG_DEST, { recursive: true }); fs.rmSync(IMG_SRC, { recursive: true, force: true }) }
+const IMG_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico']
+if (fs.existsSync(IMG_SRC)) {
+  fs.mkdirSync(IMG_DEST, { recursive: true })
+  for (const f of fs.readdirSync(IMG_SRC, { recursive: true })) {
+    if (IMG_EXTS.includes(path.extname(f).toLowerCase())) {
+      const src = path.join(IMG_SRC, f), dest = path.join(IMG_DEST, f)
+      fs.mkdirSync(path.dirname(dest), { recursive: true })
+      fs.copyFileSync(src, dest)
+      fs.rmSync(src)
+    }
+  }
+}
 
 // 校验全局变量
 console.log('\n🔍 校验 vendor 文件...')
@@ -123,17 +134,17 @@ const EXPECTED = {
 }
 for (const [f, e] of Object.entries(EXPECTED)) {
   const fp = path.join(VENDOR_DIR, f)
-  if (fs.existsSync(fp) && !fs.readFileSync(fp, 'utf-8').includes(e)) {
-    console.error(`❌ ${f} 缺少 ${e}`); process.exit(1)
-  }
+  if (!fs.existsSync(fp)) { console.error(`❌ ${f} 缺失`); process.exit(1) }
+  if (!fs.readFileSync(fp, 'utf-8').includes(e)) { console.error(`❌ ${f} 缺少 ${e}`); process.exit(1) }
 }
 // 检测 CSS 文件
 fs.readdirSync(VENDOR_DIR).filter(f => f.endsWith('.css')).forEach(f => console.log(`  📄 ${f}`))
-// 检测残留图片 import
+// 检测残留图片引用（覆盖 alias 路径、相对路径、require、CSS url）
 let broken = 0
-for (const f of fs.readdirSync(path.resolve(ROOT, 'src'), { recursive: true }).filter(f => /\.(tsx?|jsx?)$/.test(f))) {
-  const m = fs.readFileSync(path.resolve(ROOT, 'src', f), 'utf-8').match(/from\s+['"]@\/assets\/([^'"]+)['"]/)
-  if (m) { console.warn(`  ⚠️  ${f} 残留图片引用: ${m[1]}`); broken++ }
+const ASSET_RE = /(?:from\s+['"](?:@\/assets|\.\.?\/assets)\/|require\s*\(\s*['"](?:@\/assets|\.\.?\/assets)\/|url\s*\(\s*['"]?(?:@\/assets|\.\.?\/assets)\/)/
+for (const f of fs.readdirSync(path.resolve(ROOT, 'src'), { recursive: true }).filter(f => /\.(tsx?|jsx?|css|scss|less)$/.test(f))) {
+  const content = fs.readFileSync(path.resolve(ROOT, 'src', f), 'utf-8')
+  if (ASSET_RE.test(content)) { console.warn(`  ⚠️  ${f} 残留图片引用`); broken++ }
 }
 if (broken) console.warn(`⚠️  共 ${broken} 个残留 import`)
 for (const t of ['_react.cjs', '_react-dom.cjs', '_cssinjs.cjs', '_jsx-entry.js']) {
@@ -147,6 +158,7 @@ console.log('✅ build:static 完成')
 ```js
 import fs from 'fs'
 import path from 'node:path'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import externalGlobals from 'rollup-plugin-external-globals'
 
@@ -158,9 +170,10 @@ const FRAMEWORK_GLOBALS = {
 }
 
 function vendorScriptsPlugin(prefix) {
-  const files = ['react.production.min.js','react-jsx-runtime.js','react-dom.production.min.js',
+  const all = ['react.production.min.js','react-jsx-runtime.js','react-dom.production.min.js',
     'antd-cssinjs.js','react-router-dom.js','antd-mobile.js','antd-mobile-icons.js',
     'redux-toolkit.js','react-redux.js']
+  const files = all.filter(f => fs.existsSync(`static-app/vendor/${f}`))
   const jsTags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
   let cssTags = ''
   try { cssTags = files.filter(f => fs.existsSync(`static-app/vendor/${f.replace('.js','.css')}`))
@@ -178,10 +191,10 @@ export default defineConfig(({ mode, command }) => ({
     { name: 'static-files', configureServer(server) {
       server.middlewares.use('/static-app', (req, res, next) => {
         const fp = path.join(process.cwd(), 'static-app', (req.url||'').replace('/static-app/','').split('?')[0])
-        if (fs.existsSync(fp)) { res.setHeader('Content-Type', {'.js':'application/javascript','.css':'text/css','.png':'image/png'}[path.extname(fp)]||''); res.end(fs.readFileSync(fp)) } else next()
+        if (fs.existsSync(fp)) { res.setHeader('Content-Type', {'.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.svg':'image/svg+xml','.gif':'image/gif','.webp':'image/webp','.json':'application/json','.woff':'font/woff','.woff2':'font/woff2'}[path.extname(fp)]||'application/octet-stream'); res.end(fs.readFileSync(fp)) } else next()
       })
     }},
-    ...(command === 'build' ? [(externalGlobals as any)(FRAMEWORK_GLOBALS), vendorScriptsPlugin(APP_RESOURCE_PREFIX)] : []),
+    ...(command === 'build' ? [externalGlobals(FRAMEWORK_GLOBALS), vendorScriptsPlugin(APP_RESOURCE_PREFIX)] : []),
   ],
   build: {
     rollupOptions: { external: command === 'build' ? Object.keys(FRAMEWORK_GLOBALS) : [],
