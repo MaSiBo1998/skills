@@ -33,7 +33,7 @@
 
 ## 强约束：字段名必须严格按接口文档
 
-无论 swagger 文档中的字段名是否混肴（obfuscated），**必须严格按文档中的字段名发送请求和解析响应**，不可自己发明或沿用旧版本字段名：
+无论 swagger 文档中的字段名是否混淆（obfuscated），**必须严格按文档中的字段名发送请求和解析响应**，不可自己发明或沿用旧版本字段名：
 
 - **接口地址**：文档中的 `path` 即实际请求地址，不可自行修改
 - **请求参数**：body 中的 key 必须与文档中 `parameters` 定义的 name 完全一致（大小写敏感）
@@ -42,6 +42,10 @@
 
 示例：如文档定义请求参数为 `bigamist`（appName），则代码发送时必须用 `bigamist` 作为 key，不得用 `abnormal`、`fatuous` 或其他同义名称。
 
+**替换方式**：
+- ❌ ~~全局字符串替换~~：将 `appName` 全部改成 `abcName`（会误伤无关字段）
+- ✅ **tsc 驱动替换**：改 types 字段名 → `npx tsc -b` 报错定位所有消费处 → 逐条修复 → 重复直到零错误
+
 ## 复杂结构处理
 
 - **嵌套对象**：展开为点号路径（如 `address.city` → `addr.cityName`），映射表中标注层级
@@ -49,6 +53,18 @@
 - **枚举值**：如果新旧接口枚举值不同（如性别 `0/1` → `male/female`），需在适配层做值转换，映射表中标注"值转换"
 
 ## 混淆字段名替换流程（实战流程）
+
+### 核心原则
+
+本流程适用于**接口返回结构不变、仅字段名和 URL 被混淆**的场景。执行时必须遵守：
+
+1. **结构一致**：接口的返回结构与 types 中的类型约束结构一致，仅字段名被混淆。不要试图重构 types 结构。
+2. **types 只改字段名**：修改 types 时**只替换字段名**，不得做以下操作：
+   - 不增删字段
+   - 不改变字段类型
+   - 不改变字段顺序
+   - 保留注释（如 `// app名字`）
+3. **tsc 驱动替换**：改完 types 字段名后，依赖 TypeScript 编译器定位所有消费处，逐条修复。不做无差别全局字符串替换。
 
 当接口文档与原项目的结构一致、仅字段名（混淆名）不同时，按以下步骤执行：
 
@@ -71,29 +87,77 @@
 | POST /yyy | 埋点 | protrude/ecocline/leaving | lockout/playact/south | home.ts + riskSlice.ts + hook |
 ```
 
-### 第三步：按顺序替换（关联依赖关系）
+### 第三步：按顺序替换（tsc 驱动修复）
 
-替换顺序由数据流决定，从底层到上层：
+替换分两类操作：**直接替换**（URL / 请求参数）和 **tsc 驱动替换**（types 字段名 → 消费处）。
 
 ```
-1. API URL（urls.ts）           ← 独立，最底层
-2. 服务层请求参数字段名          ← 依赖 URL
-   (order.ts / product.ts / home.ts)
-3. 接口参数/响应类型             ← 依赖服务层返回结构
-   (types/home.ts，确保响应字段名匹配文档)
-4. Store/Mobx 类型               ← 依赖 API 返回类型
-   (如 riskSlice.ts 中的事件字段名)
-5. Hook 层引用                   ← 依赖 Store 类型
-   (如 useReduxRiskTracking.ts)
-6. 组件层引用                    ← 依赖 Hook 层
-   (组件中直接访问事件字段的代码)
+直接替换（无需 tsc 介入）：
+  1. API URL（urls.ts）           ← 对比文档直接替换路径
+  2. 服务层请求参数字段名          ← 对比文档直接替换 body key
+     (order.ts / product.ts / home.ts)
+
+tsc 驱动替换（先改 types，让编译器定位消费处）：
+  3. types 字段名                 ← 只改字段名本身，保留类型/注释/结构
+  4. npx tsc -b                   ← 收集所有类型错误
+  5. 逐条修复消费处                ← 每一条 tsc 错误 = 一处待更新的字段引用
+  6. 重复第 4-5 步直到零错误
 ```
 
-**关键规则**：每替换一个文件，立即 grep 旧字段名在项目中的全部引用，确保无遗漏。
+#### types 字段名替换规则（第 3 步）
 
-### 第四步：全局 grep 验证
+修改 types 时**只替换字段名**，不动任何其他内容：
 
-替换完成后，对每个旧字段名执行全局搜索，确认无残留：
+```
+改前: appName: string     // app名字
+改后: abcName: string     // app名字
+```
+
+- 字段类型（`string`）不变
+- 注释（`// app名字`）不变
+- 字段顺序不变
+- interface 不增删其他字段
+- type 不改变结构
+
+#### 按 tsc 错误逐条修复（第 5 步）
+
+- tsc 报错位置即需要修改的地方
+- 每个错误对应一处字段引用（解构赋值、直接访问、对象传参等）
+- 将该处的字段名从旧名改为新名
+- 修复一个就少一个错误，直到零错误
+
+**完整示例**：
+
+```
+// 步骤 3：改 types 字段名
+interface ResponseData {
+  abcName: string     // app名字     ← 改前是 appName
+  userPhone: string   // 手机号
+}
+
+// 步骤 4：npx tsc -b → 报错列表
+// src/services/api.ts:42: Property 'appName' does not exist on type 'ResponseData'.
+// src/store/userStore.ts:18: Property 'appName' does not exist on type 'ResponseData'.
+// src/components/Profile.tsx:55: Property 'appName' does not exist on type 'ResponseData'.
+
+// 步骤 5：逐条修复
+// api.ts:42       → response.appName      → response.abcName
+// userStore.ts:18 → const { appName }     → const { abcName }
+// Profile.tsx:55  → data.appName          → data.abcName
+
+// 步骤 6：重复 npx tsc -b 直到零错误
+```
+
+### 第四步：构建验证
+
+```bash
+npx tsc -b          # 必须零错误（tsc 驱动替换后应已零错误）
+npx vite build      # 必须构建成功
+```
+
+### 第五步：全局 grep 验证
+
+tsc 零错误后，对每个旧字段名执行全局搜索，确认无残留：
 
 ```bash
 grep -r "旧字段名1\|旧字段名2\|..." src/ --include="*.{ts,tsx}"
@@ -105,13 +169,6 @@ grep -r "旧字段名1\|旧字段名2\|..." src/ --include="*.{ts,tsx}"
 - `src/store/**/*.ts`（所有 store 文件）
 - `src/hooks/*.ts`（所有 hook 文件）
 - `src/**/*.tsx`（所有组件，看是否直接访问 API 字段名）
-
-### 第五步：构建验证
-
-```bash
-npx tsc -b          # 必须零错误
-npx vite build      # 必须构建成功
-```
 
 ### 常见遗漏点
 
