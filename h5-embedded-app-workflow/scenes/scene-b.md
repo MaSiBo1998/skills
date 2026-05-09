@@ -13,7 +13,7 @@
 
 列出已拿到和缺失的输入。缺失关键输入时明确列出并要求补充。
 
-**→ 更新 checkpoint**: Step 1（输入收集）完成
+**→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
 ---
 
@@ -24,7 +24,7 @@
 - **是** → 执行 `scenes/common/vendor-setup.md` 建立 vendor 架构
 - **否** → 跳过，直接进行后续开发
 
-**→ 更新 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
+**→ 写入 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
 
 ---
 
@@ -32,7 +32,7 @@
 
 完整步骤见 `scenes/common/figma-analysis.md`。使用 Figma API + 结合基准项目组件体系进行联合分析。
 
-**→ 更新 checkpoint**: Step 3（Figma 设计图分析）完成
+**→ 写入 checkpoint**: Step 3（Figma 设计图分析）完成
 
 ---
 
@@ -40,7 +40,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。按优先级读取文档，输出字段映射表，修改接口层代码。
 
-**→ 更新 checkpoint**: Step 4（接口解析）完成
+**→ 写入 checkpoint**: Step 4（接口解析）完成
 
 ---
 
@@ -65,7 +65,7 @@
 - 基于字段映射表修改接口层代码
 - 确保请求指向新地址、新参数
 
-**→ 更新 checkpoint**: Step 5（项目开发）完成
+**→ 写入 checkpoint**: Step 5（项目开发）完成
 
 ---
 
@@ -73,7 +73,7 @@
 
 完整步骤见 `scenes/common/testing.md`。执行完整 14 项测试清单。
 
-**→ 更新 checkpoint**: Step 6（自动测试验收）完成
+**→ 写入 checkpoint**: Step 6（自动测试验收）完成
 
 ---
 

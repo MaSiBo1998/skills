@@ -11,7 +11,7 @@
 2. Figma 设计图链接（可选，有则做设计还原）
 3. JSON 接口文档（可选，有则做接口适配）
 
-**→ 更新 checkpoint**: Step 1（输入收集）完成
+**→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
 ---
 
@@ -22,7 +22,7 @@
 - **是** → 执行 Step 5 vendor 架构建立
 - **否** → 跳过 Step 5
 
-**→ 更新 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
+**→ 写入 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
 
 ---
 
@@ -30,7 +30,7 @@
 
 完整步骤见 `scenes/common/figma-analysis.md`。分析进件各步骤页面设计稿。
 
-**→ 更新 checkpoint**: Step 3（Figma 设计图分析）完成
+**→ 写入 checkpoint**: Step 3（Figma 设计图分析）完成
 
 ---
 
@@ -38,7 +38,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
-**→ 更新 checkpoint**: Step 4（接口解析）完成
+**→ 写入 checkpoint**: Step 4（接口解析）完成
 
 ---
 
@@ -46,7 +46,7 @@
 
 完整步骤见 `scenes/common/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
 
-**→ 更新 checkpoint**: Step 5（vendor 架构建立）完成
+**→ 写入 checkpoint**: Step 5（vendor 架构建立）完成
 
 ---
 
@@ -137,7 +137,7 @@ getNextStep():
 ❌ 其他业务页面、其他 API 层
 ```
 
-**→ 更新 checkpoint**: Step 6（进件功能开发）完成
+**→ 写入 checkpoint**: Step 6（进件功能开发）完成
 
 ---
 
@@ -156,7 +156,7 @@ getNextStep():
 □ API 字段映射正确、风险埋点集成
 ```
 
-**→ 更新 checkpoint**: Step 7（自动测试验收）完成
+**→ 写入 checkpoint**: Step 7（自动测试验收）完成
 
 ---
 

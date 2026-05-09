@@ -71,7 +71,7 @@
 各场景文件中，每个 Step 完成后追加：
 
 ```
-**→ 更新 checkpoint**: Step N（步骤名）完成
+**→ 写入 checkpoint**: Step N（步骤名）完成
 ```
 
 执行 Claude 按照 `scenes/common/checkpoint.md` 格式更新 `.workflow-checkpoint.json`。
