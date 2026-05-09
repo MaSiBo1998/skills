@@ -1,6 +1,6 @@
 # 自动化测试验收清单
 
-执行 H5 Embedded App Workflow 后，必须逐项执行以下 14 项检查。每项输出 **通过 ✅** 或 **失败 ❌**，失败项需说明原因。
+执行 H5 Embedded App Workflow 后，必须逐项执行以下 15 项检查。每项输出 **通过 ✅** 或 **失败 ❌**，失败项需说明原因。
 
 ---
 
@@ -27,7 +27,7 @@
 - **命令**: `npm run build`
 - **期望**: 构建成功，dist/ 目录产出符合预期
 - **失败判定**: 构建报错或产物缺失
-- **额外验证**: 检查 dist/ 中是否包含框架代码（如果场景 C 则不应包含）
+- **额外验证**: 检查 dist/ 中是否包含框架代码（如果已建立 vendor 架构则不应包含）
 
 ---
 
@@ -39,6 +39,8 @@
   - 如果某包有 import 但不在 FRAMEWORK_GLOBALS 中 → 需手动添加到 vendor 配置（`build-static.mjs` + `FRAMEWORK_GLOBALS` + `VENDOR_SCRIPTS`）
   - 如果某包在 FRAMEWORK_GLOBALS 中但 src/ 中无 import → 无需处理（react 等通过 window 全局引用）
 - **失败判定**: `npm run build` 后 `dist/` 中包含已被 import 但未配置 vendor 的第三方库代码
+
+---
 
 ## 4. 页面渲染检查
 
@@ -210,6 +212,7 @@
 | 1 | 类型检查 | ✅ 通过 | 0 errors |
 | 2 | Lint 检查 | ✅ 通过 | 0 errors, 2 warnings |
 | 3 | 构建测试 | ✅ 通过 | build 成功，dist/ 无框架代码 |
+| 3.5 | vendor 完整性校验 | ✅ 通过 | dist/ 无未配置 vendor 的第三方库 |
 | 4 | 页面渲染检查 | ✅ 通过 | 所有组件导入正常 |
 | 5 | 路由检查 | ✅ 通过 | 4 条路由已注册，均懒加载 |
 | 6 | 接口请求检查 | ✅ 通过 | 12 个接口全部指向新地址 |

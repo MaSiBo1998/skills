@@ -19,7 +19,7 @@
 - 后续 Step 完成时，**只更新** `last_completed_step` 和 `updated_at` 字段，不得删除或覆盖其他字段
 - **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
 
-格式：
+格式（以场景 B 为例）：
 
 ```json
 {
@@ -46,6 +46,16 @@
 | `step_names` | 各步骤名称映射 |
 | `context` | 关键上下文（如 `vendor_enabled: true`、`entry_mode: home`） |
 | `updated_at` | ISO 时间戳 |
+
+各场景 step_names 按对应场景文件中的步骤名填写：
+
+```json
+// 场景 A（5 步）
+{ "scene": "A", "step_names": { "1": "技术栈评估", "2": "vendor 架构建立", "3": "图片迁移", "4": "自动测试验收", "5": "交付" } }
+
+// 场景 C（8 步）
+{ "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor", "3": "Figma 分析", "4": "API 解析", "5": "vendor 架构建立", "6": "进件功能开发", "7": "自动测试验收", "8": "交付" } }
+```
 
 ---
 

@@ -21,7 +21,7 @@
 
 询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）：
 
-- **是** → 执行 `scenes/common/vendor-setup.md` 建立 vendor 架构
+- **是** → 记录，将在 Step 5.2 执行 vendor 架构建立
 - **否** → 跳过，直接进行后续开发
 
 **→ 写入 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
@@ -71,7 +71,7 @@
 
 ## Step 6. 自动测试验收
 
-完整步骤见 `scenes/common/testing.md`。执行完整 14 项测试清单。
+完整步骤见 `scenes/common/testing.md`。执行完整 15 项测试清单。
 
 **→ 写入 checkpoint**: Step 6（自动测试验收）完成
 

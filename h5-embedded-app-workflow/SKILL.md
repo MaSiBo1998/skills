@@ -58,7 +58,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 - 正确识别并执行所选场景
 - 成功建立 static-app/ 基线依赖架构（如果场景包含）
-- 14 项测试 CheckList 逐项执行并输出结果
+- 15 项测试 CheckList 逐项执行并输出结果
 - 交付清晰的测试和验收说明
 - Skill 改进建议输出并同步更新
 - `.workflow-checkpoint.json` 在工作流完成后已清理

@@ -12,7 +12,7 @@
 
 ## 处理范围
 
-vendor 固定处理以下 7 个库，其他库由 Vite 正常打包到 `dist/assets/`：
+vendor 固定处理以下 7 个库（产出最多 9 个文件，含 JSX 运行时垫片和条件性的 @ant-design/cssinjs），其他库由 Vite 正常打包到 `dist/assets/`：
 
 ```
 react / react-dom              → UMD 拷贝

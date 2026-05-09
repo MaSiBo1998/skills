@@ -20,7 +20,7 @@
    - 配置 dev server 挂载 static-app/
 7. **页面开发**：按 Figma 设计还原页面 → 遵守 H5 内嵌约束（无状态栏、触摸区域 ≥44px 等）
 8. **接口适配**：按映射表修改接口层代码
-9. **自动化测试**：逐项执行 14 项 CheckList
+9. **自动化测试**：逐项执行 15 项 CheckList
 10. **交付**：项目代码 + 测试报告 + 待确认项
 
 ---
@@ -44,7 +44,7 @@
    - 配置步骤进度控制和 Entry 模式路由
    - 集成原生交互（相机/相册/通讯录）
    - 按 Figma 还原各步骤页面 + 按映射表适配接口
-8. **自动化测试**：执行 14 项通用 + 8 项进件专项检查
+8. **自动化测试**：执行 15 项通用 + 8 项进件专项检查
 9. **交付**：进件修改说明 + 测试报告
 
 ---
@@ -59,17 +59,10 @@
 
 1. **场景识别**：判断为场景 A（架构改造）
 2. **技术栈评估**：识别 Vite/Webpack、React/Vue、UI 库版本
-3. **创建 static-app/**：初始化目录结构
-4. **DLL 构建配置**：新增 `build:dll` 脚本
-5. **externals 配置**：业务构建排除框架依赖
-6. **双模式路径**：配置 base 路径切换（dev '/' vs build 'file:///android_asset/h5/'）
-7. **图片迁移**：将基准图片从 `src/assets` 迁移到 `static-app/images/`
-8. **Dev Server 配置**：添加 static-app/ 中间件
-9. **验证**：
-   - `npm run build` 产物中不包含框架代码
-   - `npm run dev` 可正常加载 static-app/ 资源
-   - 页面功能不受影响
-10. **交付**：架构改造清单 + 验证结果
+3. **vendor 架构建立**：创建 static-app/ + scripts/build-static.mjs + externals 配置 + dev server 中间件 + 执行 npm run build:static
+4. **图片迁移**：build:static 自动迁移 src/assets/ 到 static-app/images/，替换残留 import 为 STATIC_URL
+5. **自动测试验收**：重点检查 1/2/3/3.5/11/12/13/14/15，跳过 4-10
+6. **交付**：架构改造清单 + 测试结果 + Skill 改进建议
 
 ---
 

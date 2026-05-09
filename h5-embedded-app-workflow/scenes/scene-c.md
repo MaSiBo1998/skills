@@ -143,7 +143,7 @@ getNextStep():
 
 ## Step 7. 自动测试验收
 
-完整步骤见 `scenes/common/testing.md`。执行 14 项通用测试 + 进件专项检查：
+完整步骤见 `scenes/common/testing.md`。执行 15 项通用测试 + 进件专项检查：
 
 ```
 □ 6 个步骤路由正确、顺序完整
