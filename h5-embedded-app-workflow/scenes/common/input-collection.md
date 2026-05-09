@@ -12,7 +12,7 @@
 
 - 列出已拿到和缺失的输入
 - 缺失关键输入时明确列出并要求补充
-- 将收集到的输入路径写入 checkpoint context（`figma_url`、`api_doc_path`、`project_config`）
+- 将收集到的输入路径写入 checkpoint context（`figma_url`、`design_source` (figma|local|none)、`local_design_path`、`api_doc_path`、`project_config`）
 
 ## 可选：项目配置信息
 

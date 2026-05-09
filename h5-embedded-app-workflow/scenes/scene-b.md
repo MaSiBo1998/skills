@@ -23,11 +23,15 @@
 
 ---
 
-## Step 3. Figma 设计图自动分析
+## Step 3. 设计图自动分析
 
-如 Step 1 未提供 Figma 链接，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
+如 Step 1 已提供 Figma 链接 → 执行方式一（Figma API 在线分析）。
 
-完整步骤见 `scenes/common/figma-analysis.md`。使用 Figma API + 结合基准项目组件体系进行联合分析。
+如未提供 Figma 链接 → 自动检测项目根目录是否存在 `designs/` 文件夹：
+- **存在** → 执行方式二（本地设计图分析），无需询问用户
+- **不存在** → 询问用户：提供 Figma 链接 / 将截图放入 `designs/` 目录 / 跳过本步骤
+
+完整步骤见 `scenes/common/figma-analysis.md`。
 
 **→ 写入 checkpoint**: Step 3（Figma 设计图分析）完成
 

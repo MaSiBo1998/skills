@@ -126,6 +126,8 @@ h5-project/
 2. 接口文档文件，优先 `swaggerApi.json`
 3. Figma 链接或设计图文件
 
+如无 Figma 链接，可将设计截图放入 `designs/` 目录，工作流会自动读取分析。
+
 ---
 
 ## 设计原则

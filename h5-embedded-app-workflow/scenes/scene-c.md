@@ -23,9 +23,13 @@
 
 ---
 
-## Step 3. Figma 设计图自动分析
+## Step 3. 设计图自动分析
 
-如 Step 1 未提供 Figma 链接，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
+如 Step 1 已提供 Figma 链接 → 执行方式一（Figma API 在线分析）。
+
+如未提供 Figma 链接 → 自动检测项目根目录是否存在 `designs/` 文件夹：
+- **存在** → 执行方式二（本地设计图分析），无需询问用户
+- **不存在** → 询问用户：提供 Figma 链接 / 将截图放入 `designs/` 目录 / 跳过本步骤
 
 完整步骤见 `scenes/common/figma-analysis.md`。分析进件各步骤页面设计稿。
 
@@ -57,7 +61,7 @@
 
 按 `references/apply-flow.md` 中的规范开发 Apply 各步骤页面（目录结构、路由、步骤进度控制、Entry 模式、各页面生命周期、原生交互、修改范围约束）。
 
-开发时结合 Step 3 的设计分析报告（如有）和 Step 4 的字段映射表（如有）进行 Figma 还原和接口适配。
+开发时结合 Step 3 的设计分析报告（如有）和 Step 4 的字段映射表（如有）进行设计还原和接口适配。
 
 **→ 写入 checkpoint**: Step 6（进件功能开发）完成
 
@@ -84,7 +88,7 @@
 
 ## Step 8. 交付
 
-完整步骤见 `scenes/common/delivery.md`。输出进件步骤修改说明、Figma 还原汇总、接口映射汇总、测试结果、待用户验收项。
+完整步骤见 `scenes/common/delivery.md`。输出进件步骤修改说明、设计还原汇总、接口映射汇总、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 
