@@ -10,7 +10,12 @@
 
 1. 读取文档，提取所有 paths / methods / parameters / responses
 2. **处理 `$ref` 引用**：Swagger/OpenAPI 文档中的 `$ref` 指向 definitions/components/schemas 中的模型定义，需递归解析为完整的字段结构
-3. 对照基准项目已有接口封装（如有），逐接口对比：
+3. **提取全局配置**：查找文档中的全局配置接口（如 `GET /`）或 `info` / `description` 字段，提取：
+   - **app 名称** → 更新 `.env.development` 和 `.env.production` 中的 `VITE_APP_NAME`
+   - **域名/接口地址** → 更新 `.env` 中的 `VITE_API_BASE_URL`
+   - **加密规则、响应码** → 记录到 project_config 供后续参考
+   - *验证 `index.html` 的 `<title>%VITE_APP_NAME%</title>` 在构建后正确替换*
+4. 对照基准项目已有接口封装（如有），逐接口对比：
    - 路径变化：`旧 /api/v1/xxx` → `新 /api/v2/xxx`
    - 参数名变化：`旧 userId` → `新 user_id`
    - 返回结构变化：是否一致 / 增加字段 / 减少字段
