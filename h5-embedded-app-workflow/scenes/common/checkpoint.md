@@ -28,11 +28,10 @@
   "step_names": {
     "1": "输入收集",
     "2": "询问 vendor",
-    "3": "Figma 分析",
-    "4": "API 解析",
-    "5": "项目开发",
-    "6": "自动测试验收",
-    "7": "交付"
+    "3": "API 解析",
+    "4": "项目开发",
+    "5": "自动测试验收",
+    "6": "交付"
   },
   "context": {},
   "updated_at": "2026-05-08T10:30:00"
@@ -54,8 +53,8 @@
 | 场景 | 推荐 context 字段 |
 |------|-------------------|
 | A | `{}` |
-| B | `{ vendor_enabled, figma_url, design_source, local_design_path, api_doc_path, project_config }` |
-| C | `{ vendor_enabled, figma_url, design_source, local_design_path, api_doc_path, project_config }` |
+| B | `{ vendor_enabled, api_doc_path, project_config }` |
+| C | `{ vendor_enabled, api_doc_path, project_config }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -63,8 +62,8 @@
 // 场景 A（5 步）
 { "scene": "A", "step_names": { "1": "技术栈评估", "2": "vendor 架构建立", "3": "图片迁移", "4": "自动测试验收", "5": "交付" } }
 
-// 场景 C（8 步）
-{ "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor", "3": "设计图分析", "4": "API 解析", "5": "vendor 架构建立", "6": "进件功能开发", "7": "自动测试验收", "8": "交付" } }
+// 场景 C（7 步）
+{ "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor", "3": "API 解析", "4": "vendor 架构建立", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
 ```
 
 ---

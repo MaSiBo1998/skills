@@ -5,17 +5,13 @@
 ## 需要收集
 
 1. 当前项目文件夹（即工作目录，本场景始终在当前项目执行）
-2. Figma 设计图链接（可选）或本地设计图文件夹 `designs/`（可选，有其一则做设计还原）
-   - 本地截图建议：PNG 格式、宽度 ≥ 750px、按页面功能命名（如 `home.png`）
-   - 详细截图规范见 `scenes/common/figma-analysis.md` 中的"截图质量与准备建议"
-3. JSON 接口文档（可选，有则做接口适配）
+2. JSON 接口文档（可选，有则做接口适配）
 
 ## 执行规则
 
 - 列出已拿到和缺失的输入
 - 缺失关键输入时明确列出并要求补充
-- 将收集到的输入路径写入 checkpoint context（`figma_url`、`design_source` (figma|local|none)、`local_design_path`、`api_doc_path`、`project_config`）
-- 如用户主动说明了截图质量/来源（如"这是产品经理画的线框图""截图来自旧版设计"），可选写入 `screenshot_quality_notes`
+- 将收集到的输入路径写入 checkpoint context（`api_doc_path`、`project_config`）
 
 ## 可选：项目配置信息
 
