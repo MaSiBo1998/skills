@@ -13,6 +13,7 @@
 3. **提取全局配置**：查找文档中的全局配置接口（如 `GET /`）或 `info` / `description` 字段，提取：
    - **app 名称** → 更新 `.env.development` 和 `.env.production` 中的 `VITE_APP_NAME`
    - **域名/接口地址** → 更新 `.env` 中的 `VITE_API_BASE_URL`
+   - **请求头参数** → 提取全局配置备注中的请求头字段名（如 `x-app-id`、`x-token` 等），同步替换 HTTP 封装层（`request.ts` / `http.ts` / axios 拦截器）中的请求头参数
    - **加密规则、响应码** → 记录到 project_config 供后续参考
    - *验证 `index.html` 的 `<title>%VITE_APP_NAME%</title>` 在构建后正确替换*
 4. 对照基准项目已有接口封装（如有），逐接口对比：
@@ -36,6 +37,7 @@
 无论 swagger 文档中的字段名是否混淆（obfuscated），**必须严格按文档中的字段名发送请求和解析响应**，不可自己发明或沿用旧版本字段名：
 
 - **接口地址**：文档中的 `path` 即实际请求地址，不可自行修改
+- **请求头参数**：全局配置备注中定义的请求头字段名（如 `x-app-id`、`x-token`），必须替换 HTTP 封装层中的对应 header key
 - **请求参数**：body 中的 key 必须与文档中 `parameters` 定义的 name 完全一致（大小写敏感）
 - **响应字段**：`types` / `interface` 中的字段名必须与文档 `responses` 中的字段名完全一致
 - **类型定义**：若文档响应字段与现有类型定义不匹配，必须更新类型定义以匹配文档
@@ -76,6 +78,11 @@
 - **响应字段名**（`responses[].schema.properties` 下的 key）
 - **嵌套结构**（`$ref` 引用的 definition）
 
+额外提取**全局配置**中的请求头参数：
+- 查找全局配置接口（`GET /`）或 `info` / `description` 字段的备注
+- 提取备注中定义的请求头字段名（如 `x-app-id` / `x-token` 等）
+- 记录到映射表，标记为 `[header]`
+
 ### 第二步：逐端点对比，建立映射表
 
 对每个 API，对比 swagger 字段名 vs 代码中实际使用的字段名。记录到映射表：
@@ -94,7 +101,9 @@
 ```
 直接替换（无需 tsc 介入）：
   1. API URL（urls.ts）           ← 对比文档直接替换路径
-  2. 服务层请求参数字段名          ← 对比文档直接替换 body key
+  2. **请求头参数**（request.ts / http.ts / axios 拦截器）
+     ← 从全局配置备注中提取请求头字段名，替换 HTTP 封装层
+  3. 服务层请求参数字段名          ← 对比文档直接替换 body key
      (order.ts / product.ts / home.ts)
 
 tsc 驱动替换（先改 types，让编译器定位消费处）：
