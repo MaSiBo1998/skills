@@ -12,12 +12,12 @@
 
 ## 处理范围
 
-vendor 固定处理以下 7 个库（产出最多 9 个文件，含 JSX 运行时垫片和条件性的 @ant-design/cssinjs），其他库由 Vite 正常打包到 `dist/assets/`：
+vendor 固定处理以下 6 个库（产出最多 9 个文件，含 JSX 运行时垫片和条件性的 @ant-design/cssinjs），其他库由 Vite 正常打包到 `dist/assets/`：
 
 ```
 react / react-dom              → UMD 拷贝
 react-router-dom               → esbuild IIFE
-antd-mobile + antd-mobile-icons → esbuild IIFE
+antd-mobile               → esbuild IIFE
 @reduxjs/toolkit + react-redux → esbuild IIFE
 
 注意：@ant-design/cssinjs 仅在使用 antd v5+（PC 端）时需要单独构建 IIFE。
@@ -98,7 +98,6 @@ if (HAS_CSSINJS) {
 for (const { entry, file, global } of [
   { entry: 'node_modules/react-router-dom/dist/index.js',         file: 'react-router-dom.js',    global: 'ReactRouterDOM' },
   { entry: 'node_modules/antd-mobile/es/index.js',                file: 'antd-mobile.js',         global: 'AntdMobile' },
-  { entry: 'node_modules/antd-mobile-icons/cjs/index.js',         file: 'antd-mobile-icons.js',   global: 'AntdMobileIcons' },
   { entry: 'node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs', file: 'redux-toolkit.js', global: 'ReduxToolkit' },
   { entry: 'node_modules/react-redux/dist/react-redux.browser.mjs',       file: 'react-redux.js',   global: 'ReactRedux' },
 ]) {
@@ -130,7 +129,7 @@ console.log('\n🔍 校验 vendor 文件...')
 const EXPECTED = {
   'react.production.min.js':'React', 'react-dom.production.min.js':'ReactDOM', 'react-jsx-runtime.js':'React',
   'react-router-dom.js':'ReactRouterDOM', 'antd-mobile.js':'AntdMobile',
-  'antd-mobile-icons.js':'AntdMobileIcons','redux-toolkit.js':'ReduxToolkit','react-redux.js':'ReactRedux',
+  'redux-toolkit.js':'ReduxToolkit','react-redux.js':'ReactRedux',
 }
 for (const [f, e] of Object.entries(EXPECTED)) {
   const fp = path.join(VENDOR_DIR, f)
@@ -165,13 +164,13 @@ import externalGlobals from 'rollup-plugin-external-globals'
 const APP_RESOURCE_PREFIX = 'local-resource://h5/'
 const FRAMEWORK_GLOBALS = {
   'react': 'React', 'react-dom': 'ReactDOM', 'react-router-dom': 'ReactRouterDOM',
-  'antd-mobile': 'AntdMobile', 'antd-mobile-icons': 'AntdMobileIcons',
+  'antd-mobile': 'AntdMobile',
   '@reduxjs/toolkit': 'ReduxToolkit', 'react-redux': 'ReactRedux',
 }
 
 function vendorScriptsPlugin(prefix) {
   const all = ['react.production.min.js','react-jsx-runtime.js','react-dom.production.min.js',
-    'antd-cssinjs.js','react-router-dom.js','antd-mobile.js','antd-mobile-icons.js',
+    'antd-cssinjs.js','react-router-dom.js','antd-mobile.js',
     'redux-toolkit.js','react-redux.js']
   const files = all.filter(f => fs.existsSync(`static-app/vendor/${f}`))
   const jsTags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
