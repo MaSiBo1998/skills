@@ -55,8 +55,7 @@
 → 仅修改构建配置，不动业务代码：
   1. 创建 static-app/ → 配置 vendor 预构建（build:static）
   2. 配置 externals + 双模式路径
-  3. 迁移基准图片
-  4. 验证构建产物和开发体验
+  3. 验证构建产物和开发体验
 ```
 
 ---
@@ -78,7 +77,7 @@
 
 ```
 用户输入 → 场景识别 → 资料收集
-                         ├── 场景 A（架构改造）→ 技术栈评估 → vendor 建立 → 图片迁移 → 测试验收
+                         ├── 场景 A（架构改造）→ 技术栈评估 → vendor 建立 → 测试验收
                          ├── 场景 B（首复贷）→ 询问 vendor → 接口解析 → 开发 → 测试验收
                          └── 场景 C（进件开发）→ 询问 vendor → 接口解析 → vendor 建立 → 功能开发 → 测试验收
 ```
@@ -87,7 +86,7 @@
 
 ### 静态资源架构说明
 
-核心加速策略：将 React、UI 库、基准图片等固定依赖放在 `static-app/` 目录，构建时**不打包进 dist/**，直接交给原生 App 打包到 APK/IPA。WebView 从本地文件系统加载，实现零网络加载静态资源。
+核心加速策略：将 React、UI 库等固定依赖放在 `static-app/vendor/` 目录，构建时**不打包进 dist/**，直接交给原生 App 打包到 APK/IPA。WebView 从本地文件系统加载，实现零网络加载静态资源。
 
 ```
 h5-project/
@@ -96,8 +95,7 @@ h5-project/
 │   │   ├── react.production.min.js
 │   │   ├── antd-mobile.js
 │   │   └── ...
-│   └── images/            ← 基准图片
-├── src/                   ← 业务源码（含 assets/ 用于后续新增图片）
+├── src/                   ← 业务源码
 ├── dist/                 ← 构建产物（不含 static-app/）
 └── vite.config.js        ← external + externalGlobals 配置
 ```
@@ -105,7 +103,7 @@ h5-project/
 | 命令 | 用途 |
 |------|------|
 | `npm run dev` | 本地开发，Vite 正常启动，框架从 node_modules 加载 |
-| `npm run build:static` | 生成 static-app/vendor/ + images/，仅首次/升级基线库 |
+| `npm run build:static` | 生成 static-app/vendor/，仅首次/升级基线库 |
 | `npm run build` | 生产构建，自动注入 vendor script 标签，排除框架代码 |
 
 ### 接口文档导入优先级

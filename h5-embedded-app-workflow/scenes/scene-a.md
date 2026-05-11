@@ -21,23 +21,15 @@
 
 ---
 
-## Step 3. 图片迁移
-
-`build:static` 会自动将 `src/assets/` 迁移到 `static-app/images/`。将代码中残留的 `import from '@/assets/...'` 替换为 STATIC_URL。
-
-**→ 写入 checkpoint**: Step 3（图片迁移）完成
-
----
-
-## Step 4. 自动测试验收
+## Step 3. 自动测试验收
 
 完整步骤见 `scenes/common/testing.md`。重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）。
 
-**→ 写入 checkpoint**: Step 4（自动测试验收）完成
+**→ 写入 checkpoint**: Step 3（自动测试验收）完成
 
 ---
 
-## Step 5. 交付
+## Step 4. 交付
 
 完整步骤见 `scenes/common/delivery.md`。输出架构改造清单（改了哪些配置文件）、测试结果、待用户验收项。
 

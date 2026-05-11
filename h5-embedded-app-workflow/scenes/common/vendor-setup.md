@@ -108,22 +108,6 @@ for (const { entry, file, global } of [
     outfile: path.join(VENDOR_DIR, file), alias, minify: true })
 }
 
-// 迁移图片（仅图片类文件，保留字体/JSON 等非图片资源）
-const IMG_SRC = path.resolve(ROOT, 'src/assets')
-const IMG_DEST = path.resolve(ROOT, 'static-app/images')
-const IMG_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico']
-if (fs.existsSync(IMG_SRC)) {
-  fs.mkdirSync(IMG_DEST, { recursive: true })
-  for (const f of fs.readdirSync(IMG_SRC, { recursive: true })) {
-    if (IMG_EXTS.includes(path.extname(f).toLowerCase())) {
-      const src = path.join(IMG_SRC, f), dest = path.join(IMG_DEST, f)
-      fs.mkdirSync(path.dirname(dest), { recursive: true })
-      fs.copyFileSync(src, dest)
-      fs.rmSync(src)
-    }
-  }
-}
-
 // 校验全局变量
 console.log('\n🔍 校验 vendor 文件...')
 const EXPECTED = {
@@ -138,14 +122,6 @@ for (const [f, e] of Object.entries(EXPECTED)) {
 }
 // 检测 CSS 文件
 fs.readdirSync(VENDOR_DIR).filter(f => f.endsWith('.css')).forEach(f => console.log(`  📄 ${f}`))
-// 检测残留图片引用（覆盖 alias 路径、相对路径、require、CSS url）
-let broken = 0
-const ASSET_RE = /(?:from\s+['"](?:@\/assets|\.\.?\/assets)\/|require\s*\(\s*['"](?:@\/assets|\.\.?\/assets)\/|url\s*\(\s*['"]?(?:@\/assets|\.\.?\/assets)\/)/
-for (const f of fs.readdirSync(path.resolve(ROOT, 'src'), { recursive: true }).filter(f => /\.(tsx?|jsx?|css|scss|less)$/.test(f))) {
-  const content = fs.readFileSync(path.resolve(ROOT, 'src', f), 'utf-8')
-  if (ASSET_RE.test(content)) { console.warn(`  ⚠️  ${f} 残留图片引用`); broken++ }
-}
-if (broken) console.warn(`⚠️  共 ${broken} 个残留 import`)
 for (const t of ['_react.cjs', '_react-dom.cjs', '_cssinjs.cjs', '_jsx-entry.js']) {
   try { fs.rmSync(path.join(VENDOR_DIR, t)) } catch {}
 }
@@ -224,24 +200,12 @@ export default defineConfig(({ mode, command }) => ({
 }
 ```
 
-## 图片引用方式
-
-```
-基线图片（被迁移到 static-app/images/）:
-  const STATIC_URL = document.querySelector('meta[name="app-resource"]')?.content || '/static-app/'
-  <img src={`${STATIC_URL}images/logo.png`} />
-
-后续新增图片（在 src/assets/ 中正常开发）:
-  import logo from '@/assets/new-banner.png'
-  → npm run build 正常打包到 dist/assets/
-```
-
 ## 执行
 
 ```bash
 # 首次/升级依赖时执行
 npm run build:static
-# → UMD 拷贝 + esbuild 打包 + 图片迁移 + 校验
+# → UMD 拷贝 + esbuild 打包 + 校验
 
 # 日常开发
 npm run dev

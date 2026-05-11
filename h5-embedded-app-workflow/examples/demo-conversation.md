@@ -58,9 +58,8 @@
 1. **场景识别**：判断为场景 A（架构改造）
 2. **技术栈评估**：识别 Vite/Webpack、React/Vue、UI 库版本
 3. **vendor 架构建立**：创建 static-app/ + scripts/build-static.mjs + externals 配置 + dev server 中间件 + 执行 npm run build:static
-4. **图片迁移**：build:static 自动迁移 src/assets/ 到 static-app/images/，替换残留 import 为 STATIC_URL
-5. **自动测试验收**：重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9
-6. **交付**：架构改造清单 + 测试结果 + Skill 改进建议
+4. **自动测试验收**：重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9
+5. **交付**：架构改造清单 + 测试结果 + Skill 改进建议
 
 ---
 

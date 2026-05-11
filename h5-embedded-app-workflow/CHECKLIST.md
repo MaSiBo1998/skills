@@ -150,10 +150,8 @@
   - `npm run build` 产物中不包含框架代码
   - `npm run build` 产物中无 `static-app/` 内容
   - `npm run dev` 可正常启动，script 标签加载的框架 JS 正常
-  - `npm run build:static` 能正常执行（esbuild 打包 + UMD 拷贝 + 图片迁移）
+  - `npm run build:static` 能正常执行（esbuild 打包 + UMD 拷贝）
   - 所有框架库保留在 `devDependencies` 中（`node_modules` 可解析子路径）
-  - `src/assets/` 中已无图片（已迁移到 static-app/images/）
-  - 代码中使用 `STATIC_URL` 路径引用图片（非 `import`）
 - **失败判定**: 架构配置不完整或双模式路径未正确切换
 
 ---
