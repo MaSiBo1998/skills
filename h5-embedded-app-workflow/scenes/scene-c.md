@@ -19,7 +19,7 @@
 - **是** → 执行 Step 4 vendor 架构建立
 - **否** → 跳过 Step 4
 
-**→ 写入 checkpoint**: Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
 
 ---
 
@@ -29,7 +29,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
-**→ 写入 checkpoint**: Step 3（接口解析）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
 
 ---
 
@@ -39,7 +39,7 @@
 
 完整步骤见 `scenes/common/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
 
-**→ 写入 checkpoint**: Step 4（vendor 架构建立）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 4（vendor 架构建立）完成
 
 ---
 
@@ -49,7 +49,7 @@
 
 开发时结合 Step 3 的字段映射表（如有）进行接口适配。
 
-**→ 写入 checkpoint**: Step 5（进件功能开发）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 5（进件功能开发）完成
 
 ---
 
@@ -68,7 +68,7 @@
 □ API 字段映射正确、风险埋点集成
 ```
 
-**→ 写入 checkpoint**: Step 6（自动测试验收）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 6（自动测试验收）完成
 
 ---
 
