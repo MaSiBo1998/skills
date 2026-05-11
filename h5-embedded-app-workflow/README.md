@@ -158,9 +158,7 @@ h5-embedded-app-workflow/
 │       └── delivery.md       ★ 交付
 └── references/
     ├── native-methods.md     ★ H5-App 原生交互协议
-    ├── apply-flow.md         ★ 进件申请流程参考
-    └── design/
-        └── 01-positioning.md  ★ 项目定位
+    └── apply-flow.md         ★ 进件申请流程参考
 ```
 
 ---
