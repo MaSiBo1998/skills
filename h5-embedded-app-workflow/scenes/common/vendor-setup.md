@@ -253,6 +253,18 @@ npm run build
 # → 自动注入 vendor script 标签 + externalization
 ```
 
+## Vite 配置优化（可选）
+
+如本工作流或 Claude 环境中有 **vite skill**（自动判断），在配置 vite.config.js 后额外执行：
+
+1. 调用 vite skill 审查当前 `vite.config.js` 配置，重点关注：
+   - `rollup-plugin-external-globals` 映射是否完整
+   - `build.rollupOptions.external` 列表是否精确
+   - `manualChunks` 分包策略是否合理
+   - dev server 中间件配置是否正确
+2. 根据 vite skill 的建议优化配置（如需调整）
+3. 记录优化前后的差异供用户确认
+
 ## 成功标准
 
 - vendor 脚本成功注入 index.html，加载后页面功能正常

@@ -1,7 +1,7 @@
 ---
 name: h5-embedded-app-workflow
 version: 2.0.0
-description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成接口文档解析、vendor 架构建立与全链路测试验收。
+description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成接口文档解析、vendor 架构建立与全链路测试验收。集成 vite skill（构建优化）、openapi-to-typescript（类型生成）、webapp-testing（浏览器测试验收）。
 ---
 
 # 专属开发工作流程
@@ -43,6 +43,8 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 执行工作流时**只加载**当前场景需要的文件，**不加载**以下文件：
 - `README.md`（仓库说明，非执行指令）
 - `examples/demo-conversation.md`（示例对话，非执行指令）
+
+执行过程中会在对应步骤自动调用已安装的辅助 skill（vite / webapp-testing / openapi-to-typescript），如未安装则跳过增强步骤，按基础流程执行。
 
 ---
 

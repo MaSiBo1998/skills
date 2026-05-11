@@ -1,1 +1,17 @@
 .claude/
+h5-embedded-app-workflow/.agents/skills/openapi-to-typescript/README.md
+h5-embedded-app-workflow/.agents/skills/openapi-to-typescript/SKILL.md
+h5-embedded-app-workflow/.agents/skills/vite/GENERATION.md
+h5-embedded-app-workflow/.agents/skills/vite/SKILL.md
+h5-embedded-app-workflow/.agents/skills/vite/references/build-and-ssr.md
+h5-embedded-app-workflow/.agents/skills/vite/references/core-config.md
+h5-embedded-app-workflow/.agents/skills/vite/references/core-features.md
+h5-embedded-app-workflow/.agents/skills/vite/references/core-plugin-api.md
+h5-embedded-app-workflow/.agents/skills/vite/references/environment-api.md
+h5-embedded-app-workflow/.agents/skills/vite/references/rolldown-migration.md
+h5-embedded-app-workflow/.agents/skills/webapp-testing/LICENSE.txt
+h5-embedded-app-workflow/.agents/skills/webapp-testing/SKILL.md
+h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/console_logging.py
+h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/element_discovery.py
+h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/static_html_automation.py
+h5-embedded-app-workflow/.agents/skills/webapp-testing/scripts/with_server.py
