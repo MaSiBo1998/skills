@@ -144,21 +144,21 @@
 - **检查项**:
   - `static-app/vendor/` 目录是否存在，各框架 JS 文件齐全
   - `index.html` 中所有框架 JS 通过 `<script>` 标签加载，使用 `local-resource://h5/` 协议
-  - `vite.config.js` 配置了 `rollup-plugin-external-globals` 映射所有框架
+  - `vite.config.ts`（或 `vite.config.js`）配置了 `rollup-plugin-external-globals` 映射所有框架
   - `build.rollupOptions.external` 精确列出主模块（不含 `react/jsx-dev-runtime` 等子路径）
   - dev server 配置了 `static-app/` 的中间件（仅 dev，不进 build）
   - `npm run build` 产物中不包含框架代码
   - `npm run build` 产物中无 `static-app/` 内容
   - `npm run dev` 可正常启动，script 标签加载的框架 JS 正常
   - `npm run build:static` 能正常执行（esbuild 打包 + UMD 拷贝）
-  - 所有框架库保留在 `devDependencies` 中（`node_modules` 可解析子路径）
+  - 所有框架库保持已安装（`node_modules` 可解析子路径）
 - **失败判定**: 架构配置不完整或双模式路径未正确切换
 
 ---
 
 ## 13. 依赖清理检查
 
-- **方法**: 扫描 `src/` 中的 import/require 语句，对照 `package.json` 全量 dependencies
+- **方法**: 扫描 `src/` 中的 import/require 语句，对照 `package.json` 依赖列表
 - **检查项**:
   - 对 `package.json` 中每个依赖包，在 `src/` 中搜索是否有对应的 `import` 或 `require`
   - 未在代码中引用的包标记为"可能未使用"
@@ -175,7 +175,7 @@
 - **方法**: 检查代码和构建配置
 - **检查项**:
   - 路由是否配置了懒加载（`React.lazy()` + `import()`）
-  - `vite.config.js` 是否配置了 `manualChunks` 分包策略
+  - `vite.config.ts`（或 `vite.config.js`）是否配置了 `manualChunks` 分包策略
   - 是否实现了骨架屏（首屏加载完成前展示）
   - 图片是否配置了懒加载（`loading="lazy"` 或 IntersectionObserver）
   - CSS/JS 是否配置了压缩（css-minimizer / terser）

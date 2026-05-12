@@ -1,198 +1,177 @@
-# vendor 架构建立（通用模块）
+﻿# vendor 架构建立（通用模块）
 
-所有需要 vendor 架构的场景共用此模块。将框架依赖库预构建为独立 JS 文件，通过 `<script>` 标签加载，构建时排除框架代码。
+所有需要 vendor 架构的场景共用此模块。将框架依赖库预构建为独立 JS/CSS 文件，通过 `<script>` / `<link>` 标签加载；构建时排除框架代码。
 
 ## 约束
 
 - 构建产物必须使用自定义协议 `local-resource://h5/`（或 `APP_RESOURCE_PREFIX` 配置），不可使用 `file://` 或 CDN 路径
-- 构建产物中不得包含框架代码（必须通过 externals 排除）
+- 构建产物中不得包含框架代码（通过 `build.rollupOptions.external` + `rollup-plugin-external-globals`）
 - `static-app/` 目录必须与 `src/` 同级，不在 `public/` 目录内
-- 所有框架库必须保留在 `devDependencies` 中（JSX 运行时子模块需从 node_modules 解析）
-- `external` 列表必须精确列出主模块，不可用 `^react(\/.*)?$/` 全覆盖
+- `external` 列表必须精确列出主模块，不可用 `^react(\/.*)?$` 全覆盖
+- 以项目当前 `vite.config.ts` 和 `scripts/build-static.mjs` 为准，工作流仅补齐缺失项
+- 不修改业务入口文件来适配 vendor 架构。禁止将 `src/main.tsx` 中的 `react-dom/client` 改为 `window.ReactDOM` 或动态导入；如需适配子路径，必须在构建配置中处理。
+- vendor 标签必须注入到最终 `dist/index.html` 的 `<head>` 最前面，早于 Vite polyfill、主包、modulepreload 等构建产物标签。
+- vendor `<script>` 必须使用 `defer`，保持执行顺序且避免 `antd-mobile` 等库在 `document.body` 尚未存在时执行 `document.body.appendChild(...)` 报错。
 
-## 处理范围
+## 处理范围（以当前项目为准）
 
-vendor 固定处理以下 6 个库（产出最多 9 个文件，含 JSX 运行时垫片和条件性的 @ant-design/cssinjs），其他库由 Vite 正常打包到 `dist/assets/`：
+vendor 固定处理以下 6 个库，产物包含 7 个 JS + 可能的 CSS：
 
-```
-react / react-dom              → UMD 拷贝
-react-router-dom               → esbuild IIFE
-antd-mobile               → esbuild IIFE
-@reduxjs/toolkit + react-redux → esbuild IIFE
-
-注意：@ant-design/cssinjs 仅在使用 antd v5+（PC 端）时需要单独构建 IIFE。
-antd-mobile v5 不依赖 @ant-design/cssinjs，无需生成 cssinjs 垫片和 IIFE 文件。
-脚本中的 cssinjs 相关代码（_cssinjs.cjs 垫片、独立 IIFE 构建、alias 注入）
-应通过 fs.existsSync 检测 node_modules/@ant-design/cssinjs 后按需执行。
-```
+- `react` / `react-dom`：UMD 拷贝
+- `react/jsx-runtime` + `react/jsx-dev-runtime`：合并构建为 `react-jsx-runtime.js`
+- `react-router-dom`：esbuild IIFE
+- `antd-mobile`：esbuild IIFE（可能产出 `antd-mobile.css`）
+- `@reduxjs/toolkit`：esbuild IIFE
+- `react-redux`：esbuild IIFE
 
 ## 创建脚本
 
 ### `scripts/build-static.mjs`
 
-```js
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { buildSync, build } from 'esbuild'
+按目标项目当前实现执行，关键点必须满足：
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const ROOT = path.resolve(__dirname, '..')
-const VENDOR_DIR = path.resolve(ROOT, 'static-app/vendor')
+1. 清理并重建 `static-app/vendor`
+2. 生成 `_react.cjs`、`_react-dom.cjs` 垫片
+3. 生成 `_jsx-entry.js` 并构建 `react-jsx-runtime.js`
+4. 拷贝 `react.production.min.js`、`react-dom.production.min.js`
+5. 构建 `react-router-dom.js`、`antd-mobile.js`、`redux-toolkit.js`、`react-redux.js`
+6. 校验所有期望文件存在且包含对应全局变量名
+7. 删除临时垫片文件
 
-fs.rmSync(VENDOR_DIR, { recursive: true, force: true })
-fs.mkdirSync(VENDOR_DIR, { recursive: true })
+> 说明：当前项目基线不包含 `@ant-design/cssinjs` 独立 vendor 产物，不要求生成 `antd-cssinjs.js`。
 
-// CJS 垫片
-fs.writeFileSync(path.join(VENDOR_DIR, '_react.cjs'), 'module.exports = React;')
-fs.writeFileSync(path.join(VENDOR_DIR, '_react-dom.cjs'), 'module.exports = ReactDOM;')
-// cssinjs 垫片仅在安装了 @ant-design/cssinjs 时创建（antd v5+ PC 端需要，antd-mobile v5 不需要）
-const HAS_CSSINJS = fs.existsSync(path.resolve(ROOT, 'node_modules/@ant-design/cssinjs'))
-if (HAS_CSSINJS) fs.writeFileSync(path.join(VENDOR_DIR, '_cssinjs.cjs'), 'module.exports = window.AntdCSSinJS;')
+## 配置 `vite.config.ts`（或 `vite.config.js`）
 
-// JSX 运行时垫片（使用 async build 以支持 plugins）
-fs.writeFileSync(path.join(VENDOR_DIR, '_jsx-entry.js'), [
-  "import * as R from 'react/jsx-runtime';",
-  "import * as D from 'react/jsx-dev-runtime';",
-  'Object.assign(React, R); React.jsxDEV = D.jsxDEV;',
-].join('\n'))
-await build({
-  entryPoints: [path.join(VENDOR_DIR, '_jsx-entry.js')],
-  bundle: true, format: 'iife', outfile: path.join(VENDOR_DIR, 'react-jsx-runtime.js'),
-  plugins: [{
-    name: 'react-alias',
-    setup(build) {
-      // 精确匹配 'react' 裸包名 → CJS 垫片（引用全局 React）
-      build.onResolve({ filter: /^react$/ }, () => ({
-        path: path.join(VENDOR_DIR, '_react.cjs'),
-      }))
-      // 'react/*' 子路径 → node_modules 实际文件
-      build.onResolve({ filter: /^react\// }, (args) => ({
-        path: path.join(ROOT, 'node_modules', args.path + '.js'),
-      }))
-    },
-  }],
-  minify: true,
-})
+最小必备项：
 
-// UMD 拷贝
-for (const [src, file] of [
-  ['node_modules/react/umd/react.production.min.js', 'react.production.min.js'],
-  ['node_modules/react-dom/umd/react-dom.production.min.js', 'react-dom.production.min.js'],
-]) {
-  const sp = path.resolve(ROOT, src)
-  if (fs.existsSync(sp)) fs.copyFileSync(sp, path.join(VENDOR_DIR, file))
+1. 定义 `APP_RESOURCE_PREFIX`，默认 `local-resource://h5/`
+2. 定义 `FRAMEWORK_GLOBALS`
+
+```ts
+const FRAMEWORK_GLOBALS = {
+  react: 'React',
+  'react-dom': 'ReactDOM',
+  'react-router-dom': 'ReactRouterDOM',
+  'antd-mobile': 'AntdMobile',
+  '@reduxjs/toolkit': 'ReduxToolkit',
+  'react-redux': 'ReactRedux',
 }
-
-// @ant-design/cssinjs 独立 IIFE（仅 antd v5+ PC 端需要，antd-mobile v5 不需要）
-if (HAS_CSSINJS) {
-  buildSync({
-    entryPoints: [path.resolve(ROOT, 'node_modules/@ant-design/cssinjs/es/index.js')],
-    bundle: true, format: 'iife', globalName: 'AntdCSSinJS',
-    outfile: path.join(VENDOR_DIR, 'antd-cssinjs.js'),
-    alias: { react: path.join(VENDOR_DIR, '_react.cjs') }, minify: true,
-  })
-}
-
-// ESM → IIFE
-for (const { entry, file, global } of [
-  { entry: 'node_modules/react-router-dom/dist/index.js',         file: 'react-router-dom.js',    global: 'ReactRouterDOM' },
-  { entry: 'node_modules/antd-mobile/es/index.js',                file: 'antd-mobile.js',         global: 'AntdMobile' },
-  { entry: 'node_modules/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs', file: 'redux-toolkit.js', global: 'ReduxToolkit' },
-  { entry: 'node_modules/react-redux/dist/react-redux.browser.mjs',       file: 'react-redux.js',   global: 'ReactRedux' },
-]) {
-  const alias = { react: path.join(VENDOR_DIR, '_react.cjs'), 'react-dom': path.join(VENDOR_DIR, '_react-dom.cjs') }
-  // antd v5+ PC 端构建 antd-mobile 时需注入 cssinjs alias
-  if (HAS_CSSINJS) alias['@ant-design/cssinjs'] = path.join(VENDOR_DIR, '_cssinjs.cjs')
-  buildSync({ entryPoints: [path.resolve(ROOT, entry)], bundle: true, format: 'iife', globalName: global,
-    outfile: path.join(VENDOR_DIR, file), alias, minify: true })
-}
-
-// 校验全局变量
-console.log('\n🔍 校验 vendor 文件...')
-const EXPECTED = {
-  'react.production.min.js':'React', 'react-dom.production.min.js':'ReactDOM', 'react-jsx-runtime.js':'React',
-  'react-router-dom.js':'ReactRouterDOM', 'antd-mobile.js':'AntdMobile',
-  'redux-toolkit.js':'ReduxToolkit','react-redux.js':'ReactRedux',
-}
-for (const [f, e] of Object.entries(EXPECTED)) {
-  const fp = path.join(VENDOR_DIR, f)
-  if (!fs.existsSync(fp)) { console.error(`❌ ${f} 缺失`); process.exit(1) }
-  if (!fs.readFileSync(fp, 'utf-8').includes(e)) { console.error(`❌ ${f} 缺少 ${e}`); process.exit(1) }
-}
-// 检测 CSS 文件
-fs.readdirSync(VENDOR_DIR).filter(f => f.endsWith('.css')).forEach(f => console.log(`  📄 ${f}`))
-for (const t of ['_react.cjs', '_react-dom.cjs', '_cssinjs.cjs', '_jsx-entry.js']) {
-  try { fs.rmSync(path.join(VENDOR_DIR, t)) } catch {}
-}
-console.log('✅ build:static 完成')
 ```
 
-## 配置 vite.config.js
+3. `vendorScriptsPlugin`：构建时自动注入 `static-app/vendor` 的 `<script>` 与 `<link>`
+4. dev server 提供 `/static-app` 静态中间件
+5. 构建时启用 `rollup-plugin-external-globals`
+6. `build.rollupOptions.external = Object.keys(FRAMEWORK_GLOBALS)`（仅 build）
+7. 构建时处理框架子路径（例如 `react-dom/client`），保持业务代码原有 import 不变
+8. `manualChunks` 与项目现状一致（当前项目包含 `src/services` 分包规则）
 
-```js
-import fs from 'fs'
-import path from 'node:path'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import externalGlobals from 'rollup-plugin-external-globals'
+### `vendorScriptsPlugin` 注入规则
 
-const APP_RESOURCE_PREFIX = 'local-resource://h5/'
-const FRAMEWORK_GLOBALS = {
-  'react': 'React', 'react-dom': 'ReactDOM', 'react-router-dom': 'ReactRouterDOM',
-  'antd-mobile': 'AntdMobile',
-  '@reduxjs/toolkit': 'ReduxToolkit', 'react-redux': 'ReactRedux',
-}
+必须满足：
 
-function vendorScriptsPlugin(prefix) {
-  const all = ['react.production.min.js','react-jsx-runtime.js','react-dom.production.min.js',
-    'antd-cssinjs.js','react-router-dom.js','antd-mobile.js',
-    'redux-toolkit.js','react-redux.js']
-  const files = all.filter(f => fs.existsSync(`static-app/vendor/${f}`))
-  const jsTags = files.map(f => `<script defer src="${prefix}static-app/vendor/${f}"></script>`).join('\n  ')
-  let cssTags = ''
-  try { cssTags = files.filter(f => fs.existsSync(`static-app/vendor/${f.replace('.js','.css')}`))
-    .map(f => `<link rel="stylesheet" href="${prefix}static-app/vendor/${f.replace('.js','.css')}" />`).join('\n  ') } catch {}
+- 使用 `transformIndexHtml` 的 `order: 'post'`，保证在 Vite 内置插件、`legacy`、压缩等插件完成 HTML 转换后再注入。
+- 将 vendor 标签插入 `<head>` 之后，而不是 `</head>` 之前。
+- JS 标签使用 `<script defer src="..."></script>`，不要使用普通同步 script。
+- CSS 可使用普通 `<link rel="stylesheet" ...>`，并与 vendor JS 一起注入到 `<head>` 最前面。
+
+示例：
+
+```ts
+function vendorScriptsPlugin(resourcePrefix: string): Plugin {
+  const prefix = normalizePrefix(resourcePrefix)
+  const styleTags = VENDOR_STYLES
+    .map((item) => `<link rel="stylesheet" href="${prefix}${item}" />`)
+    .join('\n')
+  const scriptTags = VENDOR_SCRIPTS
+    .map((item) => `<script defer src="${prefix}${item}"></script>`)
+    .join('\n')
+
   return {
-    name: 'vendor-scripts',
-    transformIndexHtml(html) { return html.replace('<head>', `<head>\n  ${cssTags}${cssTags?'\n  ':''}${jsTags}`) },
+    name: 'vendor-scripts-plugin',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const injected = [styleTags, scriptTags].filter(Boolean).join('\n')
+        return html.includes('<head>')
+          ? html.replace('<head>', `<head>\n  ${injected}`)
+          : `${injected}\n${html}`
+      },
+    },
   }
 }
+```
 
-export default defineConfig(({ mode, command }) => ({
-  base: './',
-  plugins: [
-    react(),
-    { name: 'static-files', configureServer(server) {
-      server.middlewares.use('/static-app', (req, res, next) => {
-        const fp = path.join(process.cwd(), 'static-app', (req.url||'').replace('/static-app/','').split('?')[0])
-        if (fs.existsSync(fp)) { res.setHeader('Content-Type', {'.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.svg':'image/svg+xml','.gif':'image/gif','.webp':'image/webp','.json':'application/json','.woff':'font/woff','.woff2':'font/woff2'}[path.extname(fp)]||'application/octet-stream'); res.end(fs.readFileSync(fp)) } else next()
-      })
-    }},
-    ...(command === 'build' ? [externalGlobals(FRAMEWORK_GLOBALS), vendorScriptsPlugin(APP_RESOURCE_PREFIX)] : []),
-  ],
-  build: {
-    rollupOptions: { external: command === 'build' ? Object.keys(FRAMEWORK_GLOBALS) : [],
-      output: { manualChunks(id) { if (id.includes('/src/components/')) return 'components'; if (id.includes('/src/utils/')||id.includes('/src/hooks/')||id.includes('/src/api/')) return 'utils' } } },
-    target: 'es2015', cssTarget: 'chrome61',
+### 框架子路径处理
+
+`external` 只列主模块，但业务代码可能合法 import 子路径，例如：
+
+```ts
+import { createRoot } from 'react-dom/client'
+```
+
+处理原则：
+
+- 保留业务入口 import，不改 `src/main.tsx`。
+- 不把 `react-dom/client` 加入 `FRAMEWORK_GLOBALS` 主 external 列表。
+- 在 Vite build 阶段增加虚拟模块或精确 alias，将 `react-dom/client` 映射到 `window.ReactDOM` 的 `createRoot`。
+- dev 模式不启用该映射，保持从 `node_modules` 正常加载。
+
+示例：
+
+```ts
+function reactDomClientGlobalPlugin(): Plugin {
+  const virtualId = '\0react-dom-client-global'
+
+  return {
+    name: 'react-dom-client-global',
+    apply: 'build',
+    resolveId(id) {
+      if (id === 'react-dom/client') return virtualId
+      return null
+    },
+    load(id) {
+      if (id !== virtualId) return null
+      return [
+        'const ReactDOMClient = window.ReactDOM;',
+        'if (!ReactDOMClient?.createRoot) {',
+        "  throw new Error('ReactDOM global is missing. Please load static-app/vendor/react-dom.production.min.js first.');",
+        '}',
+        'export const createRoot = ReactDOMClient.createRoot;',
+        'export default ReactDOMClient;',
+      ].join('\n')
+    },
+  }
+}
+```
+
+示例（仅展示 vendor 关键项）：
+
+```ts
+import externalGlobals from 'rollup-plugin-external-globals'
+
+...(isBuild ? [reactDomClientGlobalPlugin()] : [])
+...(isBuild ? [vendorScriptsPlugin(APP_RESOURCE_PREFIX)] : [])
+
+build: {
+  rollupOptions: {
+    plugins: isBuild ? [externalGlobals(FRAMEWORK_GLOBALS) as unknown as Plugin] : [],
+    external: isBuild ? Object.keys(FRAMEWORK_GLOBALS) : [],
+    output: {
+      globals: isBuild ? FRAMEWORK_GLOBALS : {},
+      manualChunks: isBuild
+        ? (id: string) => {
+            if (id.includes('/src/components/')) return 'components'
+            if (id.includes('/src/utils/') || id.includes('/src/hooks/') || id.includes('/src/services/')) return 'utils'
+          }
+        : undefined,
+    },
   },
-}))
+}
 ```
 
-## 更新 index.html
+> 若为 TypeScript 且插件类型不兼容，可做类型收敛（如 `as unknown as Plugin` / `as unknown as PluginOption`），保持运行逻辑不变。
 
-```html
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta name="app-resource" content="/static-app/">
-  <!-- vendor script 标签在 build 时由 vendorScriptsPlugin 自动注入 -->
-</head>
-<body><div id="root"></div></body>
-</html>
-```
-
-## 配置 package.json
+## 配置 `package.json`
 
 ```json
 "scripts": {
@@ -205,32 +184,39 @@ export default defineConfig(({ mode, command }) => ({
 ```bash
 # 首次/升级依赖时执行
 npm run build:static
-# → UMD 拷贝 + esbuild 打包 + 校验
-
-# 日常开发
-npm run dev
-# → Vite 正常启动，框架从 node_modules 加载
 
 # 构建发版
 npm run build
-# → 自动注入 vendor script 标签 + externalization
+
+# 本地联调
+npm run dev
 ```
 
 ## Vite 配置优化（可选）
 
-如本工作流或 Claude 环境中有 **vite skill**（自动判断），在配置 vite.config.js 后额外执行：
+如环境中有 **vite skill**，在不改变项目既有插件链（如 `legacy`、`compression`、`postcss`）的前提下审查：
 
-1. 调用 vite skill 审查当前 `vite.config.js` 配置，重点关注：
-   - `rollup-plugin-external-globals` 映射是否完整
-   - `build.rollupOptions.external` 列表是否精确
-   - `manualChunks` 分包策略是否合理
-   - dev server 中间件配置是否正确
-2. 根据 vite skill 的建议优化配置（如需调整）
-3. 记录优化前后的差异供用户确认
+- `FRAMEWORK_GLOBALS` 映射是否完整
+- `external` 列表是否精确
+- `vendorScriptsPlugin` 注入顺序和完整性
+- `/static-app` 中间件是否生效
+- `manualChunks` 是否与项目目录结构匹配
 
 ## 成功标准
 
-- vendor 脚本成功注入 index.html，加载后页面功能正常
-- 构建产物（dist/）中不包含框架代码
-- 所有 vendor 文件全局变量名与 FRAMEWORK_GLOBALS 映射一致
-- dev 模式下框架从 node_modules 正常加载，不受 vendor 配置影响
+- `build:static` 成功，`static-app/vendor` 文件齐全
+- `dist/index.html` 在 `<head>` 最前面注入 `local-resource://h5/static-app/vendor/*`
+- `dist/index.html` 中 vendor JS 标签均带 `defer`
+- `dist/assets` 中不出现裸模块 `react` / `react-dom` / `react-router-dom` 引用
+- `src/main.tsx` 等业务入口文件未因 vendor 架构被改写
+- `npm run build` 成功，`npm run dev` 可正常启动
+- dev 模式下框架从 node_modules 正常加载，不受 vendor 架构影响
+
+## 常见故障与处理
+
+| 现象 | 原因 | 处理 |
+|------|------|------|
+| `antd-mobile.js: Cannot read properties of null (reading 'appendChild')` | vendor 脚本在 `<body>` 创建前同步执行 | vendor `<script>` 加 `defer`，并确保标签仍早于主包 |
+| `dist/index.html` 中 vendor 标签排在 Vite polyfill 后面 | `transformIndexHtml` 执行顺序早于 `legacy` 等插件 | 使用 `transformIndexHtml.order = 'post'` 并插入 `<head>` 之后 |
+| `dist/assets` 残留 `from "react-dom"` 或 `react-dom/client` | 子路径或 named import 未被 external globals 处理 | 保留业务 import，在 build 插件中精确处理 `react-dom/client` |
+| 为通过构建改了 `src/main.tsx` | 将架构适配侵入业务入口 | 回退业务文件，把适配逻辑放回 `vite.config.ts` |
