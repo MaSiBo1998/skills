@@ -1,12 +1,12 @@
 ---
 name: h5-embedded-app-workflow
-version: 2.1.3
-description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成接口文档解析、vendor 架构建立与全链路测试验收。集成 vite skill（构建优化）、openapi-to-typescript（类型生成）、webapp-testing（浏览器测试验收）。
+version: 2.1.5
+description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发、国家版本发布。自动完成接口文档解析、vendor 架构建立与全链路测试验收。集成 vite skill（构建优化）、openapi-to-typescript（类型生成）、webapp-testing（浏览器测试验收）。
 ---
 
 # 专属开发工作流程
 
-这是一个面向 Claude Code 的开发助手 Skill，目前处理四类场景：
+这是一个面向 Claude Code 的开发助手 Skill，目前处理五类场景：
 
 ## 场景定义
 
@@ -16,6 +16,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 | **B — 首复贷功能开发** | 新项目开发 + 可选 vendor 架构 + 接口适配 |
 | **C — 进件功能开发** | 新增或修改进件申请流程 + 可选 vendor 架构 + 接口适配，只改 Apply 相关页面 |
 | **D — 协议 HTML 生成** | 根据授权/隐私/贷款/条款协议文档生成 4 个简洁 HTML，输出到官网项目 `public` 目录供 App 内展示 |
+| **E — 国家版本发布** | 按 `release-env` 识别国家并执行发布：打包校验、智能 Commit、Release Tag 生成与推送 |
 
 ---
 
@@ -33,7 +34,9 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 **Step 1.** 触发本 Skill（说"用 h5 工作流"或类似语句）
 
-**Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C/D 让你选。先确定工作方向，再了解项目细节。场景 A/B/C 默认在当前工作目录执行；场景 D 允许指定官网项目 `public` 目录路径。
+**Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C/D/E 让你选。先确定工作方向，再了解项目细节。场景 A/B/C/E 默认在当前工作目录执行；场景 D 允许指定官网项目 `public` 目录路径。
+
+**Step 2.1（主动触发规则）**：若用户输入明确为发布意图（如“帮我发布代码 / 发版 / 打 tag / 发布 mx|co|ng”），无需二次确认场景，直接进入场景 E 执行。
 
 **Step 3.** Claude 读取对应场景的详细流程文件并执行。**每完成一个 Step 立即写入 checkpoint**（格式见 `scenes/common/checkpoint.md`），再进入下一步。
 
@@ -46,6 +49,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - `examples/demo-conversation.md`（示例对话，非执行指令）
 
 执行过程中会在对应步骤自动调用已安装的辅助 skill（vite / webapp-testing / openapi-to-typescript），如未安装则跳过增强步骤，按基础流程执行。
+交付完成后会触发发布确认：读取项目根目录 `release-env` 判定国家（`mx/co/ng`），并询问用户是否执行“国家版本发布标签（Git Tag）”流程；仅在用户明确同意后执行发布。
 场景 D 处理 `.docx` 时，必须调用已安装的 `anthropics/skills@docx`（本地目录通常为 `.agents/skills/docx`）读取本地文档正文；不允许回退到 `python-docx` 等本地解析方案。若执行失败，先按报错安装 `docx` skill 依赖（例如 `defusedxml`）并重试，仍失败则阻断流程并提示用户修复环境。
 场景 D 中用户提供的协议链接仅用于输出文件命名（取链接最后的 `.html` 文件名），不作为协议正文来源。
 场景 D 若输入文档包含中西双语，默认仅输出西语内容到 HTML，中文不输出。
@@ -60,12 +64,13 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 需要新增或重构进件申请流程
 - 需要将授权/隐私/贷款/条款文档转换为 App 内嵌展示协议 HTML
 - 需要在完成开发后自动测试验收
+- 需要直接执行国家版本发布（如“帮我发布代码”）
 
 ## 不适用场景
 
 - 从零新建项目脚手架
 - 纯后端开发、数据库设计、运维部署
-- 单纯生成 Git 分支名、发布 Tag、处理飞书 Bug
+- 单纯生成 Git 分支名、处理飞书 Bug（发布 Tag 请使用场景 E）
 - Webpack 项目（当前仅支持 Vite 构建工具）
 - 使用 yarn/pnpm 的项目（当前仅支持 npm）
 
@@ -118,7 +123,10 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 场景 D 在提供协议链接时，输出文件名默认取链接末尾的 `.html` 名称；正文始终来自本地协议文档
 - 场景 D 在双语协议输入下默认只输出西语正文，且验收检查无中文残留
 - 场景 A/B/C 在 CHECKLIST.md 中所有适用检查项逐项执行并输出结果；场景 D 完成协议页面专项检查
+- 场景 E 可独立触发并完成国家版本发布（构建校验、提交、打标、推送）
 - 交付清晰的测试和验收说明（见 `scenes/common/delivery.md`）
+- 交付完成后已按 `release-env` 识别国家并询问用户是否执行版本发布；用户同意时成功触发国家版发布流程
+- 用户同意发布时，最终 Tag 必须符合 `release-{国家码}-{YYYYMMDD}-v{主}.{次}.{补丁}`，并遵循同日补丁位递增规则
 - `.workflow-checkpoint.json` 在工作流完成后已清理
 
 ---
@@ -129,3 +137,9 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 用 h5 工作流帮我做这个需求
 - 使用 h5-embedded-app-workflow
 - 跑一下 h5 工作流
+- 帮我发布代码
+- 帮我发版
+- 帮我打 tag
+- 发布 mx
+- 发布 co
+- 发布 ng
