@@ -1,12 +1,12 @@
 ---
 name: h5-embedded-app-workflow
-version: 2.0.0
+version: 2.1.0
 description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成接口文档解析、vendor 架构建立与全链路测试验收。集成 vite skill（构建优化）、openapi-to-typescript（类型生成）、webapp-testing（浏览器测试验收）。
 ---
 
 # 专属开发工作流程
 
-这是一个面向 Claude Code 的开发助手 Skill，目前处理三类场景：
+这是一个面向 Claude Code 的开发助手 Skill，目前处理四类场景：
 
 ## 场景定义
 
@@ -15,6 +15,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 | **A — 架构改造** | 不改业务逻辑，只改构建配置，建立 static-app/vendor 本地加载架构 |
 | **B — 首复贷功能开发** | 新项目开发 + 可选 vendor 架构 + 接口适配 |
 | **C — 进件功能开发** | 新增或修改进件申请流程 + 可选 vendor 架构 + 接口适配，只改 Apply 相关页面 |
+| **D — 协议 HTML 生成** | 根据授权/隐私/贷款/条款协议文档生成 4 个简洁 HTML，输出到官网项目 `public` 目录供 App 内展示 |
 
 ---
 
@@ -32,7 +33,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 **Step 1.** 触发本 Skill（说"用 h5 工作流"或类似语句）
 
-**Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C 让你选。先确定工作方向，再了解项目细节。当前场景 A/B/C 均在当前工作目录执行。
+**Step 2.** 选择场景：先检测 `.workflow-checkpoint.json`，如存在未过期的工作流则询问是否继续。否则列出 A/B/C/D 让你选。先确定工作方向，再了解项目细节。场景 A/B/C 默认在当前工作目录执行；场景 D 允许指定官网项目 `public` 目录路径。
 
 **Step 3.** Claude 读取对应场景的详细流程文件并执行。**每完成一个 Step 立即写入 checkpoint**（格式见 `scenes/common/checkpoint.md`），再进入下一步。
 
@@ -53,6 +54,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 需要接入新接口文档
 - 需要建立 static-app/vendor 静态资源本地加载架构
 - 需要新增或重构进件申请流程
+- 需要将授权/隐私/贷款/条款文档转换为 App 内嵌展示协议 HTML
 - 需要在完成开发后自动测试验收
 
 ## 不适用场景
@@ -88,9 +90,10 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 自动精简或手动执行 `/compact` 时，**必须保留**以下工作流状态：
 
-- 当前场景（A/B/C）和已完成到哪个 Step
+- 当前场景（A/B/C/D）和已完成到哪个 Step
 - `.workflow-checkpoint.json` 的当前内容（scene、last_completed_step、context）
 - 字段映射表（旧路径/参数 → 新路径/参数）——如已产出
+- 协议文档与输出路径映射（授权/隐私/贷款/条款 → html 文件）——仅场景 D
 - 已修改的文件路径清单
 - 未解决的错误和待确认项
 
@@ -106,7 +109,8 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 - 正确识别并执行所选场景
 - 成功建立 static-app/ 基线依赖架构（如果场景包含）
-- CHECKLIST.md 中所有适用检查项逐项执行并输出结果
+- 场景 D 能从 4 份协议文档稳定生成 4 个 HTML，并输出到指定 `public` 目录
+- 场景 A/B/C 在 CHECKLIST.md 中所有适用检查项逐项执行并输出结果；场景 D 完成协议页面专项检查
 - 交付清晰的测试和验收说明（见 `scenes/common/delivery.md`）
 - `.workflow-checkpoint.json` 在工作流完成后已清理
 

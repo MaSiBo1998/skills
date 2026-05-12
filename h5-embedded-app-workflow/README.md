@@ -11,7 +11,8 @@
 
 **场景 A — 架构改造**：不改业务逻辑，只改构建配置，建立 static-app/vendor 本地加载架构<br>
 **场景 B — 首复贷功能开发**：新项目开发 + 可选 vendor 架构 + 接口适配<br>
-**场景 C — 进件功能开发**：新增或修改进件申请流程 + 可选 vendor + 接口适配，只改 Apply 相关页面
+**场景 C — 进件功能开发**：新增或修改进件申请流程 + 可选 vendor + 接口适配，只改 Apply 相关页面<br>
+**场景 D — 协议 HTML 生成**：根据授权/隐私/贷款/条款文档生成 4 个简洁 HTML，输出到官网 `public` 目录供 App 展示
 
 </div>
 
@@ -58,6 +59,18 @@
   3. 验证构建产物和开发体验
 ```
 
+### 场景 D（协议 HTML 生成）：四份协议文档转页面
+
+```
+这是授权、隐私、贷款、条款四份协议文档，帮我生成 App 内展示的协议页面，放到官网项目 public 目录。
+
+→ Claude Code 自动完成：
+  1. 校验 4 份文档输入和 public 目录
+  2. 提取各协议标题、章节和生效信息
+  3. 生成 4 个移动端可读的静态 HTML
+  4. 输出文件映射和可访问路径（如 /privacy-policy.html）
+```
+
 ---
 
 ## 适用场景
@@ -70,6 +83,7 @@
 - 需要将现有项目改造为基线依赖本地加载的架构（static-app/ + vendor 预构建 + externals）
 - 新项目会更换接口地址、请求参数名
 - 需要根据导入的接口文档快速完成一轮可靠开发
+- 需要将授权/隐私/贷款/条款协议文档快速转成 App 内嵌展示的静态 HTML 页面
 
 ---
 
@@ -79,10 +93,11 @@
 用户输入 → 场景识别 → 资料收集
                          ├── 场景 A（架构改造）→ 技术栈评估 → vendor 建立 → 测试验收
                          ├── 场景 B（首复贷）→ 询问 vendor → 接口解析 → 开发 → 测试验收
-                         └── 场景 C（进件开发）→ 询问 vendor → 接口解析 → vendor 建立 → 功能开发 → 测试验收
+                         ├── 场景 C（进件开发）→ 询问 vendor → 接口解析 → vendor 建立 → 功能开发 → 测试验收
+                         └── 场景 D（协议生成）→ 输入收集 → 协议解析 → HTML 生成 → 自动验收
 ```
 
-详细工作流步骤见各场景文件：[scene-a.md](scenes/scene-a.md)、[scene-b.md](scenes/scene-b.md)、[scene-c.md](scenes/scene-c.md)。
+详细工作流步骤见各场景文件：[scene-a.md](scenes/scene-a.md)、[scene-b.md](scenes/scene-b.md)、[scene-c.md](scenes/scene-c.md)、[scene-d.md](scenes/scene-d.md)。
 
 ### 静态资源架构说明
 
@@ -147,6 +162,7 @@ h5-embedded-app-workflow/
 │   ├── scene-a.md            ★ 场景 A — 架构改造
 │   ├── scene-b.md            ★ 场景 B — 首复贷功能开发
 │   ├── scene-c.md            ★ 场景 C — 进件功能开发
+│   ├── scene-d.md            ★ 场景 D — 协议 HTML 生成
 │   └── common/
 │       ├── api-parsing.md    ★ JSON 接口文档自动解析
 │       ├── vendor-setup.md   ★ vendor 架构建立
@@ -175,6 +191,7 @@ h5-embedded-app-workflow/
 基于这个基准项目复现一个新项目，并导入新的接口文档完成开发
 这个接口结构一样，但参数名变了，你按基准项目复现并改好
 把这个项目改成 static-app 双模式构建架构
+我会提供授权/隐私/贷款/条款四个协议文档，你生成四个 HTML 放到官网 public 目录
 ```
 
 ---

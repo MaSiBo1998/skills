@@ -40,7 +40,7 @@
 
 | 字段 | 说明 |
 |------|------|
-| `scene` | 场景标识：A / B / C |
+| `scene` | 场景标识：A / B / C / D |
 | `last_completed_step` | 已完成的最后一个 Step 编号 |
 | `step_names` | 各步骤名称映射 |
 | `context` | 关键上下文，恢复时用于还原决策和输入信息 |
@@ -55,6 +55,7 @@
 | A | `{}` |
 | B | `{ vendor_enabled, api_doc_path, project_config }` |
 | C | `{ vendor_enabled, api_doc_path, project_config }` |
+| D | `{ agreement_docs, public_dir, output_files }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -64,6 +65,9 @@
 
 // 场景 C（7 步）
 { "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
+
+// 场景 D（5 步）
+{ "scene": "D", "step_names": { "1": "输入收集", "2": "协议内容解析", "3": "协议 HTML 生成", "4": "自动验收", "5": "交付" } }
 ```
 
 ---

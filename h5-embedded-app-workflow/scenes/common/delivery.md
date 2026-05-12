@@ -60,7 +60,7 @@
 | API 解析问题 | `scenes/common/api-parsing.md` | 在对应步骤增加边界情况处理逻辑 |
 | Vendor 建立问题 | `scenes/common/vendor-setup.md` | 修正脚本配置或增加条件判断 |
 | 测试验收问题 | `scenes/common/testing.md` 或 `CHECKLIST.md` | 补充检查规则或调整判定标准 |
-| 场景流程问题 | `scenes/scene-[abc].md` | 修正步骤描述或增加前置条件说明 |
+| 场景流程问题 | `scenes/scene-[abcd].md` | 修正步骤描述或增加前置条件说明 |
 | 通用约束问题 | `SKILL.md` | 更新全局强约束或前置条件 |
 
 **修改原则**：
