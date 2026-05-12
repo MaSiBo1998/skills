@@ -1,6 +1,6 @@
 ---
 name: h5-embedded-app-workflow
-version: 2.1.2
+version: 2.1.3
 description: 专属开发工作流程。支持项目架构改造、功能开发、流程开发。自动完成接口文档解析、vendor 架构建立与全链路测试验收。集成 vite skill（构建优化）、openapi-to-typescript（类型生成）、webapp-testing（浏览器测试验收）。
 ---
 
@@ -46,7 +46,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - `examples/demo-conversation.md`（示例对话，非执行指令）
 
 执行过程中会在对应步骤自动调用已安装的辅助 skill（vite / webapp-testing / openapi-to-typescript），如未安装则跳过增强步骤，按基础流程执行。
-场景 D 处理 `.docx` 时，默认优先调用已安装的 `anthropics/skills@docx`（本地目录通常为 `.agents/skills/docx`）读取本地文档正文；仅在该 skill 不可用或读取失败时，回退到本地解析方案（如 `python-docx`）。
+场景 D 处理 `.docx` 时，必须调用已安装的 `anthropics/skills@docx`（本地目录通常为 `.agents/skills/docx`）读取本地文档正文；不允许回退到 `python-docx` 等本地解析方案。若执行失败，先按报错安装 `docx` skill 依赖（例如 `defusedxml`）并重试，仍失败则阻断流程并提示用户修复环境。
 场景 D 中用户提供的协议链接仅用于输出文件命名（取链接最后的 `.html` 文件名），不作为协议正文来源。
 场景 D 若输入文档包含中西双语，默认仅输出西语内容到 HTML，中文不输出。
 场景 D 默认不在页面底部输出“Enlace original/原始链接”来源页脚；若条款出现“标题 + 正文”同段（如 `Sección N.`），必须拆分为标题与正文独立标签。
@@ -114,7 +114,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 - 正确识别并执行所选场景
 - 成功建立 static-app/ 基线依赖架构（如果场景包含）
 - 场景 D 能从 4 份协议文档稳定生成 4 个 HTML，并输出到指定 `public` 目录
-- 场景 D 在输入为 `.docx` 时优先使用 `anthropics/skills@docx` 读取文档，且失败时可自动回退到本地解析
+- 场景 D 在输入为 `.docx` 时仅使用 `anthropics/skills@docx` 读取文档；若失败，先修复 skill 依赖并重试，仍失败则中止，不走本地回退解析
 - 场景 D 在提供协议链接时，输出文件名默认取链接末尾的 `.html` 名称；正文始终来自本地协议文档
 - 场景 D 在双语协议输入下默认只输出西语正文，且验收检查无中文残留
 - 场景 A/B/C 在 CHECKLIST.md 中所有适用检查项逐项执行并输出结果；场景 D 完成协议页面专项检查

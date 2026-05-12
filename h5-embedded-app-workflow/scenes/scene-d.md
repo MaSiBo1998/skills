@@ -18,7 +18,8 @@
 执行要求：
 - 明确列出已拿到和缺失项，缺失则先补齐再继续
 - 支持 `.doc/.docx/.txt/.md/.html/.pdf`，优先使用可直接提取文本的格式
-- 当输入包含 `.docx` 时，先检查 `docx` skill 可用性（例如全局 `~/.agents/skills/docx` 或项目 `.agents/skills/docx` 存在）；若不可用，提前声明将走回退解析
+- 当输入包含 `.docx` 时，先检查 `docx` skill 可用性（例如全局 `~/.agents/skills/docx` 或项目 `.agents/skills/docx` 存在）；若不可用，立即阻断并提示安装，不得回退到其他解析器
+- 当输入包含 `.docx` 时，进入解析前先做 `docx` skill 依赖自检：若 `scripts/office/unpack.py` 执行时报缺依赖（例如 `defusedxml`），先在当前执行 Python 环境安装缺失依赖并重试；仍失败则阻断流程
 - 记录输出文件命名规则：
   1) 若提供协议链接且链接路径以 `.html` 结尾，输出文件名默认使用链接最后一段名称（例如 `/concesion.html`）
   2) 若未提供链接或链接不含 `.html` 文件名，回退默认名：`authorization-agreement.html`、`privacy-policy.html`、`loan-agreement.html`、`terms-of-service.html`
@@ -33,9 +34,9 @@
 
 执行要求：
 - 读取优先级（当输入为 `.docx`）：
-  1) 优先调用 `anthropics/skills@docx` 提取正文
-  2) 若 skill 未安装、不可访问或提取失败，则回退本地解析（如 `python-docx`）
-  3) 回退后必须在交付中说明触发了降级路径及原因
+  1) 仅调用 `anthropics/skills@docx` 提取正文
+  2) 若 skill 未安装、不可访问或依赖缺失，先修复 skill 可用性（如补装缺失 Python 依赖）后重试
+  3) 若重试后仍失败，阻断后续生成并提示用户修复环境；不得回退本地解析（如 `python-docx`）
 - 协议链接不参与正文解析，只用于文件命名
 - 提取标题、版本/生效日期（如有）、正文章节、联系方式（如有）
 - 保留原始语义，不擅自增删法律条款
@@ -101,7 +102,7 @@ public/
 □ 文本语义与源文档一致（抽样比对关键条款）
 □ 页面中不存在“Enlace original/原始链接”来源页脚
 □ 文件路径位于指定 public 目录
-□ 输入为 `.docx` 时，已优先走 `anthropics/skills@docx`；若回退已记录原因
+□ 输入为 `.docx` 时，仅使用 `anthropics/skills@docx` 解析；如发生依赖缺失，已先修复依赖后重试
 □ 若提供协议链接，输出文件名与链接末尾 `.html` 名称一致
 ```
 
@@ -129,6 +130,8 @@ public/
 ## 错误处理
 
 - **文档无法读取**：提示具体文件路径和错误类型，要求用户提供可读版本
+- **docx skill 不可用**：阻断生成，提示安装 `anthropics/skills@docx` 后重试
+- **docx skill 依赖缺失**：按报错安装缺失依赖（例如 `python -m pip install defusedxml`）并重试；仍失败则阻断
 - **解析后正文为空**：阻断生成，要求重新提供文档
 - **输出目录不存在**：自动创建目录后再生成
 - **文件命名冲突**：先备份旧文件（追加时间戳）再写入新文件，避免误覆盖
