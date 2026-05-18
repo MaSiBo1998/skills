@@ -18,5 +18,6 @@ description: 测试验收。用于执行 14 项通用检查、vendor 架构检�
 
 - 每项输出通过或失败，失败必须说明原因。
 - vendor 完整性和构建架构检查只在场景 A 或 `vendor_enabled=true` 时执行；未启用 vendor 时必须标记为跳过，不能判失败。
+- 任意涉及原生交互的场景都必须检查 `front-workflow` 公共原生桥接规则：Flutter App WebView 使用统一 `method/value` 协议，低版本 `flutter_inappwebview` 兜底为 `callHandler('flutter', JSON.stringify({ method, value }))`，不得按 `callHandler(action, payload)` 分散 handler。
 - 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表和还款期。
 - 进件项目必须按 country profile 额外检查国家差异；危地马拉需检查 `mx` 发布、字段映射四类、Entry/跳转/原生交互、键盘聚焦滚动处理。

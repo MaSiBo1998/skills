@@ -50,6 +50,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 | 经验类型 | 写入位置 |
 | --- | --- |
 | 场景识别、调度顺序、checkpoint、交付汇总 | `front-workflow` |
+| 跨功能/首复贷/进件的公共原生桥接协议 | `front-workflow` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
 | API 文档解析、字段映射、请求响应类型、混淆字段 | `h5-api-mapping` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |

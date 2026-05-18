@@ -22,3 +22,4 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 - 不属于本 skill：Apply 步骤页、进件 Entry、工作/联系人/个人/证件/人脸/银行卡步骤、进件国家差异 profile、键盘遮挡处理。这些归属 `h5-apply-flow`。
 - 首贷和复贷优先复用状态组件；差异通过数据源、路径、状态分支、埋点 code 和原生方法表达，不复制两套页面。
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
+- 涉及原生交互时必须遵守 `front-workflow` 的公共原生桥接规则：Flutter App WebView 统一 `method/value` 协议，低版本 `flutter_inappwebview` 兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`，不要改成 `callHandler(action, payload)`。

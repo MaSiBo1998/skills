@@ -126,6 +126,23 @@ getNextStep():
 
 完整协议见 `references/native-methods.md`。统一封装在项目的 bridge hook / utility 中，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`；页面层不要直接调用原生全局对象。
 
+Flutter App WebView 项目必须保持一套 `method/value` 消息协议：
+
+```ts
+window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))
+```
+
+低版本 `flutter_inappwebview` 兜底时也必须调用统一 handler 名 `flutter`，并传同样的字符串消息：
+
+```ts
+window.flutter_inappwebview.callHandler(
+  'flutter',
+  JSON.stringify({ method: action, value: payload ?? {} }),
+)
+```
+
+不要使用 `callHandler(action, payload)` 作为通用方案；否则 Flutter App 端需要按每个业务 action 分散注册 handler，容易和新版 `window.flutter.postMessage` 协议不一致。
+
 ---
 
 ## 修改范围约束

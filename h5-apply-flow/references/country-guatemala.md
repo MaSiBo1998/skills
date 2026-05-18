@@ -32,7 +32,7 @@
 ### 原生交互
 
 - 页面层统一使用 `useAppBridge()`，不要直接访问 `window.flutter` 或恢复旧 `goProfile/goFirstloan/goReloan`。
-- 当前源码调用原生的稳定格式是 `window.flutter.postMessage(JSON.stringify({ method, value }))`。
+- 当前源码调用原生的稳定格式是 `window.flutter.postMessage(JSON.stringify({ method, value }))`；低版本 `flutter_inappwebview` 只能兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`，不按 action 分散 handler。
 - H5 暴露给原生的回调包括 `getTokenCallBack`、`getDeviceInfoCallBack`、`getAllPermissionsCallBack`、`openAlbumCallBack`、`openContactCallBack`、`onNativeBack`。
 - 原生返回只调用 `window.onNativeBack()` 通知 H5；H5 在 `entry=home` 主流程页弹留存弹窗，拍摄子流程按页面 `onBack` 回主页面，非 home 入口直接 `goBack()`。
 - 证件和自拍拍摄使用页面内 `getUserMedia`，不是旧 `openCamera`；联系人仍通过 `openContact(index)`。
@@ -256,10 +256,19 @@ Confiq 以 `entry` URL 参数控制进入来源：
 
 ## 原生交互
 
-Confiq 当前源码中的 bridge 以 Flutter 入口为准：
+Confiq 当前源码中的 bridge 以 Flutter 入口为准，并保持统一 `method/value` 协议：
 
 ```ts
 window.flutter.postMessage(JSON.stringify({ method: action, value: payload }))
+```
+
+低版本 `flutter_inappwebview` 兜底必须使用同一个 handler 名 `flutter`：
+
+```ts
+window.flutter_inappwebview.callHandler(
+  'flutter',
+  JSON.stringify({ method: action, value: payload }),
+)
 ```
 
 H5 稳定封装在 `src/hooks/useAppBridge.ts`：

@@ -8,6 +8,7 @@ H5 与 App 原生端的交互方法协议。
 
 - 除特别说明外，调用原生方法均支持空对象 `{}`。
 - 回调型方法请严格按约定调用对应的 H5 全局方法，字段名保持一致。
+- Flutter App WebView 项目统一使用 `method/value` 消息协议。新版优先调用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`；低版本 `flutter_inappwebview` 兜底调用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`。不要使用 `callHandler(action, payload)` 作为通用桥接，App 端只注册统一 handler `flutter` 后再按 `method` 分发。
 
 ## 方法清单
 

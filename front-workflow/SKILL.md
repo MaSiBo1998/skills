@@ -34,6 +34,27 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - 项目根目录
 - 接口文档路径（如涉及接口适配）
 
+## 公共原生桥接规则
+
+凡涉及 App WebView 原生交互的场景（包括普通功能、首复贷、进件、权限、协议跳转、风控上传、返回拦截等），都必须统一走项目 bridge hook / utility，页面层不要直接调用原生全局对象。
+
+Flutter App WebView 桥接统一使用 `method/value` 消息协议：
+
+```ts
+window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))
+```
+
+低版本 `flutter_inappwebview` 只能作为兜底，调用同一个 handler 名 `flutter`，并传同样结构的字符串消息：
+
+```ts
+window.flutter_inappwebview.callHandler(
+  'flutter',
+  JSON.stringify({ method: action, value: payload ?? {} }),
+)
+```
+
+不要使用 `callHandler(action, payload)` 作为通用方案；App 端只注册统一 handler `flutter` 后按 `method` 分发，避免 H5 为每个 action 维护不同桥接协议。
+
 ## Vendor 规则
 
 - 只有场景 A 是 vendor 架构改造场景，默认执行 `h5-vendor-architecture`。

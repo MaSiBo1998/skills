@@ -128,6 +128,7 @@
   - 没有桌面端交互模式（hover、右键等）
   - 全局样式是否统一处理移动端默认点击高亮与 focus 线框：`button`、`a`、`[role='button']`、`[tabindex]` 至少应覆盖 `outline: none` 和 `-webkit-tap-highlight-color: transparent`
   - 局部按钮如相机拍摄按钮是否有 `:focus`、`:focus-visible`、`:active` 兜底，点击后不出现额外系统线框
+  - 若本次涉及原生交互，native bridge 必须遵守 `front-workflow` 公共原生桥接规则：新版 Flutter 使用 `window.flutter.postMessage(JSON.stringify({ method, value }))`；低版本 `flutter_inappwebview` 兜底使用 `callHandler('flutter', JSON.stringify({ method, value }))`；不得使用 `callHandler(action, payload)` 作为通用桥接
 - **失败判定**: 违反任一 H5 内嵌约束
 
 ---
