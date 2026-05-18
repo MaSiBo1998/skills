@@ -53,6 +53,17 @@
 
 示例：如文档定义请求参数为 `bigamist`（appName），则代码发送时必须用 `bigamist` 作为 key，不得用 `abnormal`、`fatuous` 或其他同义名称。
 
+## 危地马拉进件项目约束
+
+当 checkpoint 中 `country=Guatemala` 或 `guatemala_apply=true` 时，按 `references/guatemala-apply.md` 执行以下额外规则：
+
+1. 将接口迁移视为“同结构、不同混淆名”：只替换 API base URL、endpoint path、header key、request body key、response key 和配置值。
+2. 字段映射表必须拆分为 `header`、`endpoint`、`request`、`response` 四类，且每条记录包含接口、语义、旧混淆名/旧路径、新混淆名/新路径、涉及文件、状态。
+3. 不允许增删字段、改变类型、改变数组/对象层级、改变枚举业务语义。
+4. 若代码 API path 与 swagger path 冲突，以 swagger 为准修正，并在映射表中标注冲突来源。
+5. 若文档显示结构不一致，立即暂停并向用户确认，不继续自动套用危地马拉规范。
+6. 原生 bridge 回调字段不属于服务端混淆字段，不参与替换。
+
 **替换方式**：
 - ❌ ~~全局字符串替换~~：将 `appName` 全部改成 `abcName`（会误伤无关字段）
 - ✅ **tsc 驱动替换**：改 types 字段名 → `npx tsc -b` 报错定位所有消费处 → 逐条修复 → 重复直到零错误

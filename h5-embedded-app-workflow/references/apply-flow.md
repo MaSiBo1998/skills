@@ -2,6 +2,8 @@
 
 Scene C（进件功能开发）的领域知识参考。开发时按此规范执行。
 
+> 危地马拉项目例外：当 checkpoint 中 `country=Guatemala` 或 `guatemala_apply=true` 时，步骤顺序、entry、原生返回、API 字段和数据处理以 `references/guatemala-apply.md` 的 Confiq-H5 基线为准；本文件中的旧 entry 和原生跳转只作为通用参考。
+
 ---
 
 ## 目录结构

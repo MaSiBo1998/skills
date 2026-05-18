@@ -6,7 +6,9 @@
 
 ## Step 1. 输入收集
 
-完整步骤见 `scenes/common/input-collection.md`。收集项目、接口文档。
+完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
+
+若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 Confiq-H5 基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。若目标项目 `release-env` 与用户确认国家不一致，先提示并要求确认。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -29,6 +31,8 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
+危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。若代码 API path 与 swagger 冲突，以接口文档为准修正并在交付中说明。
+
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
 
 ---
@@ -47,6 +51,8 @@
 
 按 `references/apply-flow.md` 中的规范开发 Apply 各步骤页面（目录结构、路由、步骤进度控制、Entry 模式、各页面生命周期、原生交互、修改范围约束）。
 
+若 `guatemala_apply=true`，同时按 `references/guatemala-apply.md` 执行项目规范、接口对接要求、原生交互和数据处理规范。该文件优先级高于通用 `references/apply-flow.md` 中的旧 entry、步骤顺序和原生跳转说明。危地马拉项目不得重构接口结构，不得更改原生回调协议，不得扩大到非 Apply 业务模块。
+
 开发时结合 Step 3 的字段映射表（如有）进行接口适配。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 5（进件功能开发）完成
@@ -62,10 +68,11 @@
 □ 每步表单缓存和恢复正常
 □ getNextStep 进度逻辑正确
 □ 原生交互正常触发（相机/相册/弹窗）
-□ Entry 参数正确处理（home/profile/firstEdit/reloanEdit）
+□ Entry 参数正确处理（通用 home/profile/firstEdit/reloanEdit；危地马拉 home/profile/firstLoan/reLoan）
 □ 步骤条展示正确（仅前 3 步）
 □ 退出拦截留存弹窗正常
 □ API 字段映射正确、风险埋点集成
+□ 危地马拉项目：产品/国家已确认，接口仅替换 URL、endpoint 与混淆字段名，header/endpoint/request/response 映射完整
 ```
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 6（自动测试验收）完成
@@ -84,5 +91,6 @@
 
 - **构建失败**：检查 vendor 配置和接口层代码
 - **进件步骤路由异常**：检查 `progress.ts` 中的 `getNextStep` 逻辑和路由配置
-- **原生交互不生效**：确认 `nativeBridge.ts` 中的方法名与 `references/native-methods.md` 一致
+- **原生交互不生效**：确认 `nativeBridge.ts` / `useAppBridge.ts` 中的方法名与 `references/guatemala-apply.md` 的 Confiq-H5 原生协议一致；危地马拉项目不得因服务端字段混淆而改动原生回调字段名
+- **危地马拉字段映射异常**：重新对照 `references/guatemala-apply.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构
 - **测试未通过**：修复对应模块后重跑单项测试

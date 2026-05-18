@@ -205,6 +205,25 @@
 
 ---
 
+## 场景 C 危地马拉进件专项检查
+
+- **适用范围**: 场景 C 且国家为 Guatemala / GT / 危地马拉
+- **检查项**:
+  - 已在 checkpoint 或交付说明中记录产品名、国家、接口 base URL、成功码、token 过期码
+  - 若 `release-env` 与用户确认国家不一致，已提示并记录用户确认
+  - 字段映射表覆盖 header、endpoint、request、response 四类字段
+  - 接口只替换 URL、endpoint、请求头字段、请求入参字段、响应字段和配置值
+  - API path 与 swaggerApi.json 已对齐，发现参考项目旧路径残留时已修正
+  - 未增删字段、未改变字段类型、未改变数组/对象层级、未改变枚举业务语义
+  - `src/` 中旧混淆字段无残留；如保留在映射文档或注释中，需明确标注为旧字段对照
+  - 原生方法名和 H5 全局回调字段未随服务端混淆字段一起改名
+  - `entry=home/profile/firstLoan/reLoan` 四种提交后去向正确
+  - Confiq-H5 步骤顺序为 `work -> personal -> id -> face -> contacts -> bank`
+  - 图片、联系人、设备、权限、用户信息刷新仍通过 native bridge 获取和提交
+- **失败判定**: 任一项不满足即失败；若接口结构与基准不一致，必须暂停并要求用户确认差异
+
+---
+
 ## 检查结果汇总格式
 
 ```

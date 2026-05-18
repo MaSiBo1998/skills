@@ -5,13 +5,18 @@
 ## 需要收集
 
 1. 当前项目文件夹（即工作目录，本场景始终在当前项目执行）
-2. JSON 接口文档（可选，有则做接口适配）
+2. 产品名（场景 B/C/E 必填）
+3. 国家版本（场景 B/C/E 必填；如 Guatemala / Mexico / Colombia）
+4. JSON 接口文档（可选，有则做接口适配）
 
 ## 执行规则
 
 - 列出已拿到和缺失的输入
 - 缺失关键输入时明确列出并要求补充
-- 将收集到的输入路径写入 checkpoint context（`api_doc_path`、`project_config`）
+- 将收集到的输入路径写入 checkpoint context（`product_name`、`country`、`api_doc_path`、`project_config`）
+- 场景 B/C/E 未确认产品名或国家时不得继续执行
+- 若场景 C 的国家为 `Guatemala` / `GT` / `危地马拉`，在后续步骤加载 `references/guatemala-apply.md`
+- 若场景 C 的国家为墨西哥、哥伦比亚或其他国家，不能套用危地马拉规范；要求用户提供该国家差异或按通用 Apply 流程执行
 
 ## 可选：项目配置信息
 
