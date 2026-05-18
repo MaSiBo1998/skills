@@ -40,10 +40,14 @@
 
 执行要求：
 - 若有未提交代码变更：
-  1) 基于 `git diff --cached` 生成语义化中文 Commit（Angular 风格：`feat/fix/chore`）
-  2) `git push origin HEAD`
+  1) 先执行 `git status --short` 区分已暂存、未暂存、未跟踪文件
+  2) 仅暂存本次发布相关文件；若发现疑似无关改动，必须要求用户确认，不得自动打包进发布提交
+  3) 基于 `git diff --cached` 生成语义化中文 Commit（Angular 风格：`feat/fix/chore`）
+  4) 若 `git diff --cached` 为空，不创建空提交，仅继续打 tag
+  5) `git push origin HEAD`
 - 标签命名强约束：
   - 格式：`release-{国家码}-{YYYYMMDD}-v{主}.{次}.{补丁}`
+  - 国家码只能是 `mx` / `co` / `ng`
   - 同国家同一天多次发布时，补丁位递增（例如 `v1.0.0` → `v1.0.1`）
   - 不符合格式时必须阻断，不得继续推送标签
 - 创建并推送标签：

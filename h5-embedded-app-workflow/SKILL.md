@@ -103,7 +103,7 @@ description: 专属开发工作流程。支持项目架构改造、功能开发�
 
 自动精简或手动执行 `/compact` 时，**必须保留**以下工作流状态：
 
-- 当前场景（A/B/C/D）和已完成到哪个 Step
+- 当前场景（A/B/C/D/E）和已完成到哪个 Step
 - `.workflow-checkpoint.json` 的当前内容（scene、last_completed_step、context）
 - 字段映射表（旧路径/参数 → 新路径/参数）——如已产出
 - 协议文档与输出路径映射（授权/隐私/贷款/条款 → html 文件）——仅场景 D

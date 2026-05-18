@@ -8,7 +8,7 @@
 
 完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
 
-若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。若目标项目 `release-env` 与用户确认国家不一致，先提示并要求确认。
+若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -31,7 +31,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
-危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明；但 Confiq 基线本身的历史冲突点以 `D:\code\confiq-h5` 最终代码语义为准。
+危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明；但 Confiq 最终态基线本身的历史冲突点以 `D:\code\confiq-h5` 最终代码语义为准。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
 

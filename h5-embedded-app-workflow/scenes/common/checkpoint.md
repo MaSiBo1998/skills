@@ -54,7 +54,7 @@
 |------|-------------------|
 | A | `{}` |
 | B | `{ vendor_enabled, api_doc_path, project_config }` |
-| C | `{ vendor_enabled, api_doc_path, project_config }` |
+| C | `{ product_name, country, vendor_enabled, api_doc_path, project_config, guatemala_apply }` |
 | D | `{ agreement_docs, public_dir, output_files }` |
 | E | `{ project_root, release_env_path, country_code, country_name }` |
 

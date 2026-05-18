@@ -11,8 +11,9 @@
 
 **场景 A — 架构改造**：不改业务逻辑，只改构建配置，建立 static-app/vendor 本地加载架构<br>
 **场景 B — 首复贷功能开发**：新项目开发 + 可选 vendor 架构 + 接口适配<br>
-**场景 C — 进件功能开发**：新增或修改进件申请流程 + 可选 vendor + 接口适配，只改 Apply 相关页面；危地马拉项目按 Confiq-H5 基线和同结构混淆字段规范处理<br>
-**场景 D — 协议 HTML 生成**：根据授权/隐私/贷款/条款文档生成 4 个简洁 HTML，输出到官网 `public` 目录供 App 展示
+**场景 C — 进件功能开发**：新增或修改进件申请流程 + 可选 vendor + 接口适配，只改 Apply 相关页面；危地马拉项目按 Confiq-H5 最终态基线和同结构混淆字段规范处理<br>
+**场景 D — 协议 HTML 生成**：根据授权/隐私/贷款/条款文档生成 4 个简洁 HTML，输出到官网 `public` 目录供 App 展示<br>
+**场景 E — 国家版本发布**：按 `release-env` 识别国家，执行打包校验、智能 Commit、Release Tag 与推送
 
 </div>
 
@@ -44,7 +45,7 @@
   2. 解析接口文档，输出字段映射表
   3. 按需建立 vendor 架构
   4. 开发 Apply 各步骤页面（WorkInfo/ContactsInfo/PersonalInfo/IdInfo/FaceCapture/BankInfo）
-  5. 集成原生交互（相机/相册/通讯录）
+  5. 集成交互能力（通用相机/相册/通讯录；危地马拉证件和自拍使用页面内 getUserMedia）
   6. 执行 14 项通用 + 进件专项测试
 ```
 
@@ -82,9 +83,10 @@
 - 业务模型相似，接口返回结构和取值语义大体一致
 - 需要将现有项目改造为基线依赖本地加载的架构（static-app/ + vendor 预构建 + externals）
 - 新项目会更换接口地址、请求参数名
-- 危地马拉进件项目以 Confiq-H5 为基线，同国接口结构一致，仅接口地址、endpoint、入参字段名、回参字段名、请求头混淆名和配置值不同
+- 危地马拉进件项目以 Confiq-H5 最终态为基线，同国接口结构一致，仅接口地址、endpoint、入参字段名、回参字段名、请求头混淆名和配置值不同
 - 需要根据导入的接口文档快速完成一轮可靠开发
 - 需要将授权/隐私/贷款/条款协议文档快速转成 App 内嵌展示的静态 HTML 页面
+- 需要按国家版本发布代码，生成 `release-{国家码}-{YYYYMMDD}-v{主}.{次}.{补丁}` 标签
 
 ---
 
@@ -95,10 +97,11 @@
                          ├── 场景 A（架构改造）→ 技术栈评估 → vendor 建立 → 测试验收
                          ├── 场景 B（首复贷）→ 询问 vendor → 接口解析 → 开发 → 测试验收
                          ├── 场景 C（进件开发）→ 确认产品/国家 → 询问 vendor → 接口解析 → vendor 建立 → 功能开发 → 测试验收
-                         └── 场景 D（协议生成）→ 输入收集 → 协议解析 → HTML 生成 → 自动验收
+                         ├── 场景 D（协议生成）→ 输入收集 → 协议解析 → HTML 生成 → 自动验收
+                         └── 场景 E（国家发布）→ 读取 release-env → 构建校验 → Commit/Tag/Push → 交付
 ```
 
-详细工作流步骤见各场景文件：[scene-a.md](scenes/scene-a.md)、[scene-b.md](scenes/scene-b.md)、[scene-c.md](scenes/scene-c.md)、[scene-d.md](scenes/scene-d.md)。
+详细工作流步骤见各场景文件：[scene-a.md](scenes/scene-a.md)、[scene-b.md](scenes/scene-b.md)、[scene-c.md](scenes/scene-c.md)、[scene-d.md](scenes/scene-d.md)、[scene-e.md](scenes/scene-e.md)。
 
 ### 静态资源架构说明
 
@@ -164,6 +167,7 @@ h5-embedded-app-workflow/
 │   ├── scene-b.md            ★ 场景 B — 首复贷功能开发
 │   ├── scene-c.md            ★ 场景 C — 进件功能开发
 │   ├── scene-d.md            ★ 场景 D — 协议 HTML 生成
+│   ├── scene-e.md            ★ 场景 E — 国家版本发布
 │   └── common/
 │       ├── api-parsing.md    ★ JSON 接口文档自动解析
 │       ├── vendor-setup.md   ★ vendor 架构建立

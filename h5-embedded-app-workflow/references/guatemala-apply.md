@@ -2,7 +2,7 @@
 
 本参考用于 Scene C（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。规范来源于 `D:\code\confiq-h5` 的最终实现，用于反向约束后续危地马拉进件开发。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
 
-> 注意：参考项目当前 `release-env` 为 `mx`，但本工作流按用户明确说明将其作为危地马拉进件基线抽取。执行场景 C 时以用户确认的 `country` 为准；若 `release-env` 与用户国家不一致，必须提示并要求确认，不得自动改国家。
+> 注意：参考项目当前 `release-env` 为 `mx`，本工作流按用户明确说明将其作为危地马拉进件基线抽取。执行场景 C 时以用户确认的业务国家为准；发布场景 E 仍只识别 `mx/co/ng`，危地马拉进件按 `mx` 发布。
 
 ---
 
@@ -12,7 +12,7 @@
 
 - 危地马拉进件不是重做流程，而是在 Confiq-H5 最终态上做“同结构、不同混淆字段”的迁移；优先替换 base URL、endpoint、header key、request key、response key、配置值。
 - 不允许因为新接口字段名变化而重构请求/响应层级、枚举语义、步骤顺序或原生回调协议。
-- `release-env` 可能仍是 `mx`，不能据此自动判定国家；场景 C 以用户确认的国家为准，并记录不一致风险。
+- `release-env=mx` 对危地马拉进件是预期发布环境，不代表业务国家是墨西哥；场景 C 以用户确认的业务国家为准，场景 E 以 `release-env` 国家码发布。
 - `swaggerApi.json` 与代码存在过历史不一致，执行时必须用最终态代码校准关键路径：`getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、银行卡查询分 `getBankInfo` 与 `getBankCardInfo`。
 
 ### 入口逻辑
@@ -243,7 +243,7 @@ Confiq 以 `entry` URL 参数控制进入来源：
 - `profile`：保存成功后调用 `updateUserInfo(response)`；若已完件则 `getHomeInfo()` 后 `goBack(homeInfo)`，否则 `goBack()`。
 - `firstLoan` / `reLoan`：当前主要在 BankInfo 中处理，保存成功后同样走 `goBackAfterCompleted()`，未完件时 `goBack()`。
 
-危地马拉项目使用 Confiq 基线时，不再使用旧规范里的 `goProfile()`、`goFirstloan()`、`goReloan()`。所有返回目标统一交给原生 `goBack` 决定。
+危地马拉项目使用 Confiq 最终态基线时，不再使用旧规范里的 `goProfile()`、`goFirstloan()`、`goReloan()`。所有返回目标统一交给原生 `goBack` 决定。
 
 返回拦截：
 
@@ -310,7 +310,7 @@ H5 稳定封装在 `src/hooks/useAppBridge.ts`：
 除通用 14 项检查和 Apply 专项检查外，危地马拉项目必须额外确认：
 
 - 已输出产品名、国家、base URL、成功 code、token 过期 code。
-- 若 `release-env` 与用户确认国家不一致，已提示并记录用户确认。
+- 若业务国家为危地马拉且 `release-env=mx`，已记录“危地马拉进件走 mx 发布”；其他不一致已提示并记录用户确认。
 - 字段映射表覆盖 header、endpoint、request、response 四类。
 - 目标项目 `src/services/api/config.ts` 与目标 `swaggerApi.json` 路径一致；若与 Confiq 最终态语义不一致，已标注差异并获得确认。
 - `src/types/api.ts` 只替换字段名，不改变类型/结构/顺序。
