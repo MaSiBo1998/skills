@@ -1,4 +1,4 @@
 interface:
-  display_name: "Front Workflow"
-  short_description: "编排 H5 子 skill 工作流"
-  default_prompt: "使用 front-workflow 识别当前 H5 任务场景，调用对应子 skill，并协调交付验收。"
+  display_name: "马嗣博专属工作流"
+  short_description: "编排子 skill 工作流"
+  default_prompt: "使用 front-workflow 识别当前任务场景，调用对应子 skill，并协调交付验收。"

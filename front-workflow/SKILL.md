@@ -1,9 +1,9 @@
 ---
 name: front-workflow
-description: H5 内嵌应用主编排工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收等场景，并协调对应子 skill 执行。
+description: 马嗣博专属工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收等场景，并协调对应子 skill 执行。
 ---
 
-# H5 内嵌应用主工作流
+# 马嗣博专属工作流
 
 本 skill 只负责“判断场景 + 收集关键信息 + 调度子 skill + 管理 checkpoint + 汇总交付”。具体执行细节必须进入子 skill，不在主 skill 展开。
 

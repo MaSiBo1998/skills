@@ -1,4 +1,4 @@
 interface:
-  display_name: "H5 国家发布"
-  short_description: "发布 H5 国家版本并打 Tag"
+  display_name: "国家发布"
+  short_description: "发布国家版本并打 Tag"
   default_prompt: "使用 h5-release-tag 执行构建校验、提交发布改动、生成 Release Tag 并推送。"

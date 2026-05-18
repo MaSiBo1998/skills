@@ -1,9 +1,9 @@
 ---
 name: h5-release-tag
-description: H5 国家版本发布。用于读取 release-env，按 mx、co、ng 执行构建校验、智能 Commit、Release Tag 生成与推送；危地马拉进件发布必须走 mx，不允许 gt。
+description: 国家版本发布。用于读取 release-env，按 mx、co、ng 执行构建校验、智能 Commit、Release Tag 生成与推送；危地马拉进件发布必须走 mx，不允许 gt。
 ---
 
-# H5 国家发布
+# 国家发布
 
 本 skill 只负责发版、提交、打 Tag 和推送。
 

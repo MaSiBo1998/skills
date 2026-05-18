@@ -1,4 +1,4 @@
 interface:
-  display_name: "H5 测试验收"
-  short_description: "执行 H5 交付验收清单"
-  default_prompt: "使用 h5-testing-checklist 验证本次 H5 改动，并输出通过/失败验收清单。"
+  display_name: "测试验收"
+  short_description: "执行交付验收清单"
+  default_prompt: "使用 h5-testing-checklist 验证本次改动，并输出通过/失败验收清单。"

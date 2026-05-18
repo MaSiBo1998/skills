@@ -1,9 +1,9 @@
 ---
 name: h5-testing-checklist
-description: H5 内嵌应用测试验收。用于执行 14 项通用检查、vendor 架构检查、Apply 专项检查、进件国家差异专项检查、协议 HTML 专项检查，并输出通过/失败结果。
+description: 测试验收。用于执行 14 项通用检查、vendor 架构检查、Apply 专项检查、进件国家差异专项检查、协议 HTML 专项检查，并输出通过/失败结果。
 ---
 
-# H5 测试验收
+# 测试验收
 
 本 skill 只负责交付前验收。
 
