@@ -95,6 +95,33 @@ getNextStep():
 
 ---
 
+## 表单选择器与提交值规范
+
+- 级联地址选择器必须同时满足“展示完整”和“提交值正确”：
+  - 长城市/区域名优先按文案长度动态降低字号，再按空格自然换行；列内 label 需要 `width: 100%`、`min-width: 0`、`white-space: normal`、`word-break: normal`。
+  - 不要使用 `overflow-wrap: anywhere` 作为常规方案，它会把 `Guatemala` 这类普通单词强制拆开。
+  - 地址提交字段需要按接口要求确认分隔符。Confiq-H5 使用无空格连字符：`Lagos State-Ikeja-Alausa`，实现时先对每级值 `trim()`，再 `filter(Boolean).join('-')`。
+  - 页面上分列展示的 `state/city/area` 可以保持原文案，不应为了接口拼接格式影响可读展示。
+- 身份证信息页性别字段必须把“显示文案”和“接口枚举”分开处理：
+  - 西语按钮文案使用 `Masculino`（男）和 `Femenino`（女）。
+  - 保存接口选择男性传 `H`，选择女性传 `M`。
+  - 不要把页面内部状态值（如 `male/female`）直接传给接口，提交前必须有显式 normalize 函数。
+
+---
+
+## 移动端点击态与焦点框规范
+
+- 全局样式应统一去除移动端默认点击高亮和浏览器 focus 线框，覆盖范围至少包含 `button`、`a`、`[role='button']`、`[tabindex]`：
+  - `-webkit-tap-highlight-color: transparent`
+  - `outline: none`
+  - `:focus`、`:focus-visible`、`:active` 不出现额外系统线框或黄色/蓝色点击框。
+- 证件拍照页 `IdCapture` 和自拍页 `FaceCaptureCamera` 的拍摄按钮必须单独检查点击后状态：
+  - 点击拍摄按钮后不出现额外边框、黄色框、蓝色框或系统 focus ring。
+  - 禁用态只保留业务设计的 opacity，不应引入新的 outline。
+- 如果项目已有局部按钮样式，可以保留局部兜底；但优先在全局样式沉淀通用规则，减少每个按钮重复补样式。
+
+---
+
 ## 原生交互
 
 完整协议见 `references/native-methods.md`。统一封装在项目的 bridge hook / utility 中，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`；页面层不要直接调用原生全局对象。

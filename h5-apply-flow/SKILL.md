@@ -26,3 +26,7 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 - 国家差异只能覆盖明确差异点，不复制整套进件流程；默认复用通用 Apply 流程。
 - 新国家或新差异先沉淀为 country profile，再由通用进件流程调用。
 - 包含真实输入框的页面必须处理键盘遮挡：根节点 ref、`input-wrapper`、`submit-bar`、16px 输入字体、选择器打开前 blur、多延迟滚动校正。
+- Apply 页面必须处理移动端默认点击高亮和 focus 线框：全局样式优先覆盖 `button`、`a`、`[role='button']`、`[tabindex]` 的 `outline` 与 `-webkit-tap-highlight-color`；拍照按钮等关键局部按钮需保留无额外线框的 `focus/active` 状态。
+- 级联地址选择器长选项优先通过动态字号、按空格换行和列内宽度约束保证完整展示，禁止使用会把普通单词强制拆开的 `overflow-wrap: anywhere`。
+- 个人信息地址提交值若接口要求连字符拼接，必须确认分隔符是否带空格；Confiq-H5 地址值使用 `州-市-区`，每级 `trim()` 后用 `join('-')`。
+- 身份证性别选项必须同时确认展示文案和提交枚举；Confiq-H5 西语展示为 `Masculino` / `Femenino`，提交值为男 `H`、女 `M`。
