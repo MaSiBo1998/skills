@@ -1,0 +1,4 @@
+interface:
+  display_name: "Front Workflow"
+  short_description: "编排 H5 子 skill 工作流"
+  default_prompt: "使用 front-workflow 识别当前 H5 任务场景，调用对应子 skill，并协调交付验收。"

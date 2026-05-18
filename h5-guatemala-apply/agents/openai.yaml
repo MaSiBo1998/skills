@@ -1,0 +1,4 @@
+interface:
+  display_name: "H5 危地马拉进件"
+  short_description: "危地马拉进件流程专项约束"
+  default_prompt: "使用 h5-guatemala-apply 按 Confiq-H5 最终态约束处理危地马拉进件项目。"

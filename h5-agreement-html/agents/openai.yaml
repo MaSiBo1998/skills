@@ -1,0 +1,4 @@
+interface:
+  display_name: "H5 协议 HTML"
+  short_description: "生成 App WebView 协议 HTML"
+  default_prompt: "使用 h5-agreement-html 将四份本地协议文档生成 App WebView 可展示的西语静态 HTML。"
