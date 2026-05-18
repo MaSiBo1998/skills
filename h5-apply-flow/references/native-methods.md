@@ -1,95 +1,177 @@
 # 原生交互方法
 
-H5 与 App 原生端的交互方法协议。
-
-> 国家差异例外：当 checkpoint 中存在 `country_profile` 时，原生交互以对应 `references/country-*.md` 为准。危地马拉使用 `country_profile=guatemala`，原生交互以 `references/country-guatemala.md` 的 Confiq-H5 协议为准，统一使用 `goBack` / `updateUserInfo` / `reload` 等方法，不使用本文件中的 `goProfile`、`goFirstloan`、`goReloan` 旧跳转方法。
+H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生交互实现。
 
 ## 说明
 
-- 除特别说明外，调用原生方法均支持空对象 `{}`。
-- 回调型方法请严格按约定调用对应的 H5 全局方法，字段名保持一致。
-- Flutter App WebView 项目统一使用 `method/value` 消息协议。新版优先调用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`；低版本 `flutter_inappwebview` 兜底调用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`。不要使用 `callHandler(action, payload)` 作为通用桥接，App 端只注册统一 handler `flutter` 后再按 `method` 分发。
+- 页面层不要直接调用原生全局对象，必须统一走项目 bridge hook / utility，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`。
+- H5 调用原生时，默认传空对象 `{}`，除非方法明确要求参数。
+- 回调型能力请严格使用本文档中的 H5 全局回调名，大小写和字段结构必须保持一致。
+- Flutter App WebView bridge：
+  - 新版：`window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`
+  - 低版本 `flutter_inappwebview` 兜底：`window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`
+- 不要使用 `callHandler(action, payload)` 作为通用桥接；App 端只注册统一 handler `flutter` 后再按 `method` 分发。
+- 进件原生方法以本文档方法清单为准。
 
 ## 方法清单
 
 | 原生方法 | 说明 | H5 调用参数 | 原生回调 |
 | --- | --- | --- | --- |
-| `goHome` | 原生跳转首页 | `{}` | |
-| `goProfile` | 原生跳转个人中心完件信息页面 | `{}` | |
-| `goFirstloan` | 被拒修改后原生跳转首贷页面 | `{}` | |
-| `goReloan` | 被拒修改后原生跳转复贷页面 | `{}` | |
-| `reload` | 重新加载当前页面 | `{}` | |
-| `logOut` | 退出登录 | `{}` | |
-| `getToken` | 获取 Token | `{}` | `getTokenCallBack` |
-| `getDeviceInfo` | 获取设备 / App 信息 | `{}` | `getDeviceInfoCallBack` |
-| `getLocationInfo` | 获取位置信息 | `{}` | `getLocationInfoCallBack` |
-| `getAllPermissions` | 获取权限授权状态 | `{}` | `getAllPermissionsCallBack` |
-| `openCamera` | 打开相机拍摄照片 | `{ type: 0\|1\|2 }` | `openCameraCallBack` |
-| `openAlbum` | 打开相册选择图片 | `{ type: 0\|1\|2 }` | `openAlbumCallBack` |
+| `goBack` | 原生统一处理 H5 返回 / 关闭后的目标页 | `{}` 或首页信息对象 | 无 |
+| `updateUserInfo` | 通知原生刷新用户信息 | `{}` 或保存接口响应 | 无 |
+| `reload` | 通知原生刷新首页信息接口 | `{}` | 无 |
+| `logOut` | H5 触发退出登录 | `{}` | 无 |
+| `getToken` | H5 获取有效 Token 与登录标识 | `{}` | `getTokenCallBack` |
+| `getDeviceInfo` | H5 获取设备 / App / 用户基础信息 | `{}` | `getDeviceInfoCallBack` |
+| `getAllPermissions` | H5 获取权限授权状态 | `{}` | `getAllPermissionsCallBack` |
+| `openAlbum` | 打开相册选择图片 | `{ type: 0 \| 1 \| 2 }` | `openAlbumCallBack` |
 | `openContact` | 打开通讯录选择联系人 | `{ index: number }` | `openContactCallBack` |
-| `openSetting` | 打开系统设置 | `{}` | |
-| `openBrowser` | 调用系统浏览器打开链接 | `{ url: string }` | |
-| `openApp` | 调用系统能力打开其他 App | `{ url: string }` | |
-| `uploadAllRiskData` | 上传所有风控数据 | `{}` | `uploadAllRiskDataCallBack` |
+
+## H5 全局回调 / 全局方法
+
+原生侧需要能够直接调用以下 H5 全局方法：
+
+- `window.getTokenCallBack(payload)`
+- `window.getDeviceInfoCallBack(payload)`
+- `window.getAllPermissionsCallBack(payload)`
+- `window.openAlbumCallBack(payload)`
+- `window.openContactCallBack(payload)`
+- `window.onNativeBack(payload?)`
+
+其中前 5 个是原生回调给 H5；`window.onNativeBack` 是原生通知 H5 执行返回逻辑。
 
 ## 详细协议
 
-### 1. `goHome`
-- 说明：原生跳转首页
-- H5 调用：`{}`
-- 原生处理：直接返回 App 首页
+### 1. `goBack`
 
-### 2. `goProfile`
-- 说明：原生跳转个人中心完件信息页面
-- H5 调用：`{}`
-- 原生处理：跳转至个人中心对应完件信息页
+- 说明：原生统一处理 H5 返回 / 关闭后的目标页。
+- H5 调用：
 
-### 3. `goFirstloan`
-- 说明：被拒修改银行卡后原生跳转首贷页面
-- H5 调用：`{}`
-
-### 4. `goReloan`
-- 说明：被拒修改银行卡后原生跳转复贷页面
-- H5 调用：`{}`
-
-### 5. `reload`
-- 说明：重新加载当前页面
-- H5 调用：`{}`
-
-### 6. `logOut`
-- 说明：退出登录
-- H5 调用：`{}`
-- 原生处理：直接退出登录
-
-### 7. `getToken`
-- 说明：获取有效 Token
-- H5 调用：`{}`
-- 原生回调：
-```javascript
-window.getTokenCallBack({ token: 'xxx', loginId: 'xxx' })
+```json
+{}
 ```
 
-### 8. `getDeviceInfo`
-- 说明：获取设备 / App 信息
-- H5 调用：`{}`
-- 原生回调：
-```javascript
-window.getDeviceInfoCallBack({ device: {}, appInfo: {} })
-```
-- 额外：通过 JS 注入将 `device` 挂载到 `window.device`
+- 完件场景可透传首页信息对象：
 
-### 9. `getLocationInfo`
-- 说明：获取位置信息
-- H5 调用：`{}`
-- 原生回调：
-```javascript
-window.getLocationInfoCallBack({ latitude: 0.0, longitude: 0.0 })
+```json
+{
+  "anyHomeInfoField": "value"
+}
 ```
 
-### 10. `getAllPermissions`
-- 说明：获取权限授权状态
-- H5 调用：`{}`
-- 原生回调：
+- 原生处理：
+  - 根据当前 WebView 来源、业务上下文或原生页面栈决定返回上一页。
+
+### 2. `updateUserInfo`
+
+- 说明：通知原生刷新用户信息。
+- H5 调用：
+
+```json
+{}
+```
+
+- 保存步骤成功后可透传接口响应：
+
+```json
+{
+  "responseField": "value"
+}
+```
+
+- 当前触发时机：
+  - 工作信息保存成功后
+  - 联系人信息保存成功后
+  - 个人信息保存成功后
+  - 身份信息保存成功后
+  - 银行卡信息保存成功后
+  - 自拍信息保存成功后
+
+### 3. `reload`
+
+- 说明：通知原生刷新首页信息接口。
+- H5 调用：
+
+```json
+{}
+```
+
+### 4. `logOut`
+
+- 说明：H5 触发退出登录。
+- H5 调用：
+
+```json
+{}
+```
+
+- H5 已处理：
+  - 清理 `token`
+  - 清理 `loginId`
+  - 清理 `loginInfo`
+  - 清理 `userPhone`
+- 原生需要处理：跳转至 App 登录页。
+
+### 5. `getToken`
+
+- 说明：H5 获取当前有效 Token 与登录标识。
+- H5 调用：
+
+```json
+{}
+```
+
+- 原生收到后必须执行：
+
+```javascript
+window.getTokenCallBack({
+  token: 'xxxx',
+  loginId: 'xxxx',
+  userId: 'xxxx',
+})
+```
+
+- 字段说明：
+  - `token`: 当前有效登录 Token
+  - `loginId`: 当前登录用户标识
+  - `userId`: 用户 ID，可选
+
+### 6. `getDeviceInfo`
+
+- 说明：H5 获取设备 / App / 用户基础信息。
+- H5 调用：
+
+```json
+{}
+```
+
+- 原生收到后必须执行：
+
+```javascript
+window.getDeviceInfoCallBack({
+  device: {},
+  appInfo: {},
+  userInfo: {},
+})
+```
+
+- 同时请额外挂载：
+
+```javascript
+window.device = device
+```
+
+### 7. `getAllPermissions`
+
+- 说明：H5 获取权限授权状态。
+- H5 调用：
+
+```json
+{}
+```
+
+- 原生收到后必须执行：
+
 ```javascript
 window.getAllPermissionsCallBack({
   allGranted: true,
@@ -99,71 +181,81 @@ window.getAllPermissionsCallBack({
 })
 ```
 
-### 11. `openCamera`
-- 说明：打开相机拍摄照片
-- H5 参数：`{ type: 0|1|2 }`（0: 身份证正面, 1: 身份证反面, 2: 自拍）
-- 原生回调：
-```javascript
-window.openCameraCallBack({ type: 0, base64: 'xxx' })
+### 8. `openAlbum`
+
+- 说明：打开相册选择图片。
+- H5 调用：
+
+```json
+{
+  "type": 0
+}
 ```
 
-### 12. `openAlbum`
-- 说明：打开相册选择图片
-- H5 参数：`{ type: 0|1|2 }`（0: 身份证正面, 1: 身份证反面, 2: 自拍）
-- 原生回调：
+- `type` 说明：
+  - `0`: 身份证正面
+  - `1`: 身份证反面
+  - `2`: 自拍
+- 原生收到后必须执行：
+
 ```javascript
-window.openAlbumCallBack({ type: 0, base64: 'xxx' })
+window.openAlbumCallBack({
+  type: 0,
+  base64: 'xxxx',
+  path: '/local/or/remote/path',
+})
 ```
 
-### 13. `openContact`
-- 说明：打开通讯录选择联系人
-- H5 参数：`{ index: number }`（联系人位置索引 0/1/2）
-- 原生回调：
-```javascript
-window.openContactCallBack({ index: 0, name: 'xxx', mobile: 'xxx' })
+- 证件和自拍主流程使用页面内 `getUserMedia`；`openAlbum` 用于相册选择。
+
+### 9. `openContact`
+
+- 说明：打开通讯录选择联系人。
+- H5 调用：
+
+```json
+{
+  "index": 0
+}
 ```
 
-### 14. `openSetting`
-- 说明：打开系统设置
-- H5 调用：`{}`
-- 原生处理：直接打开系统设置页
+- `index` 说明：
+  - 联系人位置索引，当前 H5 会按表单位置传入 `0`、`1`、`2`
+- 原生收到后必须执行：
 
-### 15. `openBrowser`
-- 说明：调用系统浏览器打开链接
-- H5 参数：`{ url: string }`
-- 原生处理：用系统浏览器打开指定 URL
-
-### 16. `openApp`
-- 说明：调用系统能力打开其他 App
-- H5 参数：`{ url: string }`（scheme 链接）
-- 原生处理：通过 URL scheme 打开对应 App
-
-### 17. `uploadAllRiskData`
-- 说明：上传所有风控数据
-- H5 调用：`{}`
-- 原生处理：上传所有风控数据
-- 原生回调：
 ```javascript
-window.uploadAllRiskDataCallBack({ success: true })
+window.openContactCallBack({
+  index: 0,
+  name: 'xx',
+  mobile: '12345678',
+})
 ```
 
-## H5 全局回调方法清单
+### 10. `window.onNativeBack`
 
-原生侧需要能够直接调用以下 H5 全局方法：
+- 说明：原生通知 H5 当前发生了返回 / 关闭意图，由 H5 自己判断如何处理。
+- 调用方式：
 
-- `window.getTokenCallBack(payload)`
-- `window.getDeviceInfoCallBack(payload)`
-- `window.getLocationInfoCallBack(payload)`
-- `window.getAllPermissionsCallBack(payload)`
-- `window.openCameraCallBack(payload)`
-- `window.openAlbumCallBack(payload)`
-- `window.openContactCallBack(payload)`
-- `window.uploadAllRiskDataCallBack(payload)`
+```javascript
+window.onNativeBack?.()
+```
+
+- 当前 H5 实际行为：
+  - 进件流程页且 `entry=home` 时，H5 会弹出留存弹窗。
+  - 拍摄子流程由 H5 返回对应主页面。
+  - 非 home 入口直接调用 `goBack()` 交给原生处理。
+- 原生约束：
+  - 调用 `window.onNativeBack()` 后，由 H5 接管返回处理。
+  - 原生不要依赖 JS 返回值决定是否关闭。
+  - 如果当前场景希望 H5 接管，请不要在调用后立刻强制关闭 WebView。
 
 ## 联调注意事项
 
-- 回调方法名必须完全一致，包含大小写
-- 回调字段名必须完全一致，禁止擅自改成其他命名
-- `openCamera` / `openAlbum` 当前 H5 直接消费 `base64`
-- `getDeviceInfo` 除回调外还需额外挂载 `window.device`
-- `logOut` 时 H5 会先清本地登录态，原生只需要负责退出登录
+- 回调方法名必须完全一致，禁止更名。
+- 回调字段名必须完全一致，禁止自行改结构。
+- `openAlbum` 返回的 `base64` 支持带 `data:image/...;base64,` 前缀，也支持纯 base64。
+- `getDeviceInfo` 除回调外，还需额外挂载 `window.device`。
+- `logOut` 时 H5 会先清理本地登录态，原生只负责跳转登录页。
+- H5 返回原生目标页统一调用 `goBack`。
+- `window.onNativeBack()` 是单向通知，不返回允许 / 拒绝关闭结果。
+- `updateUserInfo` 无返回值要求，收到即可刷新原生用户态。

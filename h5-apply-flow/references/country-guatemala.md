@@ -1,6 +1,6 @@
 # 危地马拉进件项目规范（Confiq-H5 最终态基线）
 
-本参考用于场景 D（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。规范来源于 `D:\code\confiq-h5` 的最终实现，用于反向约束后续危地马拉进件开发。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
+本参考用于场景 D（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
 
 > 注意：参考项目当前 `release-env` 为 `mx`，本工作流按用户明确说明将其作为危地马拉进件基线抽取。执行场景 D 时以用户确认的业务国家为准；发布场景 G 仍只识别 `mx/co/ng`，危地马拉进件按 `mx` 发布。
 
@@ -18,7 +18,7 @@
 ### 入口逻辑
 
 - `/` 是 `EntryRedirect`：`entry=home` 时调用 `getNextStep()` 跳下一未完成步骤；非 home 入口兜底 `/work`，真实业务应由 App 直达具体页面。
-- URL `entry` 默认值是 `home`；危地马拉最终态只认 `home`、`profile`、`firstLoan`、`reLoan`，不使用旧的 `firstEdit`、`reloanEdit`。
+- URL `entry` 默认值是 `home`；危地马拉进件使用 `home`、`profile`、`firstLoan`、`reLoan`。
 - `useAppInit()` 登录态优先级为 URL token/loginId、localStorage、原生 `getToken()`，仍失败则 `logOut()`。
 
 ### 跳转逻辑
@@ -31,11 +31,11 @@
 
 ### 原生交互
 
-- 页面层统一使用 `useAppBridge()`，不要直接访问 `window.flutter` 或恢复旧 `goProfile/goFirstloan/goReloan`。
-- 当前源码调用原生的稳定格式是 `window.flutter.postMessage(JSON.stringify({ method, value }))`；低版本 `flutter_inappwebview` 只能兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`，不按 action 分散 handler。
+- 页面层统一使用 `useAppBridge()`。
+- 原生交互使用 `window.flutter.postMessage(JSON.stringify({ method, value }))`；低版本 `flutter_inappwebview` 兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`。
 - H5 暴露给原生的回调包括 `getTokenCallBack`、`getDeviceInfoCallBack`、`getAllPermissionsCallBack`、`openAlbumCallBack`、`openContactCallBack`、`onNativeBack`。
 - 原生返回只调用 `window.onNativeBack()` 通知 H5；H5 在 `entry=home` 主流程页弹留存弹窗，拍摄子流程按页面 `onBack` 回主页面，非 home 入口直接 `goBack()`。
-- 证件和自拍拍摄使用页面内 `getUserMedia`，不是旧 `openCamera`；联系人仍通过 `openContact(index)`。
+- 证件和自拍拍摄使用页面内 `getUserMedia`；联系人通过 `openContact(index)`。
 
 ---
 
@@ -88,7 +88,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 - `HeaderNav backDirect={false}` 的页面必须注册到 `ApplyBackContext`，由 `ApplyLayout` 统一处理头部返回和原生 `onNativeBack`。
 - 主流程 home 入口返回弹留存；拍摄子流程返回主页面；非 home 入口返回原生。
 - 每步保存成功后先 `updateUserInfo(response)`。如果 `dilly===1`，走 `goBackAfterCompleted()`：请求 `getHomeInfo()`，然后 `goBack(homeInfo)`；失败则 `reload()` 后 `goBack()`。
-- 不允许恢复旧的 `goHome`、`goProfile`、`goFirstloan`、`goReloan` 分支。
+- 返回目标统一交给原生 `goBack` 决定。
 
 ---
 
@@ -144,7 +144,7 @@ Confiq 当前请求头语义参考：
 
 ### 接口路径基线
 
-以下路径按 `D:\code\confiq-h5` 最终代码沉淀，优先用于识别接口语义和历史冲突点。执行新危地马拉项目时，新项目的 endpoint 仍以新 `swaggerApi.json` 为准；但若新文档与 Confiq 最终态语义发生结构级冲突，必须先标出差异并要求用户确认，不能直接按字段替换继续。
+以下路径用于识别危地马拉进件接口语义和历史冲突点。执行新危地马拉项目时，新项目的 endpoint 仍以新 `swaggerApi.json` 为准；但若新文档与既有流程语义发生结构级冲突，必须先标出差异并要求用户确认，不能直接按字段替换继续。
 
 | 语义 | Confiq 最终态路径 | 备注 |
 | --- | --- | --- |
@@ -243,7 +243,7 @@ Confiq 以 `entry` URL 参数控制进入来源：
 - `profile`：保存成功后调用 `updateUserInfo(response)`；若已完件则 `getHomeInfo()` 后 `goBack(homeInfo)`，否则 `goBack()`。
 - `firstLoan` / `reLoan`：当前主要在 BankInfo 中处理，保存成功后同样走 `goBackAfterCompleted()`，未完件时 `goBack()`。
 
-危地马拉项目使用 Confiq 最终态基线时，不再使用旧规范里的 `goProfile()`、`goFirstloan()`、`goReloan()`。所有返回目标统一交给原生 `goBack` 决定。
+危地马拉项目所有返回目标统一交给原生 `goBack` 决定。
 
 返回拦截：
 
@@ -256,7 +256,7 @@ Confiq 以 `entry` URL 参数控制进入来源：
 
 ## 原生交互
 
-Confiq 当前源码中的 bridge 以 Flutter 入口为准，并保持统一 `method/value` 协议：
+Flutter bridge 保持统一 `method/value` 协议：
 
 ```ts
 window.flutter.postMessage(JSON.stringify({ method: action, value: payload }))
@@ -289,7 +289,7 @@ H5 稳定封装在 `src/hooks/useAppBridge.ts`：
 禁止事项：
 
 - 不因服务端混淆字段变化而修改原生回调字段名。
-- 不把 `goBack/updateUserInfo/reload` 拆回旧的 `goHome/goProfile/goFirstloan/goReloan`。
+- 返回、用户信息刷新和首页刷新分别使用 `goBack/updateUserInfo/reload`。
 - 页面层不要绕过 `useAppBridge` 直接调用原生。
 
 ---

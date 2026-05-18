@@ -2,7 +2,7 @@
 
 场景 D（进件功能开发）的领域知识参考。开发时按此规范执行。
 
-> 国家差异例外：当 checkpoint 中存在 `country_profile` 时，先加载 `references/country-profile-index.md` 再加载对应 `country-*.md`。危地马拉使用 `country_profile=guatemala`，步骤顺序、entry、原生返回、API 字段和数据处理以 `references/country-guatemala.md` 的 Confiq-H5 最终态基线为准；本文件中的旧 entry 和原生跳转只作为通用参考。
+> 国家差异例外：当 checkpoint 中存在 `country_profile` 时，先加载 `references/country-profile-index.md` 再加载对应 `country-*.md`。危地马拉使用 `country_profile=guatemala`，步骤顺序、entry、原生返回、API 字段和数据处理以 `references/country-guatemala.md` 为准。
 
 ---
 
@@ -63,11 +63,11 @@ getNextStep():
 | entry | 进入渠道 | 提交成功后 |
 |-------|---------|-----------|
 | `home` | 首页进件 | `getNextStep()` 跳下一步 |
-| `profile` | 个人中心 | 原生 `goProfile()` |
-| `firstEdit` | 首贷修改 | 原生 `goFirstloan()` |
-| `reloanEdit` | 复贷修改 | 原生 `goReloan()` |
+| `profile` | 个人中心 | 原生 `goBack()` |
+| `firstLoan` | 首贷修改 | 原生 `goBack()` |
+| `reLoan` | 复贷修改 | 原生 `goBack()` |
 
-每个页面挂载时从 URL 读取 entry 参数，提交后根据 entry 值执行对应操作。
+每个页面挂载时从 URL 读取 entry 参数，提交后根据 entry 值执行对应操作。非 home 入口的返回目标统一交给原生 `goBack` 决定。
 
 ---
 
@@ -89,7 +89,7 @@ getNextStep():
 | WorkInfo | 工作类型、薪资、公司信息 | saveWorkInfo | 受薪员工显示公司字段 |
 | ContactsInfo | 3 个联系人（手机+关系） | saveContactInfo | 前 2 必填，第 3 选填 |
 | PersonalInfo | 教育、婚姻、性别、住址等 | savePersonalInfo | 级联地址选择器 |
-| IdInfo | 身份证正反面照片 | idcardOcr → saveIdInfo | 相机/相册 → OCR → 自动填充 |
+| IdInfo | 身份证正反面照片 | idcardOcr → saveIdInfo | 页面内拍照或相册 → OCR → 自动填充 |
 | FaceCapture | 人脸自拍 | saveFaceInfo | 前置摄像头 → 裁剪 → 压缩提交 |
 | BankInfo | 银行卡/电子钱包/Bre-B | saveBankInfo | 动态账户类型配置 |
 
@@ -125,6 +125,18 @@ getNextStep():
 ## 原生交互
 
 完整协议见 `references/native-methods.md`。统一封装在项目的 bridge hook / utility 中，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`；页面层不要直接调用原生全局对象。
+
+进件可用原生方法：
+
+```text
+goBack / updateUserInfo / reload / logOut / getToken / getDeviceInfo / getAllPermissions / openAlbum / openContact
+```
+
+H5 暴露给原生的全局方法：
+
+```text
+getTokenCallBack / getDeviceInfoCallBack / getAllPermissionsCallBack / openAlbumCallBack / openContactCallBack / onNativeBack
+```
 
 Flutter App WebView 项目必须保持一套 `method/value` 消息协议：
 

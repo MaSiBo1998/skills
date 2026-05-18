@@ -8,7 +8,7 @@
 
 完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
 
-按国家选择 `references/country-profile-index.md` 中的 profile，并将 `country_profile` 写入 checkpoint。若国家为危地马拉（Guatemala / GT / 危地马拉），加载 `references/country-guatemala.md`，并将 `country=Guatemala`、`product_name`、`country_profile=guatemala`、`release_country_code=mx` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
+按国家选择 `references/country-profile-index.md` 中的 profile，并将 `country_profile` 写入 checkpoint。若国家为危地马拉（Guatemala / GT / 危地马拉），加载 `references/country-guatemala.md`，并将 `country=Guatemala`、`product_name`、`country_profile=guatemala`、`release_country_code=mx` 写入 checkpoint。危地马拉进件同国项目按同结构、不同接口和混淆字段处理，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -31,7 +31,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
-危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明；但 Confiq 最终态基线本身的历史冲突点以 `D:\code\confiq-h5` 最终代码语义为准。
+危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
 
@@ -75,8 +75,8 @@
 □ 6 个步骤路由正确、顺序完整
 □ 每步表单缓存和恢复正常
 □ getNextStep 进度逻辑正确
-□ 原生/页面能力正常触发（通用相机/相册/弹窗；危地马拉证件和自拍为页面内 getUserMedia，通讯录为 openContact）
-□ Entry 参数正确处理（通用 home/profile/firstEdit/reloanEdit；危地马拉 home/profile/firstLoan/reLoan）
+□ 原生/页面能力正常触发（证件和自拍为页面内 getUserMedia，相册为 openAlbum，通讯录为 openContact）
+□ Entry 参数正确处理（home/profile/firstLoan/reLoan；非 home 入口统一走 goBack）
 □ 步骤条展示正确（危地马拉为 5 阶段：work、personal、id/face、contacts、bank）
 □ 输入框聚焦后页面滚动正确，底部输入框不被键盘和固定 submit-bar 遮挡
 □ 退出拦截留存弹窗正常
