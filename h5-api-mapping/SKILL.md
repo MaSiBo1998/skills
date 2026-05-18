@@ -7,6 +7,11 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 
 本 skill 只负责接口文档解析和 API 字段迁移。
 
+## 适用模式
+
+- 普通接口适配：新增接口、接口字段变化、请求/响应结构调整。
+- 同结构、不同混淆字段替换：复制旧 H5 项目作为新项目时，业务流程、接口语义、请求入参和返回数据结构保持一致，只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段。
+
 ## 执行方式
 
 1. 按 `swaggerApi.json -> api.json -> api.md -> api.html` 顺序查找接口文档。
@@ -20,4 +25,5 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 - 接口字段名必须严格按文档。
 - 不做无差别全局字符串替换。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。
+- 同结构混淆字段替换模式不改业务流程、不增删字段、不改变字段类型、不改变数组/对象层级、不改变枚举业务含义。
 - 原生 bridge 回调字段不属于服务端混淆字段，不参与替换。
