@@ -1,201 +1,221 @@
-# 首复贷状态组件架构（最新基准）
+# 首复贷状态组件架构
 
-> 本文档为场景 C 的固定参考，工作流执行时应读取此文档确保理解当前架构，
-> 后续开发的新状态或组件应与此架构保持一致。
+本文档为场景 C 的通用参考，用来约束首复贷状态流的分析顺序。它不是某个项目的架构拷贝清单；执行时必须先完成目标项目适配映射，再把下列业务语义落到本项目真实字段、接口、组件和路由。
 
----
+`参考项目` 的命名只作为示例，不能作为其他项目的硬编码依赖。
 
-## 一、目录结构
+## 一、通用目录语义
+
+首复贷项目通常包含以下模块。具体路径以目标项目为准：
+
+```
+状态组件集合
+  类型重导出或业务类型
+  首页状态调度中心
+  未授信/进件入口
+  审核倒计时
+  审核中
+  审核拒绝
+  身份证/人脸/银行卡被拒编辑入口
+  未确认贷款
+  还款计划弹窗
+  复贷返回挽留弹窗
+  放款中
+  放款失败
+  还款
+  多产品/App 列表
+```
+
+`参考项目` 示例目录：
 
 ```
 src/components/status/
-  types.ts                        # 类型别名（重导出 @/types/home）
-  StatusView.tsx                  # 状态路由调度中心（Home 页面用）
-  EntryForm/                      # 未授信-进件
-  AuditCountdown/                 # 审核倒计时
-  AuditPending/                   # 审核中
-  ExamineReject/                  # 审核拒绝
-  IdCardOrFaceReject/             # 身份证/人脸不符
-  RejectAuditPending/             # 审核被拒默认页（ExamineReject 子组件）
-  LoanUnconfirmed/                # 未确认
-  LoanDetailPopup/                # 还款计划弹窗（LoanUnconfirmed + Payment 共用）
-  RetentionPopup/                 # 挽留弹窗（复贷离开时）
-  LoanInProgress/                 # 放款中
-  LoanFailed/                     # 放款失败
-  Payment/                        # 还款
-  AppList/                        # App 列表（多产品切换）
+  types.ts
+  StatusView.tsx
+  EntryForm/
+  AuditCountdown/
+  AuditPending/
+  ExamineReject/
+  IdCardOrFaceReject/
+  RejectAuditPending/
+  LoanUnconfirmed/
+  LoanDetailPopup/
+  RetentionPopup/
+  LoanInProgress/
+  LoanFailed/
+  Payment/
+  AppList/
 ```
 
----
+## 二、状态枚举与组件映射
 
-## 二、状态枚举值与组件映射
+### 2.1 首页状态
 
-### 2.1 Home 页面状态（`HomeData.visor` → 组件）
+首页状态必须使用“顶层用户状态码”分发，不能混入复贷产品详情内部状态。
 
-定义在 `src/components/status/StatusView.tsx` 的 `COMPONENT_MAP`：
+| 业务含义 | 组件语义 | `参考项目` 示例 |
+| --- | --- | --- |
+| 未授信，展示额度选择和进件入口 | Entry / Apply entry | `100 -> EntryForm` |
+| 首贷提交后自动审核倒计时 | Audit countdown | `150 -> AuditCountdown` |
+| 审核中 | Audit pending | `200 -> AuditPending` |
+| 审核拒绝默认页 | Reject | `300 -> ExamineReject` |
+| 身份证/人脸不符 | Edit rejected info | `310/320 -> IdCardOrFaceReject` |
+| 可再次申请 | Entry / reload apply | `370 -> EntryForm` |
+| 审核通过，未确认贷款 | Loan confirmation | `400 -> LoanUnconfirmed` |
+| 放款中 | Disbursement pending | `500 -> LoanInProgress` |
+| 放款失败 | Disbursement failed | `510 -> LoanFailed` |
+| 还款期/多产品列表 | Product list | `600 -> AppList` |
 
-| 状态码 | 业务含义 | 映射组件 |
-|--------|----------|----------|
-| 100 | 未授信，展示额度选择和进件表单 | `EntryForm` |
-| 150 | 首贷提交后自动审核倒计时 | `AuditCountdown` |
-| 200 | 审核中（人工/系统） | `AuditPending` |
-| 300 | 审核拒绝（默认页） | `ExamineReject` |
-| 310 | 审核拒绝-身份证不符 | `IdCardOrFaceReject` |
-| 320 | 审核拒绝-自拍不符 | `IdCardOrFaceReject` |
-| 370 | 可再次申请，复用进件页 | `EntryForm` |
-| 400 | 审核通过，未确认贷款 | `LoanUnconfirmed` |
-| 500 | 放款中 | `LoanInProgress` |
-| 510 | 放款失败 | `LoanFailed` |
-| 600 | 还款期/多产品列表 | `AppList` |
+### 2.2 复贷详情状态
 
-### 2.2 Status 页面状态（`/status?appName=xxx`）
+复贷详情页必须先判断订单大类，再判断订单内部状态。不要直接套用首页顶层状态。
 
-无 COMPONENT_MAP，在 `src/pages/Status/index.tsx` 的 `renderContent()` 中条件分支：
+`参考项目` 示例：
 
 **金融订单** (`AppList.outpace === 300`)：
+
 ```
-trophy.outpace === 100  → LoanInProgress   (放款中)
-trophy.outpace === 200  → LoanFailed       (放款失败)
-trophy.outpace === 300  → Payment          (还款期)
+trophy.outpace === 100  -> LoanInProgress
+trophy.outpace === 200  -> LoanFailed
+trophy.outpace === 300  -> Payment
 ```
 
 **授信订单** (`AppList.outpace !== 300`)：
+
 ```
-mpls.outpace === 0 && orexis === 0 → LoanUnconfirmed   (未确认)
-mpls.outpace === 0 && orexis === 1 → AuditCountdown    (审核倒计时)
-mpls.outpace === 200 | 300         → AuditPending       (审核中)
-mpls.outpace === 400               → ExamineReject      (审核拒绝)
-mpls.outpace === 600               → LoanInProgress     (放款中)
+mpls.outpace === 0 && orexis === 0 -> LoanUnconfirmed
+mpls.outpace === 0 && orexis === 1 -> AuditCountdown
+mpls.outpace === 200 | 300         -> AuditPending
+mpls.outpace === 400               -> ExamineReject
+mpls.outpace === 600               -> LoanInProgress
 ```
 
----
+在其他项目中，必须把“金融订单/授信订单”映射到本项目真实订单模型，例如 loan order / credit order、repayment order / apply order、financial order / approval order 等。
 
-## 三、关键数据字段（源自 `@/types/home.ts`）
+## 三、关键数据字段映射
 
-| 字段路径 | 类型 | 含义 |
-|----------|------|------|
-| `HomeData.visor` | number | 顶层用户状态码（100~600） |
-| `HomeData.attorn[]` | AppList[] | 产品列表 |
-| `AppList.arala` | string | 产品名（appName） |
-| `AppList.outpace` | number | 订单类型：300=金融, 其他=授信 |
-| `AppList.noho` | number | 是否还款期：1=是 |
-| `AppList.spectrin` | number | 是否启用：0=启用, 1=未启用 |
-| `AppList.mpls` | ApplyOrderDetail | 授信订单详情 |
-| `AppList.trophy` | FinancialOrderDetail | 金融订单详情 |
-| `ApplyOrderDetail.outpace` | number | 授信内部状态（0=待确认, 200/300=审核中, 400=拒绝, 600=放款中） |
-| `ApplyOrderDetail.orexis` | number | 是否需要风险定价倒计时（0=否, 1=是） |
-| `ApplyOrderDetail.maulers` | ProductItem[] | 产品可选列表 |
-| `ApplyOrderDetail.misdate` | object | 时间相关字段 |
-| `FinancialOrderDetail.outpace` | number | 金融内部状态（100=放款中, 200=放款失败, 300=还款期） |
-| `RepaymentPlanItem.krutch` | number | 单期状态（-1=错误, 100=放款中, 200=放款失败, 300=还款期, 400=已结清） |
+优先记录业务语义，其次记录目标项目字段。`参考项目` 示例仅用于理解：
 
----
+| 业务语义 | 目标项目字段 | `参考项目` 示例 |
+| --- | --- | --- |
+| 首页顶层用户状态码 | 待映射 | `HomeData.visor` |
+| 产品列表 | 待映射 | `HomeData.attorn[]` |
+| 产品名或 appName | 待映射 | `AppList.arala` |
+| 订单大类 | 待映射 | `AppList.outpace`，`300=金融`，其他为授信 |
+| 是否还款期 | 待映射 | `AppList.noho` |
+| 是否启用产品 | 待映射 | `AppList.spectrin` |
+| 授信/申请订单详情 | 待映射 | `AppList.mpls` |
+| 金融/还款订单详情 | 待映射 | `AppList.trophy` |
+| 授信内部状态 | 待映射 | `ApplyOrderDetail.outpace` |
+| 是否风险定价倒计时 | 待映射 | `ApplyOrderDetail.orexis` |
+| 可选产品配置 | 待映射 | `ApplyOrderDetail.maulers` |
+| 金融内部状态 | 待映射 | `FinancialOrderDetail.outpace` |
+| 还款计划状态 | 待映射 | `RepaymentPlanItem.krutch` |
+
+如果目标项目字段为混淆命名，必须保留业务注释并在类型或映射表中写清来源。
 
 ## 四、数据流
+
+通用数据流：
+
+```
+首页
+  -> 首页状态接口
+  -> 顶层用户状态码
+  -> 首页状态调度组件
+  -> 多产品/App 列表
+  -> 点击产品进入复贷详情
+
+复贷详情页
+  -> 产品详情/订单详情接口
+  -> 判断订单大类
+  -> 金融订单分支或授信订单分支
+  -> 渲染放款、失败、还款、未确认、审核等状态组件
+```
+
+`参考项目` 示例：
 
 ```
 Home 页面 (/)                     Status 页面 (/status?appName=xxx)
   |                                     |
-  getHomeData()                          getProductDetail({ appName })
+  getHomeData()                         getProductDetail({ appName })
   |                                     |
   v                                     v
 HomeData.visor                       AppList
   |                                     |
   +-- COMPONENT_MAP[visor]              +-- outpace === 300 (金融订单)
   |   (StatusView.tsx)                  |   +-- trophy.outpace 分支
-  +-- visor=600 → AppList              |
-       +-- 点击产品 → /status?appName=xx --+
+  +-- visor=600 -> AppList              |
+       +-- 点击产品 -> /status?appName=xx --+
              |
-             +-- 还款期 → Payment
-             +-- 非还款期 → 对应状态组件
+             +-- 还款期 -> Payment
+             +-- 非还款期 -> 对应状态组件
 ```
-
----
 
 ## 五、首贷/复贷区分方式
 
-组件内通过 `location.pathname.includes('/status')` 判断：
+首贷/复贷区分必须使用目标项目中最稳定的上下文。优先级：
+
+1. 明确流程参数或业务上下文，例如 `flowType=first|reloan`。
+2. 路由上下文，例如首页为首贷、详情页为复贷。
+3. 数据结构上下文，例如首页数据节点 vs 产品详情数据节点。
+4. 项目已有判断方式。
+
+`参考项目` 示例：
 
 | 路径 | 含义 | 数据来源 |
-|------|------|----------|
+| --- | --- | --- |
 | 不包含 `/status` | 首贷（Home 页面） | `data.attorn[0].xxx` |
 | 包含 `/status` | 复贷（StatusPage） | `data.attorn[0].mpls.xxx` 或 `data.trophy.xxx` |
 
----
+如果使用路由字符串判断，必须集中检查路由调整时的影响，避免隐藏耦合。
 
-## 六、所有 API 接口
+## 六、API 接口映射
 
-| 文件名 | 接口 URL | 用途 |
-|--------|----------|------|
-| `src/services/home.ts` | `/cateyed/roneo/oud` | 获取首页 HomeData |
-| `src/services/home.ts` | `/annoit/energism/annalist/santalin` | 通用埋点提交 |
-| `src/services/order.ts` | `/hissing/lrl` | 获取银行列表 |
-| `src/services/order.ts` | `/iotp/aruspex` | 提交贷款申请 |
-| `src/services/order.ts` | `/luke/lugsail/ayd` | 执行还款支付 |
-| `src/services/product.ts` | `/nauseous/kanpur/zillion/monkship` | 获取产品详情 |
+不要把示例接口 URL 当作通用依赖。每个目标项目都必须重新映射：
 
----
+| 接口语义 | 目标项目接口 | `参考项目` 示例 URL |
+| --- | --- | --- |
+| 获取首页状态 | 待映射 | `/cateyed/roneo/oud` |
+| 通用埋点提交 | 待映射 | `/annoit/energism/annalist/santalin` |
+| 获取银行列表 | 待映射 | `/hissing/lrl` |
+| 提交贷款申请 | 待映射 | `/iotp/aruspex` |
+| 执行还款支付 | 待映射 | `/luke/lugsail/ayd` |
+| 获取产品详情 | 待映射 | `/nauseous/kanpur/zillion/monkship` |
 
-## 七、各状态组件关键逻辑摘要
+接口迁移由 `h5-api-mapping` 负责生成字段映射和类型，首复贷工作流负责校验这些接口是否接入正确状态节点。
 
-### EntryForm（状态 100 / 370）
-- Props: `{ data: HomeData }`
-- 金额滑块 + 百分比快捷选择 + 期限选择（90/120/180天）
-- Hook: `useReduxRiskTracking`（埋点）, `useAppBridge`
-- 埋点: `000023`
+## 七、各状态组件关键逻辑
 
-### AuditCountdown（状态 150）
-- Props: `{ data: HomeData, onRefresh }`
-- 数据: `misdate.compose`（倒计时秒数）, `farfamed`（文案JSON）
-- 自动循环: 每轮60秒 × 最多3轮，每5秒静默刷新
+状态组件按语义验收，不按固定组件名验收：
 
-### AuditPending（状态 200）
-- Props: `{ data: HomeData, onRefresh }`
-- 数据: `misdate.coalhole`（刷新间隔秒数，-1=不刷新）
-- 定时器自动刷新
+| 状态语义 | 必查逻辑 |
+| --- | --- |
+| 未授信/进件入口 | 使用首页数据，额度/期限来自服务端，必要时触发进件或编辑步骤 |
+| 审核倒计时 | 倒计时秒数、文案、静默刷新和最大轮次符合接口与产品要求 |
+| 审核中 | 刷新间隔和停止条件正确，`-1` 或无刷新配置不能死循环 |
+| 审核拒绝 | 默认拒绝、可再次申请、审核中子状态分支正确 |
+| 身份证/人脸/银行卡被拒 | 使用 bridge 跳转原生编辑页，携带必要订单 ID |
+| 未确认贷款 | 金额、期限、期数、协议、申贷接口、首复贷埋点、提交后回调正确 |
+| 放款中 | 金额、期限、银行卡等数据源在首贷/复贷下正确切换 |
+| 放款失败 | 编辑银行卡或重试入口按 App bridge 规则触发 |
+| 多产品/App 列表 | 启用/未启用、还款期/逾期、权限、风控上传、详情跳转正确 |
+| 还款 | 还款金额、还款计划、支付方式、支付接口和埋点来自金融订单数据 |
 
-### ExamineReject（状态 300）
-- Props: `{ data: HomeData, onRefresh }`
-- 子组件: `RejectAuditPending`
-- 分支: `uncrate=0`→审核中, `uncrate=2`→可再次申请, 其他→默认拒绝
+## 八、风控 Store 与原生 Bridge
 
-### IdCardOrFaceReject（状态 310 / 320）
-- Props: `{ data?: HomeData }`
-- 310: 跳转编辑身份证（`toEditStepInfo(0)`）
-- 320: 跳转编辑自拍（`toEditStepInfo(1)`）
+- 风控 Store 只管理风控/埋点数据，不应承载首复贷业务状态。
+- 首复贷业务状态以接口数据为准，刷新接口后重新分发状态。
+- 原生方法统一走项目 bridge hook / utility。
+- 异步原生回调必须有清理和超时兜底。
+- 首贷申请成功、复贷申请风控上传、还款节点风控上传、协议跳转、返回挽留必须分别验收。
 
-### LoanUnconfirmed（状态 400）
-- Props: `{ data: HomeData, onRefresh }`
-- Service: `toSubmitOrder`（申贷）
-- 金额步长10000，产品匹配（duration+period → 回退匹配）
-- 埋点: `000016`（首贷）, `000017`（复贷）
-- 子组件: `LoanDetailPopup`, `RetentionPopup`
+`参考项目` 示例：
 
-### LoanInProgress（状态 500）
-- Props: `{ data: HomeData }`
-- 展示放款金额、期限、脱敏银行卡号
-
-### LoanFailed（状态 510）
-- Props: `{ data?: HomeData }`
-- Hook: `useAppBridge`
-- 点击 "Modifica" → `toEditStepInfo(2)` 跳转编辑银行卡
-
-### AppList（状态 600）
-- Props: `{ data: HomeData }`
-- 区分启用/未启用，还款期/非还款期
-- 每天首次点击还款调用 `uploadAllRiskData()`
-- 跳转: `/status?appName=${arala}&type=${outpace}`
-
-### Payment（StatusPage 内部，复贷还款）
-- Props: `{ data?: AppList }`
-- Service: `toPayMoney`（还款）
-- 还款金额可编辑（>10000），展示还款计划 + 支付方式
-- 埋点: `000024`
-
----
-
-## 八、Redux Store
-
-- 文件: `src/store/features/risk/riskSlice.ts`
-- 仅管理风控埋点数据，不管理业务状态
-- 持久化: sessionStorage（key: `risk_events`）
+| 语义 | 示例 |
+| --- | --- |
+| 风控 hook | `useReduxRiskTracking` |
+| 风控 store | `src/store/features/risk/riskSlice.ts` |
+| bridge hook | `useAppBridge` |
+| 首贷成功回调 | `firstLoanApplySuc` |
+| 风控上传 | `uploadAllRiskData` |

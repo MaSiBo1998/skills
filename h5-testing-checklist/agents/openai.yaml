@@ -1,4 +1,4 @@
 interface:
   display_name: "测试验收"
   short_description: "执行交付验收清单"
-  default_prompt: "使用 h5-testing-checklist 验证本次改动，并输出通过/失败验收清单。"
+  default_prompt: "使用 h5-testing-checklist 验证本次改动，并输出通过/失败验收清单；首复贷场景需先检查目标项目适配映射是否完整。"
