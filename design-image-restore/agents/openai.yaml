@@ -1,4 +1,4 @@
 interface:
   display_name: "设计图图片复原设计"
-  short_description: "读取design设计图复原页面并规范src/assets切图命名"
-  default_prompt: "使用 design-image-restore 读取项目 design 文件夹里的设计图图片，优先复用 src/assets 切图，复原页面设计并规范切图命名。"
+  short_description: "基于375宽设计图解析结果复原页面并规范src/assets切图命名"
+  default_prompt: "使用 design-image-restore 基于 design-image-analysis 的 375px 宽基准解析清单复原页面；没有解析清单时，先按 375px 宽基准解析项目 design 文件夹里的设计图，再优先复用 src/assets 切图并规范切图命名。"

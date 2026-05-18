@@ -15,7 +15,7 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 | B 功能/API 开发 | 新项目、新接口、字段适配、首复贷功能 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
 | C 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | D 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
-| E 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-restore` -> `h5-testing-checklist` |
+| E 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | F 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
 | G 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
 
@@ -66,6 +66,7 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 - 接口映射：`h5-api-mapping/references/`
 - 进件流程与国家差异：`h5-apply-flow/references/`
 - 协议 HTML：`h5-agreement-html/references/`
+- 设计图解析：`design-image-analysis`
 - 设计图复原：`design-image-restore`
 - 国家发布：`h5-release-tag/references/`
 - 测试验收：`h5-testing-checklist/references/`
