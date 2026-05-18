@@ -1,6 +1,6 @@
 ---
 name: front-workflow
-description: 马嗣博专属工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收等场景，并协调对应子 skill 执行。
+description: 马嗣博专属工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收、自我更新成长等场景，并协调对应子 skill 执行。
 ---
 
 # 马嗣博专属工作流
@@ -16,8 +16,10 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 | C 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | D 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
 | E 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
+| F 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
 
 若用户明确说“发布 / 发版 / 打 tag / 发布 mx|co|ng”，直接进入场景 E。
+若用户明确说“记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”，直接进入场景 F。
 
 ## 前置确认
 
@@ -46,7 +48,9 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 目标项目根目录使用 `.workflow-checkpoint.json`：
 
 - 每完成一个步骤立即更新。
-- 记录 `scene`、`last_completed_step`、`step_names`、`context`、`updated_at`。
+- 记录 `scene`、`last_completed_step`、`step_names`、`context`、`learning_candidates`、`skill_updates`、`updated_at`。
+- 运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化时，先写入 `learning_candidates`。
+- 实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。
 - 24 小时内再次触发时询问是否继续。
 - 工作流完成后删除 checkpoint。
 
@@ -60,6 +64,7 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 - 协议 HTML：`h5-agreement-html/references/`
 - 国家发布：`h5-release-tag/references/`
 - 测试验收：`h5-testing-checklist/references/`
+- 自我更新成长：`workflow-self-improvement`
 
 ## 交付要求
 
@@ -69,5 +74,6 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 - 修改了哪些文件
 - API 映射结果（如有）
 - 测试验收结果
+- 工作流自我更新项：已沉淀、建议沉淀或无需沉淀
 - 真实 App WebView 需要人工验证的项目
 - 若存在有效 `release-env`，询问是否继续发布

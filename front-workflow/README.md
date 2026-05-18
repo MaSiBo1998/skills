@@ -1,6 +1,6 @@
 # front-workflow
 
-主编排 skill，只负责识别 H5 任务场景并调度子 skill。
+主编排 skill，只负责识别任务场景、调度子 skill、管理 checkpoint、汇总交付，并沉淀可复用流程规则。
 
 ## 子 Skill
 
@@ -12,10 +12,13 @@
 | `h5-agreement-html` | 协议 HTML 生成 |
 | `h5-release-tag` | 国家版本发布 |
 | `h5-testing-checklist` | 测试验收清单 |
+| `workflow-self-improvement` | 工作流自我更新成长 |
 
 ## 规则
 
 - 主 skill 不保存大段业务细节。
 - `scenes/`、`references/`、`CHECKLIST.md` 已拆到子 skill。
+- 用户明确要求“记住、完善工作流、更新 skill”时，调用 `workflow-self-improvement`。
+- 普通业务任务中发现可沉淀项时，交付时先列出建议沉淀项。
 - 发布国家码只有 `mx / co / ng`。
 - 危地马拉进件按 `mx` 发布，不存在 `gt` 发布码。
