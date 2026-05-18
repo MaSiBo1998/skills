@@ -15,9 +15,12 @@
 每个 Step 执行完成后立即写入 checkpoint，**不论该步骤是否修改了代码**。
 
 **强约束**：
-- 第一个 Step 完成时，创建完整的 checkpoint 文件，包含 `scene`、`last_completed_step`、`step_names`（全部步骤）、`context`、`updated_at`
-- 后续 Step 完成时，**只更新** `last_completed_step` 和 `updated_at` 字段，不得删除或覆盖其他字段
+- 第一个 Step 完成时，创建完整的 checkpoint 文件，包含 `scene`、`last_completed_step`、`completed_steps`、`step_names`（全部步骤）、`context`、`updated_at`
+- 后续 Step 完成时，必须向 `completed_steps` **追加**一条完成记录，并同步更新 `last_completed_step` 和 `updated_at` 字段，不得删除或覆盖其他字段
+- `completed_steps` 是恢复和交付说明的完整执行轨迹，不能只记录最后一个完成步骤
+- `last_completed_step` 仅作为快速恢复索引，不能替代 `completed_steps`
 - **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
+- **禁止**用新的步骤记录覆盖旧的 `completed_steps`；如果同一步重复执行，追加新记录并在 `note` 中说明 rerun/修正原因
 
 格式（以场景 B 为例）：
 
@@ -25,6 +28,26 @@
 {
   "scene": "B",
   "last_completed_step": 3,
+  "completed_steps": [
+    {
+      "step": 1,
+      "step_name": "输入收集",
+      "completed_at": "2026-05-08T10:10:00",
+      "note": "已收集项目根目录和接口文档路径"
+    },
+    {
+      "step": 2,
+      "step_name": "询问 vendor 架构",
+      "completed_at": "2026-05-08T10:20:00",
+      "note": "确认需要 vendor 架构"
+    },
+    {
+      "step": 3,
+      "step_name": "JSON 接口文档自动解析",
+      "completed_at": "2026-05-08T10:30:00",
+      "note": "完成字段映射"
+    }
+  ],
   "step_names": {
     "1": "输入收集",
     "2": "询问 vendor 架构",
@@ -41,7 +64,8 @@
 | 字段 | 说明 |
 |------|------|
 | `scene` | 场景标识：A / B / C / D / E |
-| `last_completed_step` | 已完成的最后一个 Step 编号 |
+| `last_completed_step` | 已完成的最后一个 Step 编号，仅作快速恢复索引 |
+| `completed_steps` | 已完成 Step 的追加式历史记录，记录每一步完成时间和说明 |
 | `step_names` | 各步骤名称映射 |
 | `context` | 关键上下文，恢复时用于还原决策和输入信息 |
 | `updated_at` | ISO 时间戳 |
@@ -85,10 +109,10 @@
 3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始
 3. **询问用户**：
    ```
-   检测到未完成的工作流（场景 {scene}，已完成到 Step {last_completed_step}：{step_names[last_completed_step]}）。
+   检测到未完成的工作流（场景 {scene}，已完成步骤：{completed_steps 中的 step 列表}；最新完成 Step {last_completed_step}：{step_names[last_completed_step]}）。
    是否继续？[是/否]
    ```
-4. **继续**：读取对应场景文件，从 `last_completed_step + 1` 开始执行
+4. **继续**：读取对应场景文件，从 `last_completed_step + 1` 开始执行；如 `completed_steps` 与 `last_completed_step` 不一致，以 `completed_steps` 中最大 step 为准并修正 `last_completed_step`
 5. **重新开始**：删除 checkpoint 文件，按正常流程从头执行
 
 ---

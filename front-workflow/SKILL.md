@@ -48,7 +48,9 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 目标项目根目录使用 `.workflow-checkpoint.json`：
 
 - 每完成一个步骤立即更新。
-- 记录 `scene`、`last_completed_step`、`step_names`、`context`、`learning_candidates`、`skill_updates`、`updated_at`。
+- 记录 `scene`、`last_completed_step`、`completed_steps`、`step_names`、`context`、`learning_candidates`、`skill_updates`、`updated_at`。
+- `completed_steps` 是追加式历史记录，每个步骤完成后 append 一条 `{ step, step_name, completed_at, note }`；不得只保留最后一步，也不得覆盖旧记录。
+- `last_completed_step` 仅作为快速恢复索引，每次步骤完成时同步更新为最新 step；恢复和交付说明优先参考 `completed_steps` 的完整轨迹。
 - 运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化时，先写入 `learning_candidates`。
 - 实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。
 - 24 小时内再次触发时询问是否继续。
