@@ -38,13 +38,13 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 
 凡涉及 App WebView 原生交互的场景（包括普通功能、首复贷、进件、权限、协议跳转、风控上传、返回拦截等），都必须统一走项目 bridge hook / utility，页面层不要直接调用原生全局对象。
 
-Flutter App WebView 桥接统一使用 `method/value` 消息协议：
+Flutter App WebView 桥接统一使用 `method/value` 消息协议。运行时先检测 `window.flutter.postMessage`，存在则调用：
 
 ```ts
 window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))
 ```
 
-低版本 `flutter_inappwebview` 只能作为兜底，调用同一个 handler 名 `flutter`，并传同样结构的字符串消息：
+如果不存在 `window.flutter.postMessage`，再检测 `window.flutter_inappwebview.callHandler`，存在则调用同一个 handler 名 `flutter`，并传同样结构的字符串消息：
 
 ```ts
 window.flutter_inappwebview.callHandler(

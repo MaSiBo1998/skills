@@ -8,8 +8,8 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - H5 调用原生时，默认传空对象 `{}`，除非方法明确要求参数。
 - 回调型能力请严格使用本文档中的 H5 全局回调名，大小写和字段结构必须保持一致。
 - Flutter App WebView bridge：
-  - 新版：`window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`
-  - 低版本 `flutter_inappwebview` 兜底：`window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`
+  - 有 `window.flutter.postMessage` 时，调用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`
+  - 没有 `window.flutter.postMessage` 且有 `window.flutter_inappwebview.callHandler` 时，调用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`
 - 不要使用 `callHandler(action, payload)` 作为通用桥接；App 端只注册统一 handler `flutter` 后再按 `method` 分发。
 - 进件原生方法以本文档方法清单为准。
 

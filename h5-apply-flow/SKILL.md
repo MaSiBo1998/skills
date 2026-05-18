@@ -23,7 +23,7 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 
 - 只改 Apply 相关页面、Apply API、路由、类型、原生桥接和必要配置。
 - 页面层不要直接调用原生全局对象，统一走 bridge hook / utility。
-- 涉及原生交互时必须遵守 `front-workflow` 的公共原生桥接规则：Flutter App WebView 统一 `method/value` 协议，低版本 `flutter_inappwebview` 兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`，不要改成 `callHandler(action, payload)`。
+- 涉及原生交互时必须遵守 `front-workflow` 的公共原生桥接规则：Flutter App WebView 统一 `method/value` 协议；有 `window.flutter.postMessage` 时优先调用它，没有时再用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method, value }))` 兼容处理；不要改成 `callHandler(action, payload)`。
 - 国家差异只能覆盖明确差异点，不复制整套进件流程；默认复用通用 Apply 流程。
 - 新国家或新差异先沉淀为 country profile，再由通用进件流程调用。
 - 首贷/复贷、订单状态、产品详情、未确认、放款、还款和 App 列表不属于本 skill；遇到这些任务应切换到 `h5-first-reloan-flow`。

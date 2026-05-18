@@ -138,13 +138,13 @@ H5 暴露给原生的全局方法：
 getTokenCallBack / getDeviceInfoCallBack / getAllPermissionsCallBack / openAlbumCallBack / openContactCallBack / onNativeBack
 ```
 
-Flutter App WebView 项目必须保持一套 `method/value` 消息协议：
+Flutter App WebView 项目必须保持一套 `method/value` 消息协议。有 `window.flutter.postMessage` 时优先调用：
 
 ```ts
 window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))
 ```
 
-低版本 `flutter_inappwebview` 兜底时也必须调用统一 handler 名 `flutter`，并传同样的字符串消息：
+没有 `window.flutter.postMessage` 且有 `window.flutter_inappwebview.callHandler` 时，调用统一 handler 名 `flutter`，并传同样的字符串消息：
 
 ```ts
 window.flutter_inappwebview.callHandler(
@@ -153,7 +153,7 @@ window.flutter_inappwebview.callHandler(
 )
 ```
 
-不要使用 `callHandler(action, payload)` 作为通用方案；否则 Flutter App 端需要按每个业务 action 分散注册 handler，容易和新版 `window.flutter.postMessage` 协议不一致。
+不要使用 `callHandler(action, payload)` 作为通用方案；否则 Flutter App 端需要按每个业务 action 分散注册 handler，容易和统一 `method/value` 协议不一致。
 
 ---
 

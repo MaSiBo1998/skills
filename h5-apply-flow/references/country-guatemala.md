@@ -32,7 +32,7 @@
 ### 原生交互
 
 - 页面层统一使用 `useAppBridge()`。
-- 原生交互使用 `window.flutter.postMessage(JSON.stringify({ method, value }))`；低版本 `flutter_inappwebview` 兜底调用 `callHandler('flutter', JSON.stringify({ method, value }))`。
+- 原生交互使用统一 `method/value` 协议：有 `window.flutter.postMessage` 时优先调用它；没有时再用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method, value }))` 兼容处理。
 - H5 暴露给原生的回调包括 `getTokenCallBack`、`getDeviceInfoCallBack`、`getAllPermissionsCallBack`、`openAlbumCallBack`、`openContactCallBack`、`onNativeBack`。
 - 原生返回只调用 `window.onNativeBack()` 通知 H5；H5 在 `entry=home` 主流程页弹留存弹窗，拍摄子流程按页面 `onBack` 回主页面，非 home 入口直接 `goBack()`。
 - 证件和自拍拍摄使用页面内 `getUserMedia`；联系人通过 `openContact(index)`。
@@ -262,7 +262,7 @@ Flutter bridge 保持统一 `method/value` 协议：
 window.flutter.postMessage(JSON.stringify({ method: action, value: payload }))
 ```
 
-低版本 `flutter_inappwebview` 兜底必须使用同一个 handler 名 `flutter`：
+没有 `window.flutter.postMessage` 且有 `window.flutter_inappwebview.callHandler` 时，调用同一个 handler 名 `flutter`：
 
 ```ts
 window.flutter_inappwebview.callHandler(

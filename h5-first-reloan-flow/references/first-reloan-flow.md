@@ -113,7 +113,7 @@ Status 产品详情页不要直接套用 Home 顶层状态；必须区分订单�
 
 - 原生方法必须统一封装在 bridge hook / utility 中。
 - 页面层不要直接调用 `window.flutter.postMessage` 或其他原生全局对象。
-- 原生桥接必须遵守 `front-workflow` 公共原生桥接规则：Flutter App WebView 统一 `method/value` 消息协议；新版使用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`；低版本 `flutter_inappwebview` 兜底使用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`。不要使用 `callHandler(action, payload)` 作为通用方案。
+- 原生桥接必须遵守 `front-workflow` 公共原生桥接规则：Flutter App WebView 统一 `method/value` 消息协议；有 `window.flutter.postMessage` 时优先使用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`；没有时再用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))` 兼容处理。不要使用 `callHandler(action, payload)` 作为通用方案。
 - `uploadAllRiskData` 必须保留回调清理和超时兜底，避免多次覆盖全局回调造成悬挂。
 - 还款、申贷、协议、返回挽留、页面停留时长等埋点必须与首贷/复贷事件码对应。
 - 复贷未确认页返回应按产品要求触发挽留弹窗；首贷首页流程不要误触发复贷挽留。
