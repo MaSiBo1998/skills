@@ -34,8 +34,9 @@
 ## 场景额外检查
 
 **场景 A（架构改造）**: 重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）
-**场景 B / C（含进件/页面修改）**: 需执行完整 14 项 + 接口映射校验
-**场景 C + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
+**场景 B / C / D（含接口或页面修改）**: 需执行完整 14 项 + 接口映射校验
+**场景 C（首复贷开发）**: 需执行完整 14 项 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期和真实 WebView 原生交互。
+**场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
 
 ## Skill 改进建议
 

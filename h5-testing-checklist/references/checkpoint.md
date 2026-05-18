@@ -63,7 +63,7 @@
 
 | 字段 | 说明 |
 |------|------|
-| `scene` | 场景标识：A / B / C / D / E |
+| `scene` | 场景标识：A / B / C / D / E / F / G / H |
 | `last_completed_step` | 已完成的最后一个 Step 编号，仅作快速恢复索引 |
 | `completed_steps` | 已完成 Step 的追加式历史记录，记录每一步完成时间和说明 |
 | `step_names` | 各步骤名称映射 |
@@ -78,9 +78,10 @@
 |------|-------------------|
 | A | `{}` |
 | B | `{ vendor_enabled, api_doc_path, project_config }` |
-| C | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
-| D | `{ agreement_docs, public_dir, output_files }` |
-| E | `{ project_root, release_env_path, country_code, country_name }` |
+| C | `{ product_name, country, vendor_enabled, api_doc_path, project_config }` |
+| D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
+| E | `{ agreement_docs, public_dir, output_files }` |
+| G | `{ project_root, release_env_path, country_code, country_name }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -88,14 +89,17 @@
 // 场景 A（4 步）
 { "scene": "A", "step_names": { "1": "技术栈评估", "2": "vendor 架构建立", "3": "自动测试验收", "4": "交付" } }
 
-// 场景 C（7 步）
-{ "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
+// 场景 C（首复贷，7 步）
+{ "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立", "5": "首复贷状态流开发", "6": "自动测试验收", "7": "交付" } }
 
-// 场景 D（5 步）
-{ "scene": "D", "step_names": { "1": "输入收集", "2": "协议内容解析", "3": "协议 HTML 生成", "4": "自动验收", "5": "交付" } }
+// 场景 D（进件，7 步）
+{ "scene": "D", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
 
-// 场景 E（4 步）
-{ "scene": "E", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
+// 场景 E（协议，5 步）
+{ "scene": "E", "step_names": { "1": "输入收集", "2": "协议内容解析", "3": "协议 HTML 生成", "4": "自动验收", "5": "交付" } }
+
+// 场景 G（发布，4 步）
+{ "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
 ```
 
 ---

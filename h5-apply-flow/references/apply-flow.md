@@ -1,6 +1,6 @@
 # 进件申请流程参考
 
-Scene C（进件功能开发）的领域知识参考。开发时按此规范执行。
+场景 D（进件功能开发）的领域知识参考。开发时按此规范执行。
 
 > 国家差异例外：当 checkpoint 中存在 `country_profile` 时，先加载 `references/country-profile-index.md` 再加载对应 `country-*.md`。危地马拉使用 `country_profile=guatemala`，步骤顺序、entry、原生返回、API 字段和数据处理以 `references/country-guatemala.md` 的 Confiq-H5 最终态基线为准；本文件中的旧 entry 和原生跳转只作为通用参考。
 

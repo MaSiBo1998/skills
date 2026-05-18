@@ -9,6 +9,7 @@
 | `h5-vendor-architecture` | vendor 架构建立 |
 | `h5-api-mapping` | 接口文档解析与字段映射 |
 | `h5-apply-flow` | 进件流程开发，包含各国家差异 profile |
+| `h5-first-reloan-flow` | 首贷/复贷状态流、订单详情、未确认、放款、还款、App 列表 |
 | `h5-agreement-html` | 协议 HTML 生成 |
 | `design-image-analysis` | 按 375 宽基准解析 design 设计图 |
 | `design-image-restore` | 根据 design 文件夹图片复原设计 |

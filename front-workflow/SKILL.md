@@ -12,27 +12,29 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 | 场景 | 触发意图 | 调用子 skill |
 | --- | --- | --- |
 | A 架构改造 | static-app、vendor、本地资源加载、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
-| B 功能/API 开发 | 新项目、新接口、字段适配、首复贷功能 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
-| C 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
-| D 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
-| E 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
-| F 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
-| G 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
+| B 功能/API 开发 | 新项目、新接口、字段适配 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
+| C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
+| D 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
+| E 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
+| F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
+| G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
+| H 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
 
-若用户明确说“发布 / 发版 / 打 tag / 发布 mx|co|ng”，直接进入场景 F。
-若用户明确说“设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”，直接进入场景 E。
-若用户明确说“记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”，直接进入场景 G。
+若用户明确说“发布 / 发版 / 打 tag / 发布 mx|co|ng”，直接进入场景 G。
+若用户明确说“设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”，直接进入场景 F。
+若用户明确说“记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”，直接进入场景 H。
+若用户明确说“首贷 / 复贷 / 首复贷 / 状态流 / 订单状态 / 未确认贷款 / 放款中 / 放款失败 / 还款期 / 产品详情 / App 列表”，直接进入场景 C。场景 C 是首复贷独立场景，不归并为普通功能/API 开发，也不归并为进件开发；执行细节归属 `h5-first-reloan-flow`。
 
 ## 前置确认
 
-场景 B/C/E 执行前必须确认：
+场景 B/C/D/F 执行前必须确认：
 
 - 产品名，写入 `product_name`
 - 业务国家，写入 `country`
 - 项目根目录
 - 接口文档路径（如涉及接口适配）
 
-场景 C 进件必须额外写入：
+场景 D 进件必须额外写入：
 
 - `country_profile`：如 `common`、`mexico`、`colombia`、`guatemala`
 - `release_country_code`：从 `release-env` 或国家差异 profile 得出
@@ -65,6 +67,7 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 - vendor 架构：`h5-vendor-architecture/references/`
 - 接口映射：`h5-api-mapping/references/`
 - 进件流程与国家差异：`h5-apply-flow/references/`
+- 首复贷状态流与订单详情：`h5-first-reloan-flow/references/`
 - 协议 HTML：`h5-agreement-html/references/`
 - 设计图解析：`design-image-analysis`
 - 设计图复原：`design-image-restore`

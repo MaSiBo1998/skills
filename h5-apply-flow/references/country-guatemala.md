@@ -1,8 +1,8 @@
 # 危地马拉进件项目规范（Confiq-H5 最终态基线）
 
-本参考用于 Scene C（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。规范来源于 `D:\code\confiq-h5` 的最终实现，用于反向约束后续危地马拉进件开发。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
+本参考用于场景 D（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。规范来源于 `D:\code\confiq-h5` 的最终实现，用于反向约束后续危地马拉进件开发。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
 
-> 注意：参考项目当前 `release-env` 为 `mx`，本工作流按用户明确说明将其作为危地马拉进件基线抽取。执行场景 C 时以用户确认的业务国家为准；发布场景 E 仍只识别 `mx/co/ng`，危地马拉进件按 `mx` 发布。
+> 注意：参考项目当前 `release-env` 为 `mx`，本工作流按用户明确说明将其作为危地马拉进件基线抽取。执行场景 D 时以用户确认的业务国家为准；发布场景 G 仍只识别 `mx/co/ng`，危地马拉进件按 `mx` 发布。
 
 ---
 
@@ -12,7 +12,7 @@
 
 - 危地马拉进件不是重做流程，而是在 Confiq-H5 最终态上做“同结构、不同混淆字段”的迁移；优先替换 base URL、endpoint、header key、request key、response key、配置值。
 - 不允许因为新接口字段名变化而重构请求/响应层级、枚举语义、步骤顺序或原生回调协议。
-- `release-env=mx` 对危地马拉进件是预期发布环境，不代表业务国家是墨西哥；场景 C 以用户确认的业务国家为准，场景 E 以 `release-env` 国家码发布。
+- `release-env=mx` 对危地马拉进件是预期发布环境，不代表业务国家是墨西哥；场景 D 以用户确认的业务国家为准，场景 G 以 `release-env` 国家码发布。
 - `swaggerApi.json` 与代码存在过历史不一致，执行时必须用最终态代码校准关键路径：`getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、银行卡查询分 `getBankInfo` 与 `getBankCardInfo`。
 
 ### 入口逻辑
@@ -105,7 +105,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 
 ## 场景入口
 
-Scene C Step 1 必须确认并写入 checkpoint：
+场景 D Step 1 必须确认并写入 checkpoint：
 
 | 输入 | 说明 |
 | --- | --- |
