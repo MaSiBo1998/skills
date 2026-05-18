@@ -1,6 +1,6 @@
-# 场景 B — 首复贷功能开发
+# 场景 B — 功能/API 开发
 
-在当前项目上开发新功能 + 可选 vendor 架构 + 接口适配。
+在当前项目上开发普通功能或接口适配。vendor 架构是可选项，只有用户明确要求、checkpoint 中 `vendor_enabled=true`，或项目现有约束明确需要时才执行。
 
 ---
 
@@ -12,20 +12,15 @@
 
 ---
 
-## Step 2. 读取当前组件架构基准
+## Step 2. 确认开发范围
 
-读取 `references/status-flow.md`，理解当前首复贷状态组件结构、状态枚举、数据流。
+确认本次是普通功能/API 开发，而不是首复贷状态流或 Apply 进件：
 
-**执行要求**：
-- 完整阅读整个文档
-- 核对 `src/components/status/` 目录结构是否与文档一致（如有新增/删除，同步更新文档）
-- 核对 `StatusView.tsx` 的 `COMPONENT_MAP` 是否与文档一致
-- 核对路由映射、字段名是否与 `src/types/home.ts` 类型定义一致
+- 若涉及首贷、复贷、状态流、产品详情、未确认、放款、还款、App 列表，切换到场景 C，并调用 `h5-first-reloan-flow`。
+- 若涉及 Apply、进件步骤页、Entry、表单草稿、拍照/联系人、国家差异 profile，切换到场景 D，并调用 `h5-apply-flow`。
+- 其他普通页面、工具函数、接口封装、字段适配，继续执行场景 B。
 
-> ⚠️ 后续所有开发必须基于此架构，新增状态或组件应遵循相同模式。
-> 如果发现文档与实际代码不一致，优先更新文档再继续开发。
-
-**→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 2（架构基准核对）完成，context: architecture_verified=true
+**→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 2（开发范围确认）完成，context: scope_confirmed=true
 
 ---
 
@@ -52,13 +47,13 @@
 
 ## Step 5. 项目开发
 
-### 5.1 vendor 架构建立（按需）
+### 5.1 vendor 架构建立（可选）
 
-如 Step 3 确认为需要，执行 `scenes/common/vendor-setup.md` 创建相关文件并运行 `npm run build:static`。
+仅当 Step 3 确认为需要时，执行 `h5-vendor-architecture/references/vendor-setup.md` 创建相关文件并运行 `npm run build:static`。未确认需要时跳过本步骤，不因场景 B 自动做 vendor 改造。
 
 ### 5.2 依赖清理
 
-扫描 `src/` 中所有 import，对照 `package.json` 移除未引用的包。注意不要移除 `FRAMEWORK_GLOBALS` 中的库（vendor 模式下通过 window 全局引用，无 import 语句）、vite 插件类、构建工具类。
+扫描 `src/` 中所有 import，对照 `package.json` 移除未引用的包。若 `vendor_enabled=true`，注意不要移除 `FRAMEWORK_GLOBALS` 中的库（vendor 模式下通过 window 全局引用，无 import 语句）；所有情况下都不要误删 vite 插件类和构建工具类依赖。
 
 ### 5.3 按映射表适配接口（如 Step 4 已执行）
 - 基于字段映射表修改接口层代码
@@ -70,7 +65,7 @@
 
 ## Step 6. 自动测试验收
 
-完整步骤见 `scenes/common/testing.md`。执行完整 14 项测试清单。
+完整步骤见 `h5-testing-checklist/references/testing-workflow.md`。执行完整 14 项测试清单；vendor 相关检查仅在 `vendor_enabled=true` 时执行。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 6（自动测试验收）完成
 
@@ -89,4 +84,4 @@
 - **构建失败**：检查 vite.config.js 配置、vendor 脚本（如已建立）、依赖安装状态
 - **接口解析异常**：确认文档格式符合优先级顺序（swaggerApi.json > api.json > api.md > api.html）
 - **测试未通过**：修复对应模块后重跑单项测试
-- **架构文档与代码不一致**：更新 `references/status-flow.md` 后再继续开发
+- **场景判断不一致**：如发现实际需求属于首复贷或进件，切换到场景 C 或 D，不在场景 B 中继续硬做

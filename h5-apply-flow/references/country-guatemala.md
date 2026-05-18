@@ -96,10 +96,10 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 
 - 技术栈：Vite 5、React 18、TypeScript、react-router-dom 6、antd-mobile 5、npm。
 - 构建命令：`npm run build` 先执行 `tsc --noEmit -p tsconfig.app.json`，再执行 `vite build`。
-- vendor 架构：保留 `static-app/vendor/` 与 `scripts/build-static.mjs`，依赖包括 React、ReactDOM、React Router、Redux Toolkit、React Redux、antd-mobile。
+- vendor 架构：仅当目标项目已采用 vendor 架构或用户确认启用时，保留 `static-app/vendor/` 与 `scripts/build-static.mjs`；依赖包括 React、ReactDOM、React Router、Redux Toolkit、React Redux、antd-mobile。
 - 环境变量：`.env*` 使用 `VITE_API_BASE_URL`、`VITE_APP_NAME`、`VITE_APP_VERSION`、`VITE_APP_BUSINESS_LINE`、`VITE_APP_PUBLIC_KEY`。
 - Confiq 当前配置：`VITE_APP_NAME=ConfiQ`、`VITE_APP_VERSION=1.0.0`、`VITE_APP_BUSINESS_LINE=5`、成功 code `S1566C`、token 过期 code `Q3394V`。
-- 只修改 Apply 相关页面、Apply API、类型、路由、请求封装、环境变量、native bridge、vendor 配置。不要扩大到其他业务模块。
+- 只修改 Apply 相关页面、Apply API、类型、路由、请求封装、环境变量、native bridge；vendor 配置仅在 `vendor_enabled=true` 时修改。不要扩大到其他业务模块。
 
 ---
 

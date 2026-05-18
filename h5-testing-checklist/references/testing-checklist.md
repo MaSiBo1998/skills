@@ -33,6 +33,7 @@
 
 ## 3.5. vendor 完整性校验
 
+- **适用条件**: 仅场景 A 或 checkpoint/context 中 `vendor_enabled=true` 时执行；未启用 vendor 时标记为“跳过：未启用 vendor 架构”，不得按失败处理。
 - **方法**: 对比 `src/` 中的 import 和 `FRAMEWORK_GLOBALS` 配置
 - **检查项**:
   - 对 `src/` 中每个 `import ... from 'xxx'`（第三方包），确认 `FRAMEWORK_GLOBALS` 中已包含
@@ -146,6 +147,7 @@
 
 ## 12. 构建架构检查
 
+- **适用条件**: 仅场景 A 或 checkpoint/context 中 `vendor_enabled=true` 时执行；未启用 vendor 时标记为“跳过：未启用 vendor 架构”，不得要求项目存在 `static-app/vendor`、external globals 或 `build:static`。
 - **方法**: 检查构建配置文件和构建产物
 - **检查项**:
   - `static-app/vendor/` 目录是否存在，各框架 JS 文件齐全
@@ -171,7 +173,7 @@
   - 确认可移除后执行 `npm uninstall <包名>`
   - **注意**：不要移除 `react`、`react-dom` 等框架库（它们在代码中通过 window 全局引用，无 import 语句）
   - **注意**：不要移除插件类包（`@vitejs/plugin-react`、`eslint` 等 vite/eslint 配置中引用的包）
-  - **vendor 校验**：对 `FRAMEWORK_GLOBALS` 中每个模块，确认 `src/` 中有对应的 `import ... from '模块名'`。未被引用的模块应从 `FRAMEWORK_GLOBALS`、`VENDOR_SCRIPTS`、`build-static.mjs` 中移除，避免生成多余的 vendor 文件
+  - **vendor 校验（仅 vendor_enabled=true）**：对 `FRAMEWORK_GLOBALS` 中每个模块，确认 `src/` 中有对应的 `import ... from '模块名'`。未被引用的模块应从 `FRAMEWORK_GLOBALS`、`VENDOR_SCRIPTS`、`build-static.mjs` 中移除，避免生成多余的 vendor 文件
 - **失败判定**: 存在明显未使用的依赖包未清理
 
 ---
@@ -240,7 +242,7 @@
 
 - **适用范围**: 场景 C（首贷、复贷、状态流、订单状态、App 列表、未确认、放款、还款）
 - **检查项**:
-  - 已确认产品名、国家、项目根目录、接口文档和是否需要 vendor 架构
+  - 已确认产品名、国家、项目根目录、接口文档；已记录 vendor 是否启用，且未启用时没有执行 vendor 改造
   - Home 首页接口、产品详情接口、申贷接口、还款接口、通用埋点接口均已完成字段映射
   - Home 顶层状态码映射完整，至少覆盖未授信、审核倒计时、审核中、审核拒绝、证件/人脸拒绝、未确认、放款中、放款失败、App 列表
   - Status 产品详情页已区分授信订单与金融订单；授信订单读取 `mpls`，金融订单读取 `trophy`
@@ -269,7 +271,7 @@
 | 1 | 类型检查 | ✅ 通过 | 0 errors |
 | 2 | Lint 检查 | ✅ 通过 | 0 errors, 2 warnings |
 | 3 | 构建测试 | ✅ 通过 | build 成功，dist/ 无框架代码 |
-| 3.5 | vendor 完整性校验 | ✅ 通过 | dist/ 无未配置 vendor 的第三方库 |
+| 3.5 | vendor 完整性校验 | 跳过 | 未启用 vendor 架构 |
 | 4 | 页面渲染检查 | ✅ 通过 | 所有组件导入正常 |
 | 5 | 路由检查 | ✅ 通过 | 4 条路由已注册，均懒加载 |
 | 6 | 接口请求检查 | ✅ 通过 | 12 个接口全部指向新地址 |
@@ -278,7 +280,7 @@
 | 9 | 异常态检查 | ❌ 失败 | 列表页缺少空态组件 |
 | 10 | H5 内嵌规范 | ✅ 通过 | 无状态栏、触摸区域合规 |
 | 11 | 浏览器兼容 | ✅ 通过 | ES5 + Autoprefixer 已配置 |
-| 12 | 构建架构 | ✅ 通过 | external + externalGlobals 正常 |
+| 12 | 构建架构 | 跳过 | 未启用 vendor 架构 |
 | 13 | 依赖清理检查 | ✅ 通过 | 无未使用的依赖 |
 | 14 | 性能检查 | ✅ 通过 | 懒加载/骨架屏/压缩已实施 |
 

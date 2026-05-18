@@ -6,7 +6,7 @@
 
 1. **修改说明**：本场景修改了哪些文件/模块/页面
 2. **接口映射汇总**（如有接口解析）：映射完成数 / 需人工确认数
-3. **测试结果**：CHECKLIST.md 检查项通过率及失败项说明
+3. **测试结果**：`h5-testing-checklist/references/testing-checklist.md` 检查项通过率及失败项说明
 4. **待用户验收项**：需要用户在真实设备/浏览器上手动验证的功能点
 
 ---
@@ -21,12 +21,12 @@
 |---|------|------|------|------|----------|------------|
 | 1 | B | API 解析 | $ref 链超过 3 层解析失败 | 递归解析未处理循环引用 | api-parsing.md 增加循环引用检测逻辑 | 否 |
 | 2 | B | Vendor 建立 | antd-mobile-icons 构建报错 | 包路径指向了 ESM 入口，需切到 CJS | vendor-setup.md 中修正 entry 路径 | 是 |
-| 3 | D | 测试验收 | 路由懒加载检查项误报 | 场景 D 的基础信息页不支持懒加载 | CHECKLIST.md 第 5 项增加排除说明 | 否 |
+| 3 | D | 测试验收 | 路由懒加载检查项误报 | 场景 D 的基础信息页不支持懒加载 | testing-checklist.md 第 5 项增加排除说明 | 否 |
 ```
 
 **自动填充规则**：
 
-- **测试失败项**（来自 CHECKLIST.md 执行结果）→ 自动填入问题表，修复建议填"修正对应检查项的代码或补充检查规则"
+- **测试失败项**（来自 `testing-checklist.md` 执行结果）→ 自动填入问题表，修复建议填"修正对应检查项的代码或补充检查规则"
 - **命令执行报错**（npm run build 失败、tsc 类型错误等）→ 自动填入问题表，记录退出码和关键报错信息
 - **用户纠正**（用户说"不对，这里应该这样"）→ 登记到问题表，标记为用户反馈
 
@@ -58,8 +58,8 @@
 | 问题来源 | 目标文件 | 修改方式 |
 |----------|----------|----------|
 | API 解析问题 | `scenes/common/api-parsing.md` | 在对应步骤增加边界情况处理逻辑 |
-| Vendor 建立问题 | `scenes/common/vendor-setup.md` | 修正脚本配置或增加条件判断 |
-| 测试验收问题 | `scenes/common/testing.md` 或 `CHECKLIST.md` | 补充检查规则或调整判定标准 |
+| Vendor 建立问题 | `h5-vendor-architecture/references/vendor-setup.md` | 修正脚本配置或增加条件判断 |
+| 测试验收问题 | `h5-testing-checklist/references/testing-workflow.md` 或 `h5-testing-checklist/references/testing-checklist.md` | 补充检查规则或调整判定标准 |
 | 场景流程问题 | 对应场景 reference 文件 | 修正步骤描述或增加前置条件说明 |
 | 通用约束问题 | `SKILL.md` | 更新全局强约束或前置条件 |
 

@@ -8,7 +8,7 @@
 □ 1. 类型检查 —— npm run type-check 或 tsc --noEmit
 □ 2. Lint 检查 —— npm run lint 或 eslint
 □ 3. 构建测试 —— npm run build
-□ 3.5. vendor 完整性校验 —— dist/ 不含 vendor 库代码
+□ 3.5. vendor 完整性校验 —— 仅场景 A 或 vendor_enabled=true 时执行；否则标记为“未启用 vendor，跳过”
 □ 4. 页面渲染检查 —— 新增/修改的组件导入正常
 □ 5. 路由检查 —— 路由配置包含新增页面
 □ 6. 接口请求检查 —— API 请求指向新地址
@@ -17,15 +17,15 @@
 □ 9. 异常态检查 —— 加载态/空态/错误态
 □ 10. H5 内嵌规范检查 —— 无状态栏/触摸区域≥44px/安全区域
 □ 11. 浏览器兼容检查 —— ES5/CSS 前缀/Flexbox
-□ 12. 构建架构检查 —— vendor 文件齐全/external 配置正确
+□ 12. 构建架构检查 —— 仅场景 A 或 vendor_enabled=true 时执行；否则标记为“未启用 vendor，跳过”
 □ 13. 依赖清理检查 —— 对照 package.json 移除未引用依赖
 □ 14. 性能检查 —— 路由懒加载/分包/骨架屏/压缩
 ```
 
-**所有命令必须实际执行**（不执行等于未通过）。启动 dev server 后检查控制台无报错，提示用户在浏览器中验证视觉效果。详细标准参考 CHECKLIST.md。
+**所有命令必须实际执行**（不执行等于未通过）。启动 dev server 后检查控制台无报错，提示用户在浏览器中验证视觉效果。详细标准参考 `h5-testing-checklist/references/testing-checklist.md`。
 
 **检查方式说明**：
-- **命令行自动化**（1/2/3/3.5/12/13/14）：通过执行命令或脚本直接验证，输出明确的通过/失败
+- **命令行自动化**（1/2/3/13/14，及 vendor 启用时的 3.5/12）：通过执行命令或脚本直接验证，输出明确的通过/失败
 - **代码审查**（4-11）：
   - 基础方式：通过静态分析代码验证，标注"代码审查通过，建议用户手动验证"
   - **增强方式**（如本工作流或 Claude 环境中有 **webapp-testing skill**）：启动 dev server，调用 webapp-testing skill 在浏览器中实际验证页面渲染、交互流程、异常态和 H5 内嵌规范。输出浏览器截图作为通过证明
@@ -34,7 +34,7 @@
 ## 场景额外检查
 
 **场景 A（架构改造）**: 重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）
-**场景 B / C / D（含接口或页面修改）**: 需执行完整 14 项 + 接口映射校验
+**场景 B / C / D（含接口或页面修改）**: 需执行完整 14 项 + 接口映射校验；其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
 **场景 C（首复贷开发）**: 需执行完整 14 项 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期和真实 WebView 原生交互。
 **场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
 

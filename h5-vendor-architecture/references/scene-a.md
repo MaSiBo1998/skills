@@ -20,7 +20,7 @@
 
 ## Step 2. vendor 架构建立
 
-完整步骤见 `scenes/common/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
+完整步骤见 `h5-vendor-architecture/references/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
 
 **→ 写入 checkpoint**: Step 2（vendor 架构建立）完成
 
@@ -28,7 +28,7 @@
 
 ## Step 3. 自动测试验收
 
-完整步骤见 `scenes/common/testing.md`。重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）。
+完整步骤见 `h5-testing-checklist/references/testing-workflow.md`。重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）。
 
 **→ 写入 checkpoint**: Step 3（自动测试验收）完成
 

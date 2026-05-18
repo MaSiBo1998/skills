@@ -1,6 +1,6 @@
 # 场景 D — 进件功能开发
 
-新增或修改进件申请流程，含接口适配 + vendor 架构。**只修改 Apply 相关页面和 API，不涉及其他功能模块。**
+新增或修改进件申请流程，含接口适配，可选 vendor 架构。**只修改 Apply 相关页面和 API，不涉及其他功能模块。**
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## Step 2. 询问 vendor 架构
 
-询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）：
+询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）。vendor 默认为不执行，只有用户确认或项目现有约束需要时才启用：
 
 - **是** → 执行 Step 4 vendor 架构建立
 - **否** → 跳过 Step 4
@@ -37,13 +37,13 @@
 
 ---
 
-## Step 4. vendor 架构建立
+## Step 4. vendor 架构建立（可选）
 
 如 Step 2 确认不需要 vendor 架构，跳过本步骤，直接写入 checkpoint 并进入 Step 5。
 
-完整步骤见 `scenes/common/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
+完整步骤见 `h5-vendor-architecture/references/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
 
-**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 4（vendor 架构建立）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 4（vendor 架构建立/跳过）完成
 
 ---
 
@@ -69,7 +69,7 @@
 
 ## Step 6. 自动测试验收
 
-完整步骤见 `scenes/common/testing.md`。执行 14 项通用测试 + 进件专项检查：
+完整步骤见 `h5-testing-checklist/references/testing-workflow.md`。执行 14 项通用测试 + 进件专项检查；vendor 相关检查仅在 `vendor_enabled=true` 时执行：
 
 ```
 □ 6 个步骤路由正确、顺序完整
@@ -98,7 +98,7 @@
 
 ## 错误处理
 
-- **构建失败**：检查 vendor 配置和接口层代码
+- **构建失败**：检查接口层代码；若启用了 vendor，再检查 vendor 配置
 - **进件步骤路由异常**：检查 `progress.ts` 中的 `getNextStep` 逻辑和路由配置
 - **原生交互不生效**：确认 `nativeBridge.ts` / `useAppBridge.ts` 中的方法名与对应 `references/country-*.md` 的原生协议一致；危地马拉项目对照 `references/country-guatemala.md`，不得因服务端字段混淆而改动原生回调字段名
 - **危地马拉字段映射异常**：重新对照 `references/country-guatemala.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构

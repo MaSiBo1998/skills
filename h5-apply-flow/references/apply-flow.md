@@ -132,6 +132,6 @@ getNextStep():
 
 ```
 ✅ pages/Apply/、services/api/apply.ts、路由、nativeBridge.ts
-✅ index.html（meta 标签）、static-app/vendor/ + scripts/build-static.mjs
+✅ index.html（meta 标签）；`static-app/vendor/` + `scripts/build-static.mjs` 仅在 `vendor_enabled=true` 时允许修改
 ❌ 其他业务页面、其他 API 层
 ```

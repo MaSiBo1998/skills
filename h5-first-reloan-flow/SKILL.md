@@ -9,11 +9,11 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 
 ## 执行方式
 
-1. 确认产品、国家、项目根目录、接口文档和是否需要 vendor 架构。
+1. 确认产品、国家、项目根目录、接口文档和是否需要 vendor 架构；vendor 默认为不执行，只有用户确认或项目现有约束需要时才启用。
 2. 加载 `references/first-reloan-flow.md`，按首复贷场景执行。
 3. 加载 `references/status-flow.md`，对齐状态组件架构和状态码映射。
 4. 接口字段迁移交给 `h5-api-mapping`。
-5. vendor 架构交给 `h5-vendor-architecture`。
+5. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
 6. 验收交给 `h5-testing-checklist`，必须执行首复贷状态流专项检查。
 
 ## 场景边界
