@@ -1,6 +1,6 @@
 ---
 name: front-workflow
-description: 马嗣博专属工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收、自我更新成长等场景，并协调对应子 skill 执行。
+description: 马嗣博专属工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、设计图复原、国家发布、测试验收、自我更新成长等场景，并协调对应子 skill 执行。
 ---
 
 # 马嗣博专属工作流
@@ -15,11 +15,13 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 | B 功能/API 开发 | 新项目、新接口、字段适配、首复贷功能 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
 | C 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | D 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
-| E 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
-| F 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
+| E 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-restore` -> `h5-testing-checklist` |
+| F 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
+| G 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
 
-若用户明确说“发布 / 发版 / 打 tag / 发布 mx|co|ng”，直接进入场景 E。
-若用户明确说“记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”，直接进入场景 F。
+若用户明确说“发布 / 发版 / 打 tag / 发布 mx|co|ng”，直接进入场景 F。
+若用户明确说“设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”，直接进入场景 E。
+若用户明确说“记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”，直接进入场景 G。
 
 ## 前置确认
 
@@ -64,6 +66,7 @@ description: 马嗣博专属工作流。用于识别架构改造、接口映射�
 - 接口映射：`h5-api-mapping/references/`
 - 进件流程与国家差异：`h5-apply-flow/references/`
 - 协议 HTML：`h5-agreement-html/references/`
+- 设计图复原：`design-image-restore`
 - 国家发布：`h5-release-tag/references/`
 - 测试验收：`h5-testing-checklist/references/`
 - 自我更新成长：`workflow-self-improvement`

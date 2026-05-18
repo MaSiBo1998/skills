@@ -1,4 +1,4 @@
 interface:
   display_name: "马嗣博专属工作流"
   short_description: "编排子 skill 并调度规则沉淀"
-  default_prompt: "使用 front-workflow 识别当前任务场景，调用对应子 skill，协调交付验收；需要沉淀规则时调用 workflow-self-improvement。"
+  default_prompt: "使用 front-workflow 识别当前任务场景，调用对应子 skill，协调交付验收；设计图复原调用 design-image-restore，需要沉淀规则时调用 workflow-self-improvement。"

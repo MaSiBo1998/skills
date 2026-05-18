@@ -54,6 +54,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 | API 文档解析、字段映射、请求响应类型、混淆字段 | `h5-api-mapping` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |
 | 协议文档解析、协议 HTML 输出规则 | `h5-agreement-html` |
+| 设计图复原、design 文件夹、切图复用、切图命名规范、设计稿视觉还原 | `design-image-restore` |
 | release-env、国家码、构建校验、Commit、Release Tag | `h5-release-tag` |
 | 通用验收、专项验收、人工验收项 | `h5-testing-checklist` |
 

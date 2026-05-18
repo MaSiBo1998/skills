@@ -10,6 +10,7 @@
 | `h5-api-mapping` | 接口文档解析与字段映射 |
 | `h5-apply-flow` | 进件流程开发，包含各国家差异 profile |
 | `h5-agreement-html` | 协议 HTML 生成 |
+| `design-image-restore` | 根据 design 文件夹图片复原设计 |
 | `h5-release-tag` | 国家版本发布 |
 | `h5-testing-checklist` | 测试验收清单 |
 | `workflow-self-improvement` | 工作流自我更新成长 |
