@@ -13,7 +13,7 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 2. 加载 `references/api-mapping.md`，按其中原流程执行。
 3. 先输出字段映射表，再改代码。
 4. 混淆字段迁移必须优先改 types，再用 TypeScript 报错逐处修复消费点。
-5. 如果是危地马拉进件，同时调用 `h5-guatemala-apply`。
+5. 如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile；接口映射只负责 API 差异，不决定进件流程分叉。
 
 ## 约束
 

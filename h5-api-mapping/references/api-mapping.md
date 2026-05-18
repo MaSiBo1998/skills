@@ -55,7 +55,7 @@
 
 ## 危地马拉进件项目约束
 
-当 checkpoint 中 `country=Guatemala` 或 `guatemala_apply=true` 时，按 `references/guatemala-apply.md` 执行以下额外规则：
+当 checkpoint 中 `country=Guatemala` 或 `country_profile=guatemala` 时，按 `h5-apply-flow/references/country-guatemala.md` 执行以下额外规则：
 
 1. 将接口迁移视为“同结构、不同混淆名”：只替换 API base URL、endpoint path、header key、request body key、response key 和配置值。
 2. 字段映射表必须拆分为 `header`、`endpoint`、`request`、`response` 四类，且每条记录包含接口、语义、旧混淆名/旧路径、新混淆名/新路径、涉及文件、状态。

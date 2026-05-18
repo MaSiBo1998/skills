@@ -8,8 +8,7 @@
 | --- | --- |
 | `h5-vendor-architecture` | vendor 架构建立 |
 | `h5-api-mapping` | 接口文档解析与字段映射 |
-| `h5-apply-flow` | 通用进件流程开发 |
-| `h5-guatemala-apply` | 危地马拉进件专项约束 |
+| `h5-apply-flow` | 进件流程开发，包含各国家差异 profile |
 | `h5-agreement-html` | 协议 HTML 生成 |
 | `h5-release-tag` | 国家版本发布 |
 | `h5-testing-checklist` | 测试验收清单 |

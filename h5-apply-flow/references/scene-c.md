@@ -8,7 +8,7 @@
 
 完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
 
-若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
+按国家选择 `references/country-profile-index.md` 中的 profile，并将 `country_profile` 写入 checkpoint。若国家为危地马拉（Guatemala / GT / 危地马拉），加载 `references/country-guatemala.md`，并将 `country=Guatemala`、`product_name`、`country_profile=guatemala`、`release_country_code=mx` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -51,7 +51,7 @@
 
 按 `references/apply-flow.md` 中的规范开发 Apply 各步骤页面（目录结构、路由、步骤进度控制、Entry 模式、各页面生命周期、原生交互、修改范围约束）。
 
-若 `guatemala_apply=true`，同时按 `references/guatemala-apply.md` 执行项目规范、接口对接要求、原生交互和数据处理规范。该文件优先级高于通用 `references/apply-flow.md` 中的旧 entry、步骤顺序和原生跳转说明。危地马拉项目不得重构接口结构，不得更改原生回调协议，不得扩大到非 Apply 业务模块。
+若 `country_profile=guatemala`，同时按 `references/country-guatemala.md` 执行项目规范、接口对接要求、原生交互和数据处理规范。该文件优先级高于通用 `references/apply-flow.md` 中的旧 entry、步骤顺序和原生跳转说明。危地马拉项目不得重构接口结构，不得更改原生回调协议，不得扩大到非 Apply 业务模块。
 
 危地马拉进件开发时必须特别对齐以下最终态逻辑：
 - 入口页 `/` 只负责 `entry=home` 的下一步重定向；非 home 入口应由 App 直接打开具体页面，兜底到 `/work`。
@@ -100,6 +100,6 @@
 
 - **构建失败**：检查 vendor 配置和接口层代码
 - **进件步骤路由异常**：检查 `progress.ts` 中的 `getNextStep` 逻辑和路由配置
-- **原生交互不生效**：确认 `nativeBridge.ts` / `useAppBridge.ts` 中的方法名与 `references/guatemala-apply.md` 的 Confiq-H5 原生协议一致；危地马拉项目不得因服务端字段混淆而改动原生回调字段名
-- **危地马拉字段映射异常**：重新对照 `references/guatemala-apply.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构
+- **原生交互不生效**：确认 `nativeBridge.ts` / `useAppBridge.ts` 中的方法名与对应 `references/country-*.md` 的原生协议一致；危地马拉项目对照 `references/country-guatemala.md`，不得因服务端字段混淆而改动原生回调字段名
+- **危地马拉字段映射异常**：重新对照 `references/country-guatemala.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构
 - **测试未通过**：修复对应模块后重跑单项测试

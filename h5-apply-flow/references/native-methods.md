@@ -2,7 +2,7 @@
 
 H5 与 App 原生端的交互方法协议。
 
-> 危地马拉项目例外：当 checkpoint 中 `country=Guatemala` 或 `guatemala_apply=true` 时，原生交互以 `references/guatemala-apply.md` 的 Confiq-H5 协议为准，统一使用 `goBack` / `updateUserInfo` / `reload` 等方法，不使用本文件中的 `goProfile`、`goFirstloan`、`goReloan` 旧跳转方法。
+> 国家差异例外：当 checkpoint 中存在 `country_profile` 时，原生交互以对应 `references/country-*.md` 为准。危地马拉使用 `country_profile=guatemala`，原生交互以 `references/country-guatemala.md` 的 Confiq-H5 协议为准，统一使用 `goBack` / `updateUserInfo` / `reload` 等方法，不使用本文件中的 `goProfile`、`goFirstloan`、`goReloan` 旧跳转方法。
 
 ## 说明
 

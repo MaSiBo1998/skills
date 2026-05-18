@@ -1,6 +1,6 @@
 ---
 name: front-workflow
-description: H5 内嵌应用主编排工作流。用于识别架构改造、接口映射、进件开发、危地马拉进件、协议 HTML、国家发布、测试验收等场景，并协调对应子 skill 执行。
+description: H5 内嵌应用主编排工作流。用于识别架构改造、接口映射、进件开发、协议 HTML、国家发布、测试验收等场景，并协调对应子 skill 执行。
 ---
 
 # H5 内嵌应用主工作流
@@ -13,8 +13,7 @@ description: H5 内嵌应用主编排工作流。用于识别架构改造、接�
 | --- | --- | --- |
 | A 架构改造 | static-app、vendor、本地资源加载、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
 | B 功能/API 开发 | 新项目、新接口、字段适配、首复贷功能 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
-| C 进件开发 | Apply、进件、步骤页、Entry、原生交互 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
-| C 危地马拉进件 | Guatemala、GT、危地马拉、Confiq-H5 基线 | `h5-api-mapping` -> `h5-apply-flow` -> `h5-guatemala-apply` -> `h5-testing-checklist` |
+| C 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | D 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
 | E 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
 
@@ -29,10 +28,10 @@ description: H5 内嵌应用主编排工作流。用于识别架构改造、接�
 - 项目根目录
 - 接口文档路径（如涉及接口适配）
 
-危地马拉进件必须额外写入：
+场景 C 进件必须额外写入：
 
-- `guatemala_apply=true`
-- “危地马拉进件走 mx 发布”
+- `country_profile`：如 `common`、`mexico`、`colombia`、`guatemala`
+- `release_country_code`：从 `release-env` 或国家差异 profile 得出
 
 ## 国家码规则
 
@@ -40,6 +39,7 @@ description: H5 内嵌应用主编排工作流。用于识别架构改造、接�
 - 危地马拉没有 `gt` 发布码。
 - 危地马拉是业务国家，发布走 `mx`。
 - 危地马拉进件项目中 `release-env=mx` 是预期行为，不是国家不一致。
+- 国家差异只在 `h5-apply-flow` 的 country profile 中表达，不拆成独立进件流程。
 
 ## Checkpoint
 
@@ -56,8 +56,7 @@ description: H5 内嵌应用主编排工作流。用于识别架构改造、接�
 
 - vendor 架构：`h5-vendor-architecture/references/`
 - 接口映射：`h5-api-mapping/references/`
-- 进件流程：`h5-apply-flow/references/`
-- 危地马拉进件：`h5-guatemala-apply/references/`
+- 进件流程与国家差异：`h5-apply-flow/references/`
 - 协议 HTML：`h5-agreement-html/references/`
 - 国家发布：`h5-release-tag/references/`
 - 测试验收：`h5-testing-checklist/references/`
