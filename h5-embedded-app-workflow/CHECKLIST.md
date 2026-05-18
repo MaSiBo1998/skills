@@ -219,7 +219,13 @@
   - 原生方法名和 H5 全局回调字段未随服务端混淆字段一起改名
   - `entry=home/profile/firstLoan/reLoan` 四种提交后去向正确
   - Confiq-H5 步骤顺序为 `work -> personal -> id -> face -> contacts -> bank`
-  - 图片、联系人、设备、权限、用户信息刷新仍通过 native bridge 获取和提交
+  - `getUserDetail` 与 `getHomeInfo` 不混用：步骤状态来自 `/jocosely/pivot`，完件返回原生前首页信息来自 `/puruloid/grim`
+  - `id-capture`、`face-capture-camera` 作为拍摄子流程已注册路由，且能带 draft/state 返回主表单页
+  - `entry=home` 主流程返回触发留存弹窗；`profile/firstLoan/reLoan` 不弹留存，直接走原生 `goBack`
+  - 联系人、设备、权限、登录态、用户信息刷新仍通过 native bridge；证件和自拍拍摄使用页面内 `getUserMedia`，不得退回旧 `openCamera` 协议
+  - 包含真实输入框的页面已接入 `useKeyboardFocusScroll()`，根节点挂 `pageRef`，输入外层保留 `input-wrapper`，底部按钮保留 `submit-bar`
+  - 移动端聚焦底部输入框时，页面在 100ms/220ms/360ms 多次滚动校正后输入框仍完整露出，且不被键盘或固定提交按钮遮挡
+  - 输入字体保持 16px 级别，打开选择器/通讯录/弹层前已 blur 当前输入框，避免 iOS 聚焦放大或键盘残留
 - **失败判定**: 任一项不满足即失败；若接口结构与基准不一致，必须暂停并要求用户确认差异
 
 ---

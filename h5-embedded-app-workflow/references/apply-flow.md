@@ -16,7 +16,9 @@ src/pages/Apply/
 ├── ContactsInfo.tsx              ← 联系人信息
 ├── PersonalInfo.tsx              ← 个人信息
 ├── IdInfo.tsx                    ← 身份证信息（OCR/拍照）
-├── FaceCapture.tsx               ← 人脸验证（摄像头）
+├── IdCapture.tsx                 ← 身份证页面内拍照
+├── FaceCapture.tsx               ← 人脸验证预览/提交
+├── FaceCaptureCamera.tsx         ← 自拍页面内摄像头
 ├── BankInfo.tsx                  ← 银行信息（Bre-B/电子钱包）
 ├── components/
 │   ├── ApplySteps.tsx            ← 步骤条
@@ -34,7 +36,9 @@ src/pages/Apply/
 | `/contacts` | ContactsInfo | contactInfo |
 | `/personal` | PersonalInfo | personalInfo |
 | `/id` | IdInfo | identityInfo |
+| `/id-capture` | IdCapture | identityInfo 子流程 |
 | `/face-capture` | FaceCapture | faceInfo |
+| `/face-capture-camera` | FaceCaptureCamera | faceInfo 子流程 |
 | `/bank` | BankInfo | bankInfo |
 
 AuthGuard 包裹，不在 AppLayout 内。
@@ -93,7 +97,7 @@ getNextStep():
 
 ## 原生交互
 
-完整协议见 `references/native-methods.md`。统一封装在 `src/services/nativeBridge.ts`。
+完整协议见 `references/native-methods.md`。统一封装在项目的 bridge hook / utility 中，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`；页面层不要直接调用原生全局对象。
 
 ---
 

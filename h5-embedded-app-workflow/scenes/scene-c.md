@@ -8,7 +8,7 @@
 
 完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
 
-若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 Confiq-H5 基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。若目标项目 `release-env` 与用户确认国家不一致，先提示并要求确认。
+若国家为危地马拉（Guatemala / GT / 危地马拉），立即加载 `references/guatemala-apply.md`，并将 `country=Guatemala`、`product_name`、`guatemala_apply=true` 写入 checkpoint。后续开发以 `D:\code\confiq-h5` 的最终态基线为强约束：同国项目接口结构一致，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。若目标项目 `release-env` 与用户确认国家不一致，先提示并要求确认。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -31,7 +31,7 @@
 
 完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
-危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。若代码 API path 与 swagger 冲突，以接口文档为准修正并在交付中说明。
+危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明；但 Confiq 基线本身的历史冲突点以 `D:\code\confiq-h5` 最终代码语义为准。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
 
@@ -53,6 +53,14 @@
 
 若 `guatemala_apply=true`，同时按 `references/guatemala-apply.md` 执行项目规范、接口对接要求、原生交互和数据处理规范。该文件优先级高于通用 `references/apply-flow.md` 中的旧 entry、步骤顺序和原生跳转说明。危地马拉项目不得重构接口结构，不得更改原生回调协议，不得扩大到非 Apply 业务模块。
 
+危地马拉进件开发时必须特别对齐以下最终态逻辑：
+- 入口页 `/` 只负责 `entry=home` 的下一步重定向；非 home 入口应由 App 直接打开具体页面，兜底到 `/work`。
+- 主步骤顺序固定为 `workInfo -> personalInfo -> identityInfo -> faceInfo -> contactInfo -> bankInfo`，展示为 5 阶段进度：work、personal、id/face、contacts、bank。
+- 各步骤保存成功统一先 `updateUserInfo(response)`；`entry=home` 继续 `getNextStepFromUserDetail()`，`entry=profile/firstLoan/reLoan` 交给原生 `goBack()`；若保存响应 `dilly===1`，先请求首页信息 `getHomeInfo()` 并透传给 `goBack(homeInfo)`。
+- 原生返回统一走 `window.onNativeBack()` → `ApplyLayout.requestBack()`；仅 home 入口主流程页弹 `RetentionModal`，`id-capture` / `face-capture-camera` 子流程返回到对应主页面。
+- 包含真实输入框的 Apply 页面必须接入 `useKeyboardFocusScroll()`，根节点挂 `pageRef`，保留 `input-wrapper`、`submit-bar`、16px 输入字体和 `page-container` 底部 padding，确保键盘弹起后输入框不会被键盘或固定提交按钮遮挡。
+- 打开选择器、级联选择器、通讯录、弹层前先 blur 当前输入框；不要用移动 `submit-bar` 的方式处理键盘遮挡。
+
 开发时结合 Step 3 的字段映射表（如有）进行接口适配。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 5（进件功能开发）完成
@@ -67,9 +75,10 @@
 □ 6 个步骤路由正确、顺序完整
 □ 每步表单缓存和恢复正常
 □ getNextStep 进度逻辑正确
-□ 原生交互正常触发（相机/相册/弹窗）
+□ 原生/页面能力正常触发（通用相机/相册/弹窗；危地马拉证件和自拍为页面内 getUserMedia，通讯录为 openContact）
 □ Entry 参数正确处理（通用 home/profile/firstEdit/reloanEdit；危地马拉 home/profile/firstLoan/reLoan）
-□ 步骤条展示正确（仅前 3 步）
+□ 步骤条展示正确（危地马拉为 5 阶段：work、personal、id/face、contacts、bank）
+□ 输入框聚焦后页面滚动正确，底部输入框不被键盘和固定 submit-bar 遮挡
 □ 退出拦截留存弹窗正常
 □ API 字段映射正确、风险埋点集成
 □ 危地马拉项目：产品/国家已确认，接口仅替换 URL、endpoint 与混淆字段名，header/endpoint/request/response 映射完整
