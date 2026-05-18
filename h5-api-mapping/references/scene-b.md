@@ -6,7 +6,7 @@
 
 ## Step 1. 输入收集
 
-完整步骤见 `scenes/common/input-collection.md`。收集项目、接口文档。
+完整步骤见 `h5-testing-checklist/references/input-collection.md`。收集项目、接口文档。
 
 **→ 写入 checkpoint**：更新 `.workflow-checkpoint.json`，标记 Step 1（输入收集）完成
 
@@ -40,7 +40,7 @@
 
 如 Step 1 未提供接口文档，跳过本步骤，直接写入 checkpoint 并进入 Step 5。
 
-完整步骤见 `scenes/common/api-parsing.md`。按优先级读取文档，输出字段映射表，修改接口层代码。
+完整步骤见 `h5-api-mapping/references/api-mapping.md`。按优先级读取文档，输出字段映射表，修改接口层代码。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 4（接口解析）完成
 
@@ -76,7 +76,7 @@
 
 ## Step 7. 交付
 
-完整步骤见 `scenes/common/delivery.md`。输出修改说明、接口映射汇总、测试结果、待用户验收项。
+完整步骤见 `h5-testing-checklist/references/delivery.md`。输出修改说明、接口映射汇总、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 

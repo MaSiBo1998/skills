@@ -67,7 +67,7 @@
 3. Commit 信息（是否提交、提交哈希）
 4. 最终 Release Tag 与推送结果
 
-完整交付模板见 `scenes/common/delivery.md`。
+完整交付模板见 `h5-testing-checklist/references/delivery.md`。
 
 **→ 清理 checkpoint**：删除 `.workflow-checkpoint.json`，工作流完成
 

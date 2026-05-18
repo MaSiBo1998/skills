@@ -36,7 +36,7 @@
 
 ## Step 4. 交付
 
-完整步骤见 `scenes/common/delivery.md`。输出架构改造清单（改了哪些配置文件）、测试结果、待用户验收项。
+完整步骤见 `h5-testing-checklist/references/delivery.md`。输出架构改造清单（改了哪些配置文件）、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 

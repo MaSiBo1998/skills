@@ -28,7 +28,7 @@
 - **命令行自动化**（1/2/3/13/14，及 vendor 启用时的 3.5/12）：通过执行命令或脚本直接验证，输出明确的通过/失败
 - **代码审查**（4-11）：
   - 基础方式：通过静态分析代码验证，标注"代码审查通过，建议用户手动验证"
-  - **增强方式**（如本工作流或 Claude 环境中有 **webapp-testing skill**）：启动 dev server，调用 webapp-testing skill 在浏览器中实际验证页面渲染、交互流程、异常态和 H5 内嵌规范。输出浏览器截图作为通过证明
+  - **增强方式**（如当前 agent 环境中有 **webapp-testing skill**）：启动 dev server，调用 webapp-testing skill 在浏览器中实际验证页面渲染、交互流程、异常态和 H5 内嵌规范。输出浏览器截图作为通过证明
   - 选择条件：项目可正常 `npm run dev` 且无特殊安全限制时优先使用增强方式
 
 ## 场景额外检查
@@ -40,4 +40,4 @@
 
 ## Skill 改进建议
 
-详见 `scenes/common/delivery.md`。验收时发现的 Skill 问题和优化建议在交付步骤中统一处理。
+详见 `h5-testing-checklist/references/delivery.md`。验收时发现的 Skill 问题和优化建议在交付步骤中统一处理。

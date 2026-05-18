@@ -14,7 +14,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | A 架构改造 | static-app、vendor、本地资源加载、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
 | B 功能/API 开发 | 接口/字段替换型迁移、普通功能/API 开发、新接口、字段适配 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
 | C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
-| D 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
+| D 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | E 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
@@ -26,6 +26,13 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 若用户明确说“新项目 / 复制旧 H5 项目 / 复制 prestaone-h5 / 字段名替换 / 接口地址替换 / 参数名替换 / 混淆字段替换 / 业务流程不变”，直接进入场景 B 的同结构混淆字段替换模式。此模式只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段，不自动进入首复贷或进件业务流程开发。
 若用户明确说“首贷 / 复贷 / 首复贷 / 状态流 / 订单状态 / 未确认贷款 / 放款中 / 放款失败 / 还款期 / 产品详情 / App 列表”，直接进入场景 C。场景 C 是首复贷独立场景，不归并为普通功能/API 开发，也不归并为进件开发；执行细节归属 `h5-first-reloan-flow`。
 场景 C 的日常首复贷需求默认复用目标项目现有流程和字段，只补充本次业务需求；只有用户明确提供新接口文档、新字段、新接口地址或要求新项目迁移时，才先调用 `h5-api-mapping` 执行接口/字段替换。
+
+## 调度连续性规则
+
+- 主工作流只决定场景和调用顺序；具体步骤必须落到对应子 skill，避免在主 skill 重复维护业务细节。
+- 涉及接口/字段替换时，先执行 `h5-api-mapping`，再回到业务子 skill 做场景专项校验；不涉及接口/字段替换时，业务子 skill 直接复用项目现有 API。
+- 同一需求同时命中多个场景时，以“字段替换/架构/业务/验收/发布”的依赖顺序串联，不把字段替换误判为首复贷或进件业务流程变更。
+- 共享输入、checkpoint、测试和交付说明统一引用 `h5-testing-checklist/references/`；API 解析统一引用 `h5-api-mapping/references/api-mapping.md`；不要再引用已迁移的旧 common 场景目录。
 
 ## 前置确认
 

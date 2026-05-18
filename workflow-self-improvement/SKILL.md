@@ -34,6 +34,16 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - 说明校验结果。
    - 若暂不沉淀，说明原因和建议沉淀项。
 
+## 全量巡检
+
+当用户要求检查所有 skill、提高工作流质量或修复工作流连贯性时，必须额外执行以下巡检：
+
+- 扫描所有本地 skill 的 `SKILL.md`、`references/*.md` 和 `agents/openai.yaml`。
+- 检查主工作流场景调度、子 skill 执行方式、测试验收和交付说明是否互相对齐。
+- 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。
+- 检查新增或调整触发语义后，是否同步更新对应 `agents/openai.yaml`。
+- 对所有被修改的 skill 运行 `quick_validate.py`，并用关键字搜索验证旧规则不再残留。
+
 ## Checkpoint 集成
 
 目标项目根目录的 `.workflow-checkpoint.json` 支持以下字段：

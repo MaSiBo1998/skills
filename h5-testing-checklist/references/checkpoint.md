@@ -137,4 +137,4 @@
 **→ 写入 checkpoint**: Step N（步骤名）完成
 ```
 
-执行 Claude 按照 `scenes/common/checkpoint.md` 格式更新 `.workflow-checkpoint.json`。
+执行者按照 `h5-testing-checklist/references/checkpoint.md` 格式更新 `.workflow-checkpoint.json`。

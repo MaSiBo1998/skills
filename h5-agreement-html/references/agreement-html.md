@@ -34,7 +34,7 @@
 
 执行要求：
 - 读取优先级（当输入为 `.docx`）：
-  1) 仅调用 `anthropics/skills@docx` 提取正文
+  1) 仅调用当前环境可用的 `docx` skill 提取正文
   2) 若 skill 未安装、不可访问或依赖缺失，先修复 skill 可用性（如补装缺失 Python 依赖）后重试
   3) 若重试后仍失败，阻断后续生成并提示用户修复环境；不得回退本地解析（如 `python-docx`）
 - 协议链接不参与正文解析，只用于文件命名
@@ -102,7 +102,7 @@ public/
 □ 文本语义与源文档一致（抽样比对关键条款）
 □ 页面中不存在“Enlace original/原始链接”来源页脚
 □ 文件路径位于指定 public 目录
-□ 输入为 `.docx` 时，仅使用 `anthropics/skills@docx` 解析；如发生依赖缺失，已先修复依赖后重试
+□ 输入为 `.docx` 时，仅使用当前环境可用的 `docx` skill 解析；如发生依赖缺失，已先修复依赖后重试
 □ 若提供协议链接，输出文件名与链接末尾 `.html` 名称一致
 ```
 
@@ -121,7 +121,7 @@ public/
 3. 验收结果（通过/失败 + 失败原因）
 4. App 侧可直接访问的相对路径示例（如 `/privacy-policy.html`）
 
-完整交付模板见 `scenes/common/delivery.md`。
+完整交付模板见 `h5-testing-checklist/references/delivery.md`。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 
@@ -130,7 +130,7 @@ public/
 ## 错误处理
 
 - **文档无法读取**：提示具体文件路径和错误类型，要求用户提供可读版本
-- **docx skill 不可用**：阻断生成，提示安装 `anthropics/skills@docx` 后重试
+- **docx skill 不可用**：阻断生成，提示安装或启用 `docx` skill 后重试
 - **docx skill 依赖缺失**：按报错安装缺失依赖（例如 `python -m pip install defusedxml`）并重试；仍失败则阻断
 - **解析后正文为空**：阻断生成，要求重新提供文档
 - **输出目录不存在**：自动创建目录后再生成

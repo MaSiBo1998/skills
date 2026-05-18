@@ -48,7 +48,7 @@
 
 ### 自动生成 TypeScript 类型（可选）
 
-如本工作流或 Claude 环境中有 **openapi-to-typescript skill**（自动判断），完成字段映射表后额外执行：
+如当前 agent 环境中有 **openapi-to-typescript skill**（自动判断），完成字段映射表后额外执行：
 
 1. 调用 openapi-to-typescript 解析 `swaggerApi.json` / `api.json`
 2. 生成 TypeScript 接口定义文件，输出到 `src/types/api.ts`（或项目约定的类型目录）

@@ -57,7 +57,7 @@
 
 | 问题来源 | 目标文件 | 修改方式 |
 |----------|----------|----------|
-| API 解析问题 | `scenes/common/api-parsing.md` | 在对应步骤增加边界情况处理逻辑 |
+| API 解析问题 | `h5-api-mapping/references/api-mapping.md` | 在对应步骤增加边界情况处理逻辑 |
 | Vendor 建立问题 | `h5-vendor-architecture/references/vendor-setup.md` | 修正脚本配置或增加条件判断 |
 | 测试验收问题 | `h5-testing-checklist/references/testing-workflow.md` 或 `h5-testing-checklist/references/testing-checklist.md` | 补充检查规则或调整判定标准 |
 | 场景流程问题 | 对应场景 reference 文件 | 修正步骤描述或增加前置条件说明 |

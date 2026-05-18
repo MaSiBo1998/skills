@@ -6,7 +6,7 @@
 
 ## Step 1. 输入收集
 
-完整步骤见 `scenes/common/input-collection.md`。收集项目、产品名、国家、接口文档。
+完整步骤见 `h5-testing-checklist/references/input-collection.md`。收集项目、产品名、国家、接口文档。
 
 按国家选择 `references/country-profile-index.md` 中的 profile，并将 `country_profile` 写入 checkpoint。若国家为危地马拉（Guatemala / GT / 危地马拉），加载 `references/country-guatemala.md`，并将 `country=Guatemala`、`product_name`、`country_profile=guatemala`、`release_country_code=mx` 写入 checkpoint。危地马拉进件同国项目按同结构、不同接口和混淆字段处理，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
 
@@ -29,7 +29,7 @@
 
 如 Step 1 未提供接口文档，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
 
-完整步骤见 `scenes/common/api-parsing.md`。对照现有 Apply 模块 API 封装输出字段映射表。
+完整步骤见 `h5-api-mapping/references/api-mapping.md`。对照现有 Apply 模块 API 封装输出字段映射表。
 
 危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明。
 
@@ -90,7 +90,7 @@
 
 ## Step 7. 交付
 
-完整步骤见 `scenes/common/delivery.md`。输出进件步骤修改说明、接口映射汇总、测试结果、待用户验收项。
+完整步骤见 `h5-testing-checklist/references/delivery.md`。输出进件步骤修改说明、接口映射汇总、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 
