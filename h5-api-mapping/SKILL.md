@@ -11,6 +11,7 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 
 - 普通接口适配：新增接口、接口字段变化、请求/响应结构调整。
 - 同结构、不同混淆字段替换：复制旧 H5 项目作为新项目时，业务流程、接口语义、请求入参和返回数据结构保持一致，只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段。
+- 项目类型基准替换：`src/types/home.ts` 是首页信息接口结构规范，`src/types/device.ts` 是原生交互传入的设备信息结构规范，`src/types/bankList.ts` 是银行列表结构规范；新接口文档替换时以这三份 types 为结构基准，只替换 key 值。
 
 ## 执行方式
 
@@ -26,4 +27,5 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 - 不做无差别全局字符串替换。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。
 - 同结构混淆字段替换模式不改业务流程、不增删字段、不改变字段类型、不改变数组/对象层级、不改变枚举业务含义。
+- 对 `home.ts`、`device.ts`、`bankList.ts` 执行新接口文档替换时，不改结构，只替换 key；若文档出现新增字段、缺字段、层级变化或类型变化，必须暂停并标记为“结构不一致，需确认”。
 - 原生 bridge 回调字段不属于服务端混淆字段，不参与替换。
