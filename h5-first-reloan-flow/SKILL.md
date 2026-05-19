@@ -28,7 +28,8 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 3. 加载 `references/first-reloan-flow.md`，按首复贷场景执行，优先复用目标项目现有流程。
 4. 加载 `references/status-flow.md`，对照目标项目真实状态码、字段和组件补充或校验本次业务改动。
 5. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
-6. 验收交给 `h5-testing-checklist`，必须执行首复贷状态流专项检查，并说明哪些检查依赖真实 App WebView。
+6. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次首复贷需求的可选操作；未明确要求时不阻断首复贷主流程。
+7. 验收交给 `h5-testing-checklist`，必须执行首复贷状态流专项检查，并说明哪些检查依赖真实 App WebView。
 
 ## 场景边界
 
@@ -37,3 +38,4 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 - 首贷和复贷优先复用状态组件；差异通过数据源、路径、状态分支、埋点 code 和原生方法表达，不复制两套页面。
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
 - 涉及原生交互时必须遵守 `front-workflow` 的公共原生桥接规则：Flutter App WebView 统一 `method/value` 协议；有 `window.flutter.postMessage` 时优先调用它，没有时再用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method, value }))` 兼容处理；不要改成 `callHandler(action, payload)`。
+- 首复贷场景的飞书告警实现细节归属 `h5-feishu-alert`，本 skill 只负责在用户明确要求时调度它。

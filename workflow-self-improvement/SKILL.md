@@ -24,9 +24,11 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - 仅在普通业务任务中发现可沉淀项时，先在交付里列出“建议沉淀项”，询问是否写入 skill。
    - 保持 `name` 和目录名稳定，除非用户明确要求改 skill ID。
    - 同步更新 `agents/openai.yaml` 中与展示、默认提示相关的文案。
+   - 新增 skill 或调整 skill 之间的调度链接后，必须同步到 Trae、Codex、Claude 的运行时 skill 目录，并确认引用方与被引用方都存在。
 4. 校验更新：
    - 修改任意 skill 后，运行 `skill-creator/scripts/quick_validate.py <skill目录>`。
    - 检查 diff，确认只改了本次沉淀相关内容。
+   - 新增 skill 后检查 `~/.trae/skills/<skill>`、`~/.codex/skills/<skill>`、`~/.claude/skills/<skill>` 都已同步；若本机还维护其他运行时目录，也一并同步。
    - 若更新影响发版、验收、接口映射等关键流程，在交付中说明仍需真实项目执行验证的部分。
 5. 交付输出：
    - 说明沉淀了什么规则。
@@ -63,6 +65,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 | 跨功能/首复贷/进件的公共原生桥接协议 | `front-workflow` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
 | API 文档解析、字段映射、请求响应类型、混淆字段 | `h5-api-mapping` |
+| 飞书前端告警、白屏监控、线上异常预警 | `h5-feishu-alert` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |
 | 首贷、复贷、状态流、订单详情、App 列表、未确认、放款、还款 | `h5-first-reloan-flow` |
 | 协议文档解析、协议 HTML 输出规则 | `h5-agreement-html` |
@@ -78,3 +81,16 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 不覆盖用户未要求修改的 skill 内容。
 - 不自动创建新的国家进件 skill；国家差异优先沉淀到 `h5-apply-flow` 的 country profile。
 - 不因沉淀规则而跳过真实项目的构建、测试或人工 WebView 验证。
+
+## 多运行时链接同步
+
+当新增 skill、重命名 skill、或让一个 skill 调度另一个 skill 时，按以下顺序同步链接：
+
+1. 以 `C:\Users\11731\Desktop\skills\<skill>` 作为源目录。
+2. 将新增或变更的 skill 目录同步到：
+   - `C:\Users\11731\.trae\skills\<skill>`
+   - `C:\Users\11731\.codex\skills\<skill>`
+   - `C:\Users\11731\.claude\skills\<skill>`
+3. 如果引用方 skill 的 `SKILL.md` 或 `agents/openai.yaml` 发生变化，也同步引用方目录，避免运行时仍使用旧调度关系。
+4. 同步后用关键字搜索确认 Trae、Codex、Claude 三处都能找到新增 skill 名和调度链接。
+5. 对源目录和同步后的关键目录运行 `quick_validate.py`，至少覆盖新增 skill 和 `workflow-self-improvement`。

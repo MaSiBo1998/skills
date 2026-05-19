@@ -17,7 +17,8 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
    - 危地马拉：`references/country-guatemala.md`
 4. 只有本次涉及接口文档、新字段、新接口地址、新项目迁移或字段替换时，接口字段迁移才交给 `h5-api-mapping`；普通进件页面/交互补充复用现有 API。
 5. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
-6. 验收交给 `h5-testing-checklist`。
+6. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
+7. 验收交给 `h5-testing-checklist`。
 
 ## 约束
 
@@ -32,3 +33,4 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 - 级联地址选择器长选项优先通过动态字号、按空格换行和列内宽度约束保证完整展示，禁止使用会把普通单词强制拆开的 `overflow-wrap: anywhere`。
 - 个人信息地址提交值若接口要求连字符拼接，必须确认分隔符是否带空格；Confiq-H5 地址值使用 `州-市-区`，每级 `trim()` 后用 `join('-')`。
 - 身份证性别选项必须同时确认展示文案和提交枚举；Confiq-H5 西语展示为 `Masculino` / `Femenino`，提交值为男 `H`、女 `M`。
+- 进件场景的飞书告警实现细节归属 `h5-feishu-alert`，本 skill 只负责在用户明确要求时调度它。

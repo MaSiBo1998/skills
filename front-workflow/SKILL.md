@@ -13,8 +13,8 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | --- | --- | --- |
 | A 架构改造 | static-app、vendor、本地资源加载、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
 | B 功能/API 开发 | 接口/字段替换型迁移、普通功能/API 开发、新接口、字段适配 | `h5-api-mapping` -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
-| C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
-| D 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> `h5-testing-checklist` |
+| C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
+| D 进件开发 | Apply、进件、步骤页、Entry、原生交互；国家差异如步骤排序、发布环境、字段约束 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
 | E 协议 HTML | 授权、隐私、贷款、条款文档转 HTML | `h5-agreement-html` |
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
@@ -58,6 +58,11 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | H 工作流自我更新 | 要沉淀的问题 | 目标 skill；未指定时由工作流判断 |
 
 写入 checkpoint 时只写入已确认字段，例如 `product_name`、`country`、`api_doc_path`、`project_config`、`target_route`、`release_env_path`。
+
+## 可选监控能力
+
+- 场景 C 首复贷和场景 D 进件都支持飞书前端告警作为可选操作；用户明确要求“飞书告警 / 预警 / 白屏监控 / 前端监控”时调用 `h5-feishu-alert`。
+- 主工作流只负责调度 `h5-feishu-alert`，不要在这里维护飞书告警实现细节。
 
 ## 公共原生桥接规则
 
@@ -121,6 +126,7 @@ window.flutter_inappwebview.callHandler(
 - 接口映射：`h5-api-mapping/references/`
 - 进件流程与国家差异：`h5-apply-flow/references/`
 - 首复贷状态流与订单详情：`h5-first-reloan-flow/references/`
+- 飞书前端告警：`h5-feishu-alert`
 - 协议 HTML：`h5-agreement-html/references/`
 - 设计图解析：`design-image-analysis`
 - 设计图复原：`design-image-restore`

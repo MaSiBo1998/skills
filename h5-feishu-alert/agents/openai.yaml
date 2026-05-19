@@ -1,0 +1,4 @@
+interface:
+  display_name: "H5 飞书前端告警"
+  short_description: "为 H5 项目接入只在线上生产触发的飞书前端告警"
+  default_prompt: "使用 h5-feishu-alert 为内嵌 H5 项目接入飞书前端告警/预警/白屏监控；告警接口路径必须进入项目 API 配置文件统一管理，发送只在线上生产环境触发，默认覆盖 React 渲染崩溃、全局 JS 错误、未捕获 Promise 异常和疑似白屏或长时间 loading。"
