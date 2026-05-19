@@ -1,4 +1,4 @@
 interface:
   display_name: "国家发布"
   short_description: "发布国家版本并打 Tag"
-  default_prompt: "使用 h5-release-tag 执行构建校验、提交发布改动、生成 Release Tag 并推送。"
+  default_prompt: "使用 h5-release-tag 在用户直接要求发布或 front-workflow 确认进入场景 G 后，执行构建校验、提交发布改动、生成 Release Tag 并推送；不要判断普通业务交付是否应该发布。"

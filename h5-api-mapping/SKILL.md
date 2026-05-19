@@ -16,7 +16,7 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 
 1. 按 `swaggerApi.json -> api.json -> api.md -> api.html` 顺序查找接口文档。
 2. 加载 `references/api-mapping.md`，按其中原流程执行。
-3. 先输出字段映射表，再改代码。
+3. 先按标准字段映射表模板输出字段映射表，再改代码。
 4. 混淆字段迁移必须优先改 types，再用 TypeScript 报错逐处修复消费点。
 5. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口映射只负责 API 差异，不决定业务流程分叉。
 

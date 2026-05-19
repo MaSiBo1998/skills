@@ -4,6 +4,17 @@
 
 ---
 
+## 0. 验收等级确认
+
+- **方法**: 根据 `h5-testing-checklist/references/testing-workflow.md` 判断验收等级。
+- **检查项**:
+  - `focused`：普通小改、文案、样式、小交互；只执行类型检查、构建测试、相关静态检查和专项检查。
+  - `full`：默认业务开发、接口替换、首复贷/进件改动；执行完整 14 项 + 场景专项。
+  - `release`：准备发布；执行 `full`，并记录 release-env、构建产物和人工 WebView 待验项。
+- **失败判定**: 发布前未使用 `release`，或高风险业务/接口改动被降级为 `focused`。
+
+---
+
 ## 1. 类型检查
 
 - **命令**: `npm run type-check` 或 `tsc --noEmit` 或 `vue-tsc --noEmit`

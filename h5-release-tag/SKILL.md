@@ -5,19 +5,21 @@ description: 国家版本发布。用于读取 release-env，按 mx、co、ng �
 
 # 国家发布
 
-本 skill 只负责发版、提交、打 Tag 和推送。
+本 skill 只负责发版、提交、打 Tag 和推送。它不判断业务是否应该发布；仅在用户直接要求发布，或 `front-workflow` 交付出口确认进入场景 G 后执行。
 
 ## 执行方式
 
-1. 加载 `references/release-tag.md`，按其中原流程执行。
-2. 读取项目根目录 `release-env`。
-3. 执行构建校验。
-4. 仅暂存发布相关文件。
-5. 生成 Commit、Release Tag 并推送。
+1. 确认本次是直接发布请求，或已由 `front-workflow` 交付出口确认进入场景 G。
+2. 加载 `references/release-tag.md`，按其中原流程执行。
+3. 读取项目根目录 `release-env`。
+4. 执行构建校验。
+5. 仅暂存发布相关文件。
+6. 生成 Commit、Release Tag 并推送。
 
 ## 约束
 
 - 国家码只能是 `mx / co / ng`。
+- 不负责决定普通业务交付是否发布；发布询问由 `front-workflow` 和交付模块统一处理。
 - 不创建 `gt` 标签。
 - 危地马拉进件走 `mx` 发布。
 - Tag 格式必须是 `release-{国家码}-{YYYYMMDD}-v{主}.{次}.{补丁}`。

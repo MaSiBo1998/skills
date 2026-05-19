@@ -30,6 +30,26 @@
 
 如果文档显示结构不一致，立即暂停并向用户确认，不继续套用同结构替换模式。
 
+### 标准字段映射表模板
+
+同结构、不同混淆字段替换必须按以下固定列输出字段映射表：
+
+| 类别 | 接口/配置项 | 业务语义 | 旧字段/旧路径 | 新字段/新路径 | 涉及文件 | 状态 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| header | 示例：全局请求头 | 请求头 key | 旧 header key | 新 header key | `src/services/http.ts` | 待处理/已完成/需确认 |  |
+| endpoint | 示例：获取首页状态 | 接口路径/base URL | 旧 path/baseURL | 新 path/baseURL | `src/services/api/urls.ts` | 待处理/已完成/需确认 |  |
+| request | 示例：提交贷款申请 | 请求 body/query 参数 | 旧请求字段 | 新请求字段 | `src/services/api/order.ts` | 待处理/已完成/需确认 |  |
+| response | 示例：产品详情 | 响应字段 | 旧响应字段 | 新响应字段 | `src/types/*.ts`、消费组件 | 待处理/已完成/需确认 |  |
+| global_config | 示例：app 名称/成功码 | 全局配置字段 | 旧配置值/字段 | 新配置值/字段 | `.env*`、`src/config/*` | 待处理/已完成/需确认 |  |
+
+类别含义：
+
+- `header`：请求头 key。
+- `endpoint`：接口路径和 API base URL。
+- `request`：请求 body/query 参数。
+- `response`：响应字段。
+- `global_config`：`appName`、`baseURL`、成功码、token 过期码等配置。
+
 ## 解析流程
 
 1. 读取文档，提取所有 paths / methods / parameters / responses
@@ -55,12 +75,7 @@
 3. 将生成的类型与基准项目现有的接口类型做对比，标注差异
 4. 将生成的类型整合到字段映射表中，作为"类型定义"参考列
 
-```
-| 旧路径 | 新路径 | 旧参数 | 新参数 | 旧字段 | 新字段 | 映射状态 |
-|--------|--------|--------|--------|--------|--------|----------|
-| /api/old | /api/new | userId | user_id | userName | name | 自动 ✅ |
-| /api/old | /api/new | page | pageNum | — | — | 需确认 ❓ |
-```
+普通接口适配也优先复用上方标准字段映射表模板；若接口结构确实发生变化，在备注中标注“结构变化”并说明差异。
 
 5. 基于映射表自动修改接口层代码（通常在 `src/services/api/` 或 `src/api/` 目录）
 6. 无法自动映射的字段标记为"需人工确认"

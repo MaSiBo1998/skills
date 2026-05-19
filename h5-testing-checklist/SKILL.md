@@ -11,12 +11,17 @@ description: 测试验收。用于执行 14 项通用检查、vendor 架构检�
 
 1. 加载 `references/testing-workflow.md`，确认当前场景应执行哪些检查。
 2. 加载 `references/testing-checklist.md`，按原 14 项和专项清单逐项验收。
-3. 命令能执行就必须实际执行，未执行不能标为通过。
-4. 移动端键盘遮挡等真实 WebView 行为必须列为人工验收项，不能只靠桌面静态判断。
+3. 先确定验收等级：`focused`、`full`、`release`。
+4. 命令能执行就必须实际执行，未执行不能标为通过。
+5. 移动端键盘遮挡等真实 WebView 行为必须列为人工验收项，不能只靠桌面静态判断。
 
 ## 约束
 
 - 每项输出通过或失败，失败必须说明原因。
+- `focused` 用于普通小改、文案、样式、小交互；执行类型检查、构建、相关静态检查和专项检查。
+- `full` 用于默认业务开发、接口替换、首复贷/进件改动；执行完整 14 项 + 场景专项。
+- `release` 用于准备发布；执行 `full`，并要求记录 release-env、构建产物和人工 WebView 待验项。
+- 未指定验收等级时，场景 B/C/D/F 默认使用 `full`；发布前必须使用 `release`。
 - vendor 完整性和构建架构检查只在场景 A 或 `vendor_enabled=true` 时执行；未启用 vendor 时必须标记为跳过，不能判失败。
 - 任意涉及原生交互的场景都必须检查 `front-workflow` 公共原生桥接规则：Flutter App WebView 使用统一 `method/value` 协议；有 `window.flutter.postMessage` 时优先调用它，没有时再用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method, value }))` 兼容处理；不得按 `callHandler(action, payload)` 分散 handler。
 - 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表和还款期；如本次涉及接口/字段替换，再检查目标项目字段映射完整性。不得把某个项目的示例字段当作通用验收依据。
