@@ -1,0 +1,4 @@
+interface:
+  display_name: "H5 官网与挂载页"
+  short_description: "处理官网协议展示、协议 HTML、App 内嵌官网问答和官网域名小 H5 挂载"
+  default_prompt: "使用 h5-official-site 处理官网相关 H5 任务：可将四份本地协议文档生成 App WebView 西语静态 HTML，也可实现官网协议入口、隐私/贷款/条款 Tab 与线上链接 iframe 展示；App 内嵌官网协议问答和官网域名小 H5 挂载先基于项目事实回答，固定规则等待需求沉淀。"

@@ -68,7 +68,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 | 飞书前端告警、白屏监控、线上异常预警 | `h5-feishu-alert` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |
 | 首贷、复贷、状态流、订单详情、App 列表、未确认、放款、还款 | `h5-first-reloan-flow` |
-| 协议文档解析、协议 HTML 输出规则 | `h5-agreement-html` |
+| 官网需求、协议文档解析、协议 HTML 输出、官网协议展示、官网域名小 H5 挂载 | `h5-official-site` |
 | 设计图读取、375 宽基准、布局尺寸、颜色文字规格、切图需求分析 | `design-image-analysis` |
 | 设计图复原、design 文件夹、切图复用、切图命名规范、设计稿视觉还原 | `design-image-restore` |
 | release-env、国家码、构建校验、Commit、Release Tag | `h5-release-tag` |

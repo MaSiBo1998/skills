@@ -15,7 +15,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | B 功能/API 开发 | 接口/字段替换型迁移、普通功能/API 开发、新接口、字段适配 | 可选 `h5-api-mapping`（仅接口/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
 | C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
 | D 进件开发 | Apply、进件、步骤页、Entry、原生交互、国家差异 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
-| E 协议 HTML/展示 | 授权、隐私、贷款、条款文档转 HTML；官网协议入口、协议 Tab、iframe 展示 | `h5-agreement-html` |
+| E 官网/协议/挂载 H5 | 官网相关需求；授权、隐私、贷款、条款文档转 HTML；官网协议入口、协议 Tab、iframe 展示；App 内嵌官网协议问答；官网域名下独立小 H5 挂载 | `h5-official-site` |
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
 | H 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
@@ -25,7 +25,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - “发布 / 发版 / 打 tag / 发布 mx|co|ng”直接进入场景 G。
 - “设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”直接进入场景 F。
 - “记住 / 下次按这个来 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”直接进入场景 H。
-- “协议入口 / 协议 Tab / 隐私协议 tab / 贷款协议 tab / 条款协议 tab / iframe 展示协议 / 线上协议链接”进入场景 E，由 `h5-agreement-html` 处理协议展示规则；若只是普通页面改造，仍需执行 `h5-testing-checklist` 验收。
+- “官网需求 / 官网页面 / 官网域名 / 小 H5 挂载 / 独立 H5 / 协议入口 / 协议 Tab / 隐私协议 tab / 贷款协议 tab / 条款协议 tab / iframe 展示协议 / 线上协议链接 / App 内嵌协议 / App 隐私入口 / WebView 协议问答”进入场景 E，由 `h5-official-site` 处理官网、协议展示、App 内嵌问答和官网域名挂载规则；若只是普通页面改造，仍需执行 `h5-testing-checklist` 验收。
 - “新项目 / 复制旧 H5 项目 / 字段名替换 / 接口地址替换 / 参数名替换 / 混淆字段替换 / 业务流程不变”进入场景 B 的同结构字段/API 替换模式，不自动改首复贷或进件业务流程。
 - “首贷 / 复贷 / 首复贷 / 状态流 / 订单状态 / 未确认贷款 / 放款中 / 放款失败 / 还款期 / 产品详情 / App 列表”进入场景 C，不归并为普通功能/API 或进件。
 - “Apply / 进件 / 步骤页 / Entry / 个人信息 / 工作信息 / 联系人 / 证件 / 人脸 / 银行卡”进入场景 D。
@@ -54,7 +54,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - 进件流程与国家差异：`h5-apply-flow`
 - 首复贷状态流与订单详情：`h5-first-reloan-flow`
 - 飞书前端告警：`h5-feishu-alert`
-- 协议 HTML、官网协议入口与 iframe 展示：`h5-agreement-html`
+- 官网需求、协议 HTML、官网协议入口、iframe 展示、App 内嵌协议问答与官网域名小 H5 挂载：`h5-official-site`
 - 设计图解析：`design-image-analysis`
 - 设计图复原：`design-image-restore`
 - 国家发布：`h5-release-tag`
