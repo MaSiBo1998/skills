@@ -59,6 +59,7 @@
 - 各步骤保存成功统一先 `updateUserInfo(response)`；`entry=home` 继续 `getNextStepFromUserDetail()`，`entry=profile/firstLoan/reLoan` 交给原生 `goBack()`；若保存响应 `dilly===1`，先请求首页信息 `getHomeInfo()` 并透传给 `goBack(homeInfo)`。
 - 原生返回统一走 `window.onNativeBack()` → `ApplyLayout.requestBack()`；仅 home 入口主流程页弹 `RetentionModal`，`id-capture` / `face-capture-camera` 子流程返回到对应主页面。
 - 包含真实输入框的 Apply 页面必须接入 `useKeyboardFocusScroll()`，根节点挂 `pageRef`，保留 `input-wrapper`、`submit-bar`、16px 输入字体和 `page-container` 底部 padding，确保键盘弹起后输入框不会被键盘或固定提交按钮遮挡。
+- 如果页面或父级布局是内部滚动容器（例如 `height: 100vh; overflow-y: auto`），防遮挡 hook 必须滚动最近的真实可滚动父容器，并按键盘高度给页面根节点增加底部占位；只执行 `window.scrollTo` 会在 App WebView 中出现聚焦后完全不滚动。
 - 打开选择器、级联选择器、通讯录、弹层前先 blur 当前输入框；不要用移动 `submit-bar` 的方式处理键盘遮挡。
 
 开发时结合 Step 3 的字段映射表（如有）进行接口适配。

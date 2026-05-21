@@ -17,6 +17,13 @@
 - response key
 - 全局配置字段，例如 app 名称、域名、成功码、token 过期码、请求头字段名
 
+接口路径和可变运行配置必须集中收敛：
+
+- 所有 service 层接口路径必须进入项目 API 配置层，例如 `src/services/api/config.ts` 的 `API` 常量；页面、hook、service 调用点不得散落硬编码接口 URL。
+- `VITE_API_BASE_URL`、`VITE_APP_NAME`、线上 H5 域名、业务线/事业线、成功码、token 过期码等可随国家或产品变化的配置，优先放入 `.env.*` 或项目既有配置层。
+- 请求头中的固定业务值如果来自产品/国家配置，例如业务线、事业线、渠道线，不得硬编码在 HTTP 封装中；应通过 `import.meta.env` 读取并提供兼容默认值。
+- 接口路径迁移完成后，必须 grep service/API 目录，确认除 API 配置文件外无残留硬编码接口 path。
+
 项目内类型基准：
 
 - `src/types/home.ts`：首页信息接口结构规范。
@@ -57,6 +64,7 @@
 - `request`：请求 body/query 参数。
 - `response`：响应字段。
 - `global_config`：`appName`、`baseURL`、成功码、token 过期码等配置。
+- `global_config` 还应覆盖线上 H5 域名、业务线/事业线等请求头业务值，避免写死在 HTTP 封装中。
 
 ## 解析流程
 

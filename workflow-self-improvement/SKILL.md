@@ -72,6 +72,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 | 设计图读取、375 宽基准、布局尺寸、颜色文字规格、切图需求分析 | `design-image-analysis` |
 | 设计图复原、design 文件夹、切图复用、切图命名规范、设计稿视觉还原 | `design-image-restore` |
 | release-env、国家码、构建校验、Commit、Release Tag | `h5-release-tag` |
+| 管理后台功能、Vue/Element UI 后台、角色权限展示、顶部全局组件、后台接口接入、状态轮询、后台 i18n 与构建验收 | `admin-management-flow` |
 | 通用验收、专项验收、人工验收项 | `h5-testing-checklist` |
 
 ## 约束

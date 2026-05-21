@@ -1,6 +1,6 @@
 ---
 name: front-workflow
-description: 马嗣博专属工作流。用于识别架构改造、功能/API、首复贷开发、进件开发、协议 HTML、App 内嵌客服问答、设计图复原、国家发布、测试验收、自我更新成长等场景，并协调对应子 skill 执行。
+description: 马嗣博专属工作流。用于识别架构改造、功能/API、管理后台开发、首复贷开发、进件开发、协议 HTML、App 内嵌客服问答、设计图复原、国家发布、测试验收、自我更新成长等场景，并协调对应子 skill 执行。
 ---
 
 # 马嗣博专属工作流
@@ -19,6 +19,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
 | H 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
+| I 管理后台开发 | 管理后台、后台管理、催收后台、运营后台、系统后台、Vue/Element UI 后台、顶部全局状态、角色权限展示、后台接口接入 | `admin-management-flow` |
 
 ## 触发规则
 
@@ -29,6 +30,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - “新项目 / 复制旧 H5 项目 / 字段名替换 / 接口地址替换 / 参数名替换 / 混淆字段替换 / 业务流程不变”进入场景 B 的同结构字段/API 替换模式，不自动改首复贷或进件业务流程。
 - “首贷 / 复贷 / 首复贷 / 状态流 / 订单状态 / 未确认贷款 / 放款中 / 放款失败 / 还款期 / 产品详情 / App 列表”进入场景 C，不归并为普通功能/API 或进件。
 - “Apply / 进件 / 步骤页 / Entry / 个人信息 / 工作信息 / 联系人 / 证件 / 人脸 / 银行卡”进入场景 D。
+- “管理后台 / 后台管理 / 催收后台 / 运营后台 / 系统后台 / Vue2 后台 / Element UI / Navbar / 顶部状态 / 角色权限展示 / 后台列表页 / 后台详情页 / 后台配置页”进入场景 I，不归并为 H5 普通功能/API。
 
 ## 调度原则
 
@@ -38,6 +40,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - 飞书前端告警仅在用户明确要求“飞书告警 / 预警 / 白屏监控 / 前端监控”时调用 `h5-feishu-alert`。
 - 任意涉及原生交互的任务统一遵守 `h5-apply-flow/references/native-methods.md`，业务 skill 和验收 skill 只引用该协议。
 - 场景 D 的国家差异和发布国家码由 `h5-apply-flow/references/country-profile-index.md` 维护；场景 G 的发布细节由 `h5-release-tag` 维护。
+- 管理后台场景使用 `admin-management-flow`；若只是后台接口字段替换且有新接口文档，可先参考 `h5-api-mapping` 的接口映射方法，但实现流程仍归属管理后台。
 
 ## 通用模块
 
@@ -58,5 +61,6 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 - 设计图解析：`design-image-analysis`
 - 设计图复原：`design-image-restore`
 - 国家发布：`h5-release-tag`
+- 管理后台功能、Vue/Element UI 后台接口接入、顶部全局组件、角色权限展示、后台 i18n 与构建验收：`admin-management-flow`
 - 测试验收、输入收集、checkpoint、交付：`h5-testing-checklist`
 - 工作流自我更新：`workflow-self-improvement`

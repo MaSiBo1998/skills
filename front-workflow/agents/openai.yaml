@@ -1,4 +1,4 @@
 interface:
   display_name: "马嗣博专属工作流"
-  short_description: "编排子 skill，识别首复贷、官网协议展示、App 内嵌客服问答、官网域名小 H5 挂载等业务场景，并调度规则沉淀"
-  default_prompt: "使用 front-workflow 识别 H5 任务场景并调度子 skill；官网需求、协议入口、协议 Tab、iframe 展示、App 内嵌协议问答、App 内嵌客服问答、官网域名小 H5 挂载由 h5-official-site 处理，主工作流只负责场景路由、关键输入、可选能力和交付出口。"
+  short_description: "编排子 skill，识别管理后台、首复贷、官网协议展示、App 内嵌客服问答、官网域名小 H5 挂载等业务场景，并调度规则沉淀"
+  default_prompt: "使用 front-workflow 识别前端任务场景并调度子 skill；管理后台、后台管理、催收后台、Vue/Element UI 后台由 admin-management-flow 处理，官网需求、协议入口、协议 Tab、iframe 展示、App 内嵌协议问答、App 内嵌客服问答、官网域名小 H5 挂载由 h5-official-site 处理，主工作流只负责场景路由、关键输入、可选能力和交付出口。"

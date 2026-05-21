@@ -1,4 +1,4 @@
 interface:
   display_name: "H5 进件流程"
   short_description: "开发 H5 进件申请流程"
-  default_prompt: "使用 h5-apply-flow 开发或修改这个内嵌 H5 进件申请流程；普通进件需求复用现有 API，只有明确新文档/新字段替换时才先调用 h5-api-mapping；如明确需要飞书前端告警，调度 h5-feishu-alert；首贷/复贷状态流不使用本 skill。"
+  default_prompt: "使用 h5-apply-flow 开发或修改这个内嵌 H5 进件申请流程；包含真实输入框时必须处理 App WebView 键盘遮挡，并兼容内部滚动容器；普通进件需求复用现有 API，只有明确新文档/新字段替换时才先调用 h5-api-mapping；如明确需要飞书前端告警，调度 h5-feishu-alert；首贷/复贷状态流不使用本 skill。"

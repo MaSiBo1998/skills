@@ -53,10 +53,11 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 4. 页面必须保留底部提交区 class 名包含 `submit-bar`。hook 会读取它的实际高度，把可见区域下边界设为 `visualViewport.height - submitBarHeight - 20px`，防止输入框滚到固定按钮下面。
 5. `.page-container` 必须保留足够底部 padding，当前是 `padding-bottom: 96px`；`.submit-bar` 是 `position: fixed`，并使用 `env(safe-area-inset-bottom)` 兼容底部安全区。
 6. 输入字体必须保持 16px 级别。当前页面的 `inputStyle = { '--font-size': '16px', flex: 1 }` 和 `.adm-input-element { font-size: 16px }` 用来避免 iOS 聚焦自动放大。
-7. hook 监听 `document.focusin` 和 `window.visualViewport.resize`，并在 100ms / 220ms / 360ms 三次延迟滚动，适配键盘动画和 WebView 延迟改变 viewport 的情况；不要改成只 `focus` 后立即滚一次。
-8. 仅处理页面根节点内的可编辑控件，且会排除 `button`、`checkbox`、`file`、`radio`、`submit` 等非文本输入；不要把选择器伪输入做成真实可编辑 input。
-9. 打开选择器、级联选择器、通讯录等非文本交互前，页面应先 `document.activeElement?.blur?.()`，避免键盘残留遮挡弹层。Confiq 的 Work/Personal/Contacts 页面已有类似处理。
-10. 不要为了解决键盘遮挡去改 `submit-bar` 的 fixed 定位。最终态策略是滚动页面内容到键盘上方，而不是动态移动提交按钮。
+7. hook 监听 `document.focusin` 和 `window.visualViewport.resize/scroll`，并在 100ms / 220ms / 360ms 三次延迟滚动，适配键盘动画和 WebView 延迟改变 viewport 的情况；不要改成只 `focus` 后立即滚一次。
+8. 如果页面或父级布局使用内部滚动容器（例如 `height: 100vh; overflow-y: auto`），hook 必须从输入框向上查找最近的真实可滚动父容器并滚动它；同时按键盘高度给页面根节点增加底部占位，避免底部输入框没有足够滚动空间。只调用 `window.scrollTo` 时，在这类 WebView 页面中会表现为完全不滚动。
+9. 仅处理页面根节点内的可编辑控件，且会排除 `button`、`checkbox`、`file`、`radio`、`submit` 等非文本输入；不要把选择器伪输入做成真实可编辑 input。
+10. 打开选择器、级联选择器、通讯录等非文本交互前，页面应先 `document.activeElement?.blur?.()`，避免键盘残留遮挡弹层。Confiq 的 Work/Personal/Contacts 页面已有类似处理。
+11. 不要为了解决键盘遮挡去改 `submit-bar` 的 fixed 定位。最终态策略是滚动页面内容到键盘上方，而不是动态移动提交按钮。
 
 验收时必须手动在真实 App WebView 或移动浏览器验证：聚焦页面底部输入框时，输入框完整露出在键盘和提交按钮上方；切换输入框、键盘弹出动画后、横竖屏或 viewport resize 后仍可见。
 
