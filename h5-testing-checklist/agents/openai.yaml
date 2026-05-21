@@ -1,4 +1,4 @@
 interface:
   display_name: "测试验收"
   short_description: "执行交付验收清单和场景专项检查"
-  default_prompt: "使用 h5-testing-checklist 验证本次改动，并按 focused/full/release 验收等级输出通过/失败清单；本次涉及接口/字段替换时检查映射完整性，普通首复贷需求不强制检查项目适配映射；官网/协议/挂载 H5 和管理后台场景按对应专项验收补充检查。"
+  default_prompt: "使用 h5-testing-checklist 验证本次改动，并按 focused/full/release 验收等级输出通过/失败清单；本次涉及接口/字段替换时检查映射完整性，普通首复贷需求不强制检查项目适配映射；首复贷还款页涉及用户资料回显或支付输入框时，必须检查真实字段无旧参考字段残留、App WebView 键盘遮挡链路和人工待验项；官网/协议/挂载 H5 和管理后台场景按对应专项验收补充检查。"
