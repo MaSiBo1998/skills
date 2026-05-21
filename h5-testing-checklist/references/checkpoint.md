@@ -80,7 +80,7 @@
 | B | `{ vendor_enabled, api_doc_path, project_config }` |
 | C | `{ product_name, country, vendor_enabled, api_doc_path, project_config }` |
 | D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
-| E | `{ agreement_docs, public_dir, output_files }` |
+| E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
 | I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 
@@ -96,8 +96,8 @@
 // 场景 D（进件，7 步）
 { "scene": "D", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立（可选）", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
 
-// 场景 E（协议，5 步）
-{ "scene": "E", "step_names": { "1": "输入收集", "2": "协议内容解析", "3": "协议 HTML 生成", "4": "自动验收", "5": "交付" } }
+// 场景 E（官网/协议/挂载 H5，5 步）
+{ "scene": "E", "step_names": { "1": "输入收集", "2": "官网/协议需求解析", "3": "页面或协议文件实现", "4": "自动验收", "5": "交付" } }
 
 // 场景 G（发布，4 步）
 { "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }

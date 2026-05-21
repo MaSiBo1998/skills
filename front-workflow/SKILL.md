@@ -19,7 +19,7 @@ description: 马嗣博专属工作流。用于识别架构改造、功能/API、
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
 | H 工作流自我更新 | 记住规则、完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
-| I 管理后台开发 | 管理后台、后台管理、催收后台、运营后台、系统后台、Vue/Element UI 后台、顶部全局状态、角色权限展示、后台接口接入 | `admin-management-flow` |
+| I 管理后台开发 | 管理后台、后台管理、催收后台、运营后台、系统后台、Vue/Element UI 后台、顶部全局状态、角色权限展示、后台接口接入 | `admin-management-flow` -> `h5-testing-checklist` |
 
 ## 触发规则
 
