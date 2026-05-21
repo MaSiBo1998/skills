@@ -22,6 +22,7 @@
 - 主 skill 不保存大段业务细节。
 - `scenes/`、`references/`、`CHECKLIST.md` 已拆到子 skill。
 - 用户明确要求“记住、完善工作流、更新 skill”时，调用 `workflow-self-improvement`。
-- 普通业务任务中发现可沉淀项时，交付时先列出建议沉淀项。
+- 普通业务任务中发现明确、可复用、归属清晰的可沉淀项时，默认调用 `workflow-self-improvement` 自动写入对应 skill。
+- 仅当沉淀项归属不清、风险较高或可能固化一次性项目事实时，交付时列为待确认沉淀项。
 - 发布国家码只有 `mx / co / ng`。
 - 危地马拉进件按 `mx` 发布，不存在 `gt` 发布码。
