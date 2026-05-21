@@ -81,7 +81,9 @@
 | C | `{ product_name, country, vendor_enabled, api_doc_path, project_config }` |
 | D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
+| F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
+| H | `{ learning_candidates, skill_updates }` |
 | I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
@@ -89,6 +91,9 @@
 ```json
 // 场景 A（4 步）
 { "scene": "A", "step_names": { "1": "技术栈评估", "2": "vendor 架构建立", "3": "自动测试验收", "4": "交付" } }
+
+// 场景 B（普通功能/API，7 步）
+{ "scene": "B", "step_names": { "1": "输入收集", "2": "开发范围确认", "3": "询问 vendor 架构", "4": "JSON 接口文档自动解析", "5": "项目开发", "6": "自动测试验收", "7": "交付" } }
 
 // 场景 C（首复贷，7 步）
 { "scene": "C", "step_names": { "1": "输入收集", "2": "询问 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立（可选）", "5": "首复贷状态流开发", "6": "自动测试验收", "7": "交付" } }
@@ -99,8 +104,14 @@
 // 场景 E（官网/协议/挂载 H5，5 步）
 { "scene": "E", "step_names": { "1": "输入收集", "2": "官网/协议需求解析", "3": "页面或协议文件实现", "4": "自动验收", "5": "交付" } }
 
+// 场景 F（设计图复原，5 步）
+{ "scene": "F", "step_names": { "1": "输入收集", "2": "设计图解析", "3": "页面复原实现", "4": "自动测试验收", "5": "交付" } }
+
 // 场景 G（发布，4 步）
 { "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
+
+// 场景 H（工作流自我更新，5 步）
+{ "scene": "H", "step_names": { "1": "发现可沉淀项", "2": "判断归属", "3": "修改 skill", "4": "校验同步", "5": "交付" } }
 
 // 场景 I（管理后台，5 步）
 { "scene": "I", "step_names": { "1": "输入收集", "2": "后台实现分析", "3": "管理后台功能开发", "4": "自动测试验收", "5": "交付" } }

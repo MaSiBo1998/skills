@@ -1,4 +1,4 @@
 interface:
   display_name: "管理后台开发流程"
   short_description: "管理后台 Vue/Element UI 功能、接口、i18n 和顶部全局组件开发流程"
-  default_prompt: "使用 admin-management-flow 开发或修改管理后台功能：先识别技术栈、接口封装、权限/角色、i18n 和布局入口；新增翻译前先查重，菜单放 route、按钮放 btn、短字段放 table、长提醒放 title；再按现有模式实现组件/API/状态同步；如有新接口文档可参考 h5-api-mapping 的字段映射方法但实现仍归后台流程；交付前执行 lint/build 和 h5-testing-checklist 场景 I 专项验收。"
+  default_prompt: "使用 admin-management-flow 开发或修改管理后台功能：先识别技术栈、接口封装、权限/角色、i18n 和布局入口；新增翻译前先查重，菜单放 route、按钮放 btn、短字段放 table、长提醒放 title，并追加到对应分组末尾；再按现有模式实现组件/API/状态同步；如有新接口文档可参考 h5-api-mapping 的字段映射方法但实现仍归后台流程；交付前执行 lint/build 和 h5-testing-checklist 场景 I 专项验收。"
