@@ -12,8 +12,8 @@
 
 默认策略：
 
-- 未指定验收等级时，场景 B/C/D/F 使用 `full`。
-- 纯文档或协议 HTML 使用对应专项检查；若即将发布，提升为 `release`。
+- 未指定验收等级时，场景 B/C/D/F/I 使用 `full`。
+- 场景 E 纯文档或协议 HTML 使用对应专项检查；若涉及页面、路由、iframe、App 内嵌问答或客服问答交互，使用 `full`；若即将发布，提升为 `release`。
 - 发布前必须使用 `release`。
 
 ## 通用测试清单
@@ -51,7 +51,9 @@
 **场景 B / C / D（含接口或页面修改）**: 默认 `full`，需执行完整 14 项；本次涉及接口/字段替换时额外执行接口映射校验。同结构混淆字段替换需确认只替换接口地址、请求头、请求入参、响应字段和全局配置字段，业务流程未被重构。其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
 **场景 C（首复贷开发）**: 需执行完整 14 项 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期、首复贷 banner 展示/轮播/跳转和真实 WebView 原生交互。本次未涉及新接口文档/新字段替换时，不要求完成项目适配映射。
 **场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
+**场景 E（官网/协议/挂载 H5）**: 协议 HTML 需检查输出文件、文档结构、移动端可读性、链接入口和 WebView 打开方式；官网协议入口、iframe、App 内嵌问答或客服问答需额外检查路由、资源路径、交互状态、异常态和真实设备待验项。
 **场景 G（发布）**: 必须使用 `release`，在 `full` 基础上确认 `release-env` 有效、构建产物已生成、真实 App WebView 待验项已列出。
+**场景 I（管理后台开发）**: 默认 `full`，需执行完整 14 项 + 后台专项检查。重点验证路由和菜单入口、角色权限展示、列表/详情/配置页接口数据流、轮询或顶部状态同步、Element UI 表单校验/弹窗/toast、后台 i18n 文案、异常态和构建结果。
 
 ## Skill 改进建议
 

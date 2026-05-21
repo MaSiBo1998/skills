@@ -1,6 +1,6 @@
 ---
 name: h5-api-mapping
-description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json、api.json、api.md、api.html，生成字段映射表，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型。
+description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json、api.json、api.md、api.html，生成字段映射表，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
 ---
 
 # H5 接口映射
@@ -20,6 +20,7 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 3. 先按标准字段映射表模板输出字段映射表，再改代码。
 4. 混淆字段迁移必须优先改 types，再用 TypeScript 报错逐处修复消费点。
 5. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口映射只负责 API 差异，不决定业务流程分叉。
+6. 如果由 `admin-management-flow` 调用，只输出后台接口字段映射、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
 
 ## 约束
 
@@ -29,3 +30,4 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 - 同结构混淆字段替换模式不改业务流程、不增删字段、不改变字段类型、不改变数组/对象层级、不改变枚举业务含义。
 - 对 `home.ts`、`device.ts`、`bankList.ts` 执行新接口文档替换时，不改结构，只替换 key；若文档出现新增字段、缺字段、层级变化或类型变化，必须暂停并标记为“结构不一致，需确认”。
 - 原生 bridge 回调字段不属于服务端混淆字段，不参与替换。
+- 后台接口映射不得套用 H5 原生桥接、首复贷或进件状态流规则。

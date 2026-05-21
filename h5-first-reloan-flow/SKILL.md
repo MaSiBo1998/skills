@@ -34,7 +34,7 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 ## 场景边界
 
 - 属于本 skill：Home 状态、Status 产品详情、App 列表、LoanUnconfirmed、LoanInProgress、LoanFailed、Payment、审核状态、借款协议、申贷确认、还款支付、首复贷 banner、风控上传、首贷成功原生回调、复贷返回挽留。
-- 不属于本 skill：Apply 步骤页、进件 Entry、工作/联系人/个人/证件/人脸/银行卡步骤、进件国家差异 profile。Apply 页面键盘遮挡基础模式归属 `h5-apply-flow`，但首复贷还款页、支付页等本场景页面一旦包含真实输入框，必须复用同类防遮挡规则并在本 skill 内完成适配。
+- 不属于本 skill：Apply 步骤页、进件 Entry、工作/联系人/个人/证件/人脸/银行卡步骤、进件国家差异 profile。首复贷状态中出现“未授信/继续进件/编辑资料”时，本 skill 只负责状态展示和入口跳转，不实现 Apply 表单步骤；Apply 页面键盘遮挡基础模式归属 `h5-apply-flow`，但首复贷还款页、支付页等本场景页面一旦包含真实输入框，必须复用同类防遮挡规则并在本 skill 内完成适配。
 - 首贷和复贷优先复用状态组件；差异通过数据源、路径、状态分支、埋点 code 和原生方法表达，不复制两套页面。
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
 - 涉及原生交互时必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。

@@ -32,3 +32,5 @@
 ## 新增国家差异
 
 如果墨西哥、哥伦比亚或新国家出现差异，先在对应 `country-*.md` 中补充差异点，再由 `h5-apply-flow` 调用。不要新增独立的国家进件 skill。
+
+未沉淀差异的国家默认使用通用 Apply 流程，不得直接套用危地马拉 profile；只有用户明确业务国家为 Guatemala / GT / 危地马拉时才加载 `country-guatemala.md`。

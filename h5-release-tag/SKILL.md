@@ -13,8 +13,9 @@ description: 国家版本发布。用于读取 release-env，按 mx、co、ng �
 2. 加载 `references/release-tag.md`，按其中原流程执行。
 3. 读取项目根目录 `release-env`。
 4. 执行构建校验。
-5. 仅暂存发布相关文件。
-6. 生成 Commit、Release Tag 并推送。
+5. 执行 git 发布前检查：确认当前分支、工作区变更范围、远端可访问，并同步远端 tag。
+6. 仅暂存发布相关文件。
+7. 生成 Commit、Release Tag 并推送。
 
 ## 约束
 
@@ -23,3 +24,4 @@ description: 国家版本发布。用于读取 release-env，按 mx、co、ng �
 - 不创建 `gt` 标签。
 - 危地马拉进件走 `mx` 发布。
 - Tag 格式必须是 `release-{国家码}-{YYYYMMDD}-v{主}.{次}.{补丁}`。
+- 不使用 `git reset --hard`、`git checkout --`、强推或覆盖远端标签来处理发布冲突；冲突必须阻断并说明人工处理方式。

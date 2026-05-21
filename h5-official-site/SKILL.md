@@ -22,6 +22,7 @@ description: H5 官网与挂载页开发。用于官网项目相关需求，包�
 6. App 内嵌协议/隐私开发问答按 `references/app-embedded-protocol.md` 执行；需求沉淀完成前，只记录“待沉淀问题、项目事实、最终结论”，不写入官网主 reference。
 7. App 内嵌客服问答页按 `references/app-customer-service.md` 执行；若同时给出设计图，配合 `design-image-analysis`、`design-image-restore` 做移动端视觉复原。
 8. 小 H5 挂载规则沉淀完成前，必须基于项目现有官网部署方式和用户提供的域名/路径作答，不预设固定构建或发布方案。
+9. 交付前调用 `h5-testing-checklist`，按官网/协议/挂载 H5 专项验收输出通过、失败和真实 WebView 待验项。
 
 ## 约束
 
@@ -32,3 +33,4 @@ description: H5 官网与挂载页开发。用于官网项目相关需求，包�
 - iframe 展示线上协议链接时，不强依赖注入 iframe 内部样式；跨域线上链接在本地开发环境会被浏览器拦截，只控制 iframe 外层容器、标题和 Tab UI。
 - 独立小 H5 挂载到官网域名时，优先确认 `base`、资源前缀、路由模式、部署目录、旧入口兼容和移动端 WebView 验收方式。
 - App 内嵌客服页不得复用或污染官网 FAQ 样式；FAQ 内容可共享，页面布局和交互必须独立。
+- 不因新增 App 专用页面强行重构官网项目目录结构，优先沿用现有页面、路由、资源和构建约定。

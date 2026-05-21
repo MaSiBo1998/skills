@@ -108,7 +108,7 @@ getNextStep():
 - 级联地址选择器必须同时满足“展示完整”和“提交值正确”：
   - 长城市/区域名优先按文案长度动态降低字号，再按空格自然换行；列内 label 需要 `width: 100%`、`min-width: 0`、`white-space: normal`、`word-break: normal`。
   - 不要使用 `overflow-wrap: anywhere` 作为常规方案，它会把 `Guatemala` 这类普通单词强制拆开。
-  - 地址提交字段需要按接口要求确认分隔符。Confiq-H5 使用无空格连字符：`Lagos State-Ikeja-Alausa`，实现时先对每级值 `trim()`，再 `filter(Boolean).join('-')`。
+  - 地址提交字段需要按接口要求确认分隔符。若接口要求无空格连字符，示例值为 `State-City-Area`；实现时先对每级值 `trim()`，再 `filter(Boolean).join('-')`。
   - 页面上分列展示的 `state/city/area` 可以保持原文案，不应为了接口拼接格式影响可读展示。
 - 身份证信息页性别字段必须把“显示文案”和“接口枚举”分开处理：
   - 西语按钮文案使用 `Masculino`（男）和 `Femenino`（女）。

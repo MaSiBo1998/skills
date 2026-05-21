@@ -25,6 +25,7 @@ description: H5 飞书前端告警/预警接入。用于用户要求“飞书告
 6. 通过后端代理接口发飞书，不要在浏览器端直连飞书 webhook 或写入 webhook secret。
 7. 接入触发点默认包括：React 渲染崩溃、全局 JS 错误、未捕获 Promise 异常、疑似白屏或长时间 loading。
 8. 普通业务接口失败不默认纳入飞书告警；只有用户明确要求业务接口失败告警时才增加。
+9. 告警发送前必须脱敏并去重限流，避免泄露用户隐私或形成告警风暴。
 
 ## 实现约束
 
@@ -32,6 +33,8 @@ description: H5 飞书前端告警/预警接入。用于用户要求“飞书告
 - 告警请求使用项目 HTTP 封装，传 `skipErrorHandler: true` 和 `isLoading: false`；如果 HTTP 封装支持 `withAuth`，告警请求优先设为 `withAuth: false`。
 - `skipErrorHandler` 应真正跳过 HTTP 错误 Toast、Token 过期跳转等全局处理，避免告警接口失败影响用户或形成噪音。
 - 告警内容至少包含时间、事件、原因、堆栈、页面 URL、UserAgent、AppName、环境。
+- 告警内容必须脱敏：不得发送 token、authorization、cookie、手机号、身份证号、银行卡号、联系人号码、完整请求体或完整响应体；URL query 中疑似敏感参数要替换为 `***`。
+- 同类错误需要按 title/reason/stack 摘要去重并限流；默认同一页面同一错误短时间内只发一次，白屏/长 loading 不得持续循环上报。
 - React 项目使用 `ErrorBoundary` 捕获渲染崩溃，并在入口根组件外层包裹。
 - 白屏检测要使用稳定节点判断，例如根节点为空、仍停留在 `app-init-loading`，避免误报正常短暂 loading。
 - 若项目已有 index.html 自动刷新逻辑，前端告警检测不要破坏原刷新逻辑。
@@ -52,6 +55,8 @@ description: H5 飞书前端告警/预警接入。用于用户要求“飞书告
   - 发送函数没有参考代码遗留的提前 `return` 阻断请求。
   - 非生产环境不会发送。
   - 生产环境但页面 host 不匹配 `VITE_APP_BASE_URL` 不会发送。
+  - 告警内容已脱敏，URL query、token、手机号、证件号、银行卡号不会明文发送。
+  - 同类错误存在去重或限流，告警接口失败不会触发二次告警。
   - React 崩溃、全局 JS error、Promise rejection、白屏/长 loading 都调用同一个发送函数。
 - 人工验收项：
   - 线上包模拟抛错后飞书能收到告警。

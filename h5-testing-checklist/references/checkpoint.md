@@ -63,7 +63,7 @@
 
 | 字段 | 说明 |
 |------|------|
-| `scene` | 场景标识：A / B / C / D / E / F / G / H |
+| `scene` | 场景标识：A / B / C / D / E / F / G / H / I |
 | `last_completed_step` | 已完成的最后一个 Step 编号，仅作快速恢复索引 |
 | `completed_steps` | 已完成 Step 的追加式历史记录，记录每一步完成时间和说明 |
 | `step_names` | 各步骤名称映射 |
@@ -82,6 +82,7 @@
 | D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
 | E | `{ agreement_docs, public_dir, output_files }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
+| I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -100,6 +101,9 @@
 
 // 场景 G（发布，4 步）
 { "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
+
+// 场景 I（管理后台，5 步）
+{ "scene": "I", "step_names": { "1": "输入收集", "2": "后台实现分析", "3": "管理后台功能开发", "4": "自动测试验收", "5": "交付" } }
 ```
 
 ---
