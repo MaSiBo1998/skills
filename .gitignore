@@ -15,3 +15,4 @@ h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/console_logging.
 h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/element_discovery.py
 h5-embedded-app-workflow/.agents/skills/webapp-testing/examples/static_html_automation.py
 h5-embedded-app-workflow/.agents/skills/webapp-testing/scripts/with_server.py
+.agents

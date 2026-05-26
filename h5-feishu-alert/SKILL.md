@@ -20,8 +20,8 @@ description: H5 飞书前端告警/预警接入。用于用户要求“飞书告
 3. 告警接口路径必须放在项目 API 配置文件统一管理，例如 `src/services/api/config.ts` 的 `API.sendFeishuAlert`；监控工具中只引用配置，不硬编码接口路径。
 4. 告警发送必须只在线上生产触发。默认判断为：
    - `import.meta.env.MODE === 'production'`
-   - `new URL(import.meta.env.VITE_APP_BASE_URL).host === window.location.host`
-5. 若项目没有 `VITE_APP_BASE_URL`，先检查是否已有等价线上 H5 域名配置；没有时询问用户，不要退回到 API 域名判断，除非用户明确要求。
+   - `window.location.host` 命中显式线上 H5 域名配置，例如 `VITE_H5_HOST`、`VITE_APP_H5_HOST`、`VITE_H5_ALLOWED_HOSTS` 或项目已有等价配置。
+5. 不要用 API 域名判断页面生产环境：`VITE_API_BASE_URL`、通用 `VITE_APP_BASE_URL`、HTTP baseURL 只有在项目已明确把它们定义为 H5 页面域名时才能复用。若项目没有线上 H5 域名配置，优先新增显式 H5 host 配置并默认空值不发送；只有需要立即完成真实生产收发验证或发布时，才询问用户提供实际线上 H5 域名。
 6. 通过后端代理接口发飞书，不要在浏览器端直连飞书 webhook 或写入 webhook secret。
 7. 接入触发点默认包括：React 渲染崩溃、全局 JS 错误、未捕获 Promise 异常、疑似白屏或长时间 loading。
 8. 普通业务接口失败不默认纳入飞书告警；只有用户明确要求业务接口失败告警时才增加。
@@ -55,7 +55,8 @@ description: H5 飞书前端告警/预警接入。用于用户要求“飞书告
   - 告警接口路径来自 API 配置文件。
   - 发送函数没有参考代码遗留的提前 `return` 阻断请求。
   - 非生产环境不会发送。
-  - 生产环境但页面 host 不匹配 `VITE_APP_BASE_URL` 不会发送。
+  - 生产环境但页面 host 不匹配显式线上 H5 域名配置时不会发送；缺少该配置时默认不发送并列为待配置/待验。
+  - 发送逻辑没有把 API base URL、通用 HTTP baseURL 或飞书 webhook 域名当作页面 host 判断依据。
   - 告警内容已脱敏，URL query、token、手机号、证件号、银行卡号不会明文发送。
   - 同类错误存在去重或限流，告警接口失败不会触发二次告警。
   - React 崩溃、全局 JS error、Promise rejection、白屏/长 loading 都调用同一个发送函数。

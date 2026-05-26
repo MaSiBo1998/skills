@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "llm-evaluation": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/llm-application-dev/skills/llm-evaluation/SKILL.md",
+      "computedHash": "a723641a5aa14a492df890829575a27a62f2a0b23b732c6b90c5bd283a6378ad"
+    },
+    "spec-driven-development": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/spec-driven-development/SKILL.md",
+      "computedHash": "a646faab486907990abf2b5faa329e168e11b83c8a64f68ca2a8568ec3984276"
+    },
+    "workflow-orchestration-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/backend-development/skills/workflow-orchestration-patterns/SKILL.md",
+      "computedHash": "01221e558bf2d2352ac736e717b3d657996bc1275258c22d1c0b729bfea6aa09"
+    }
+  }
+}
