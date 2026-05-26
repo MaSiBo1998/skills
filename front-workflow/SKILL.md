@@ -17,6 +17,18 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 4. **只询问阻塞信息**：仅当缺少项目路径、目标页面/模块、业务目标、高风险业务结论或发布/资金/风控确认时才问；一次只问当前无法继续的最小问题。
 5. **交付后沉淀**：交付前后自动检查本次是否暴露场景识别、执行顺序、验收缺口或项目特例问题；明确、可复用、归属清晰的规则调度 `workflow-self-improvement` 直接沉淀。
 
+## 元能力辅助
+
+以下三个 skill 是工作流辅助能力，不替代 A-J 业务子 skill：
+
+| 辅助 skill | 触发时机 | 用法 |
+| --- | --- | --- |
+| `spec-driven-development` | 需求模糊、跨多个模块、进入 K、预计超过 30 分钟、或用户要求优化/巡检工作流 | 先产出轻量 spec：目标、范围、边界、成功标准、阻塞问题；只问无法从证据推断的关键问题 |
+| `workflow-orchestration-patterns` | 场景 H 的工作流优化、全量巡检、调度链重构、checkpoint/恢复机制调整 | 只借用编排思想检查 workflow/activity 边界、状态保存、失败恢复、跳过原因、幂等更新；不得照搬 Temporal 技术实现 |
+| `llm-evaluation` | 工作流优化后、巡检收口前、触发语义或调度规则变化后 | 生成并执行工作流回归样例，检查场景识别、少问用户、执行链、沉淀判断和交付说明是否退化 |
+
+普通小改、明确单场景业务开发、文案/样式修补不主动调用这些元能力，避免把简单任务流程变重。
+
 ## 需求识别决策树
 
 按证据优先级从高到低判断：
@@ -40,7 +52,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 | E 官网/协议/挂载 H5 | 官网相关需求；授权、隐私、贷款、条款文档转 HTML；官网协议入口、协议 Tab、iframe 展示；App 内嵌官网协议问答；App 内嵌客服/客服问答页；官网域名下独立小 H5 挂载 | `h5-official-site` -> `h5-testing-checklist` |
 | F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
-| H 工作流自我更新 | 记住规则、优化/巡检/迭代/完善流程、修正 skill、补充验收项、沉淀本次经验 | `workflow-self-improvement` |
+| H 工作流自我更新 | 记住规则、优化/巡检/迭代/完善流程、修正 skill、补充验收项、沉淀本次经验 | 可选 `spec-driven-development`（复杂/模糊改造先定规格） -> `workflow-self-improvement`（巡检时充分使用 `workflow-orchestration-patterns` 和 `llm-evaluation`） |
 | I 管理后台开发 | 管理后台、后台管理、催收后台、运营后台、系统后台、Vue/Element UI 后台、顶部全局状态、角色权限展示、后台接口接入、左侧菜单入口、模型配置/配置模型 | `admin-management-flow` -> `h5-testing-checklist` |
 | J 飞书前端告警 | 飞书告警、飞书预警、前端监控、白屏监控、线上异常告警、React 崩溃告警、Promise 异常告警 | `h5-feishu-alert` -> `h5-testing-checklist` |
 | K 未知/复合需求分析 | 不能稳定命中 A-J、多个场景交织、用户描述过宽或新类型 H5/后台工具 | 先探索证据并列候选归属 -> 选择最接近的现有子 skill -> `h5-testing-checklist` |
@@ -51,7 +63,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 
 - “发布 / 发版 / 打 tag / 发布 mx / 发布 co / 发布 ng”直接进入场景 G。
 - “设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”直接进入场景 F。
-- “记住 / 下次按这个来 / 优化工作流 / 巡检工作流 / 迭代工作流 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”直接进入场景 H。
+- “记住 / 下次按这个来 / 优化工作流 / 巡检工作流 / 迭代工作流 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”直接进入场景 H；若是模糊或较大的工作流改造，先用 `spec-driven-development` 固化目标和成功标准，再由 `workflow-self-improvement` 执行。
 - “飞书告警 / 飞书预警 / 前端监控 / 白屏监控 / 线上异常告警 / React 崩溃告警 / Promise 异常告警”直接进入场景 J；若同一需求同时属于首复贷或进件，则作为场景 C/D 的可选操作串联 `h5-feishu-alert`。
 - “官网需求 / 官网页面 / 官网域名 / 小 H5 挂载 / 独立 H5 / 协议入口 / 协议 Tab / 隐私协议 tab / 贷款协议 tab / 条款协议 tab / iframe 展示协议 / 线上协议链接 / App 内嵌协议 / App 隐私入口 / WebView 协议问答 / App 内嵌客服 / 客服问答 / 客服页面 / customer-service / 服务中心”进入场景 E，由 `h5-official-site` 处理官网、协议展示、App 内嵌问答、App 内嵌客服问答和官网域名挂载规则；若涉及设计图复原或切图，还需按场景 F 规则使用 `design-image-analysis`、`design-image-restore` 辅助视觉还原；交付前仍需执行 `h5-testing-checklist` 验收。
 - “新项目 / 复制旧 H5 项目 / 字段名替换 / 接口地址替换 / 参数名替换 / 混淆字段替换 / 业务流程不变”进入场景 B 的同结构字段/API 替换模式，不自动改首复贷或进件业务流程。
@@ -99,6 +111,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 - 场景 D 的国家差异和发布国家码由 `h5-apply-flow/references/country-profile-index.md` 维护；场景 G 的发布细节由 `h5-release-tag` 维护。
 - 管理后台场景使用 `admin-management-flow`；若只是后台接口字段替换且有新接口文档，可先参考 `h5-api-mapping` 的接口映射方法，但实现流程仍归属管理后台。
 - 场景 K 不能成为长期归属；一次任务结束时必须落回 A-J 中最接近的归属，或把新判断标准交给 `workflow-self-improvement`。
+- 场景 H 巡检必须把元能力结果写入 checkpoint：`workflow_improvement_spec`、`orchestration_audit`、`eval_cases`、`eval_results`；评估失败项进入 `learning_candidates`。
 
 ## 通用模块
 
@@ -107,6 +120,9 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 - 交付与发布确认：`h5-testing-checklist/references/delivery.md`
 - 测试验收：`h5-testing-checklist/references/testing-workflow.md`
 - API 映射：`h5-api-mapping/references/api-mapping.md`
+- 规格化辅助：`spec-driven-development`
+- 编排巡检辅助：`workflow-orchestration-patterns`
+- 工作流回归评估：`llm-evaluation`
 
 ## 内容归属
 
@@ -123,3 +139,4 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 - 测试验收、输入收集、checkpoint、交付：`h5-testing-checklist`
 - 工作流自我更新：`workflow-self-improvement`
 - 未知/复合需求判断标准：先由 `front-workflow` 处理；形成稳定业务细节后再沉淀到对应子 skill。
+- 工作流规格化、编排审查、回归评估：分别由 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 辅助场景 H，不承载业务实现细节。

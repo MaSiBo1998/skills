@@ -1,6 +1,6 @@
 ---
 name: workflow-self-improvement
-description: 工作流自我更新成长。用于在用户要求“记住、下次按这个来、完善工作流、更新 skill、自我成长、规则不对”时，或执行中自动发现可复用经验、遗漏验收、重复人工修正、新国家差异、新接口模式、发布规则变化时，判断沉淀归属并默认更新主工作流或对应子 skill。
+description: 工作流自我更新成长。用于在用户要求“记住、下次按这个来、完善工作流、巡检工作流、更新 skill、自我成长、规则不对”时，或执行中自动发现可复用经验、遗漏验收、重复人工修正、新国家差异、新接口模式、发布规则变化时，结合 spec-driven-development、workflow-orchestration-patterns、llm-evaluation 判断沉淀归属并默认更新主工作流或对应子 skill。
 ---
 
 # 工作流自我更新成长
@@ -56,6 +56,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 当用户要求检查所有 skill、提高工作流质量或修复工作流连贯性时，必须额外执行以下巡检：
 
+- 先用 `spec-driven-development` 的轻量规格方式锁定本轮巡检目标、范围、边界、成功标准和阻塞问题；若用户已给出目标且无阻塞项，直接记录假设继续，不要要求额外确认。
 - 扫描所有本地 skill 的 `SKILL.md`、`references/*.md` 和 `agents/openai.yaml`。
 - 若用户要求“一轮一轮跑”或“每轮结束后确认”，一轮默认表示本次范围内全部 skill 都检查、优化、校验并同步完成；不要在单个 skill 结束后停下等待确认，除非用户明确指定“每个 skill 后确认”。
 - 若用户要求优化工作流但没有指定轮次，默认进入自驱动巡检闭环：连续执行“扫描 -> 修改 -> 校验 -> 同步 -> 再扫描”，直到达到停止条件后再一次性交付，不要求用户逐轮输入“继续”。
@@ -64,7 +65,27 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。
 - 检查新增或调整触发语义后，是否同步更新对应 `agents/openai.yaml`。
 - 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；发现运行时与源目录不一致时，本轮必须同步。
+- 用 `workflow-orchestration-patterns` 的编排检查法审视主工作流和子 skill：主工作流是否只负责编排、子 skill 是否像 activity 一样职责清晰、checkpoint 是否能恢复、跳过/失败/重试是否有记录、更新操作是否幂等。
+- 用 `llm-evaluation` 建立或更新工作流回归样例，并在巡检收口前执行一次评估；评估失败项必须转成高价值问题或待确认沉淀项。
 - 对所有被修改的 skill 运行 `quick_validate.py`，并用关键字搜索验证旧规则不再残留。
+
+## 巡检元能力调用
+
+场景 H 的巡检必须充分调用三个辅助 skill，但只取适用于本地 skill 工作流的部分：
+
+1. `spec-driven-development`：
+   - 输出轻量 spec，不创建冗长文档。
+   - 至少记录 `objective`、`scope`、`success_criteria`、`boundaries`、`blocking_questions`。
+   - 对“优化工作流”“不好用”“巡检一下”这类模糊请求，先把目标转成可验收条件，例如“未知需求能进入 K 兜底”“非阻塞信息不问用户”“巡检有回归样例”。
+2. `workflow-orchestration-patterns`：
+   - 把 `front-workflow` 当 workflow，把各业务子 skill 当 activity。
+   - 重点检查 workflow/activity 边界、状态保存、失败恢复、可重试/幂等、长期任务中断恢复。
+   - 只引用原则，不引入 Temporal 依赖、服务端 worker、task queue 等实现细节。
+3. `llm-evaluation`：
+   - 加载 `references/workflow-regression-evaluation.md` 作为默认评估集。
+   - 至少维护 6 类回归样例：明确场景、复合场景、信息不全、新需求、高风险场景、沉淀规则。
+   - 每个样例按 5 个指标打分：场景识别、证据优先、少问用户、执行链合理、沉淀判断。
+   - 若没有自动评测 runner，用 LLM-as-judge/规则化审查输出通过/失败表；失败项进入 `learning_candidates`。
 
 ### 自驱动停止条件
 
@@ -73,7 +94,8 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 1. 最近一轮没有发现新的高价值问题（场景调度冲突、执行阻塞、验收缺口、引用失效、运行时未同步、旧规则残留）。
 2. 所有本轮范围内被修改的 skill 源目录 `quick_validate.py` 通过。
 3. 已同步到 Trae/Codex/Claude 运行时目录，源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，且运行时目录校验通过。
-4. 关键残留搜索为空，例如旧询问式沉淀规则、错误场景命名、错误发布码、旧路径引用。
+4. `llm-evaluation` 回归样例没有未处理失败项；若存在失败项，已修复或记录为待确认沉淀项。
+5. 关键残留搜索为空，例如旧询问式沉淀规则、错误场景命名、错误发布码、旧路径引用。
 
 自驱动巡检最多连续执行 3 轮深查；如果第 3 轮仍发现系统性问题，先交付当前修复、列出剩余问题和下一轮建议，避免无限循环。
 
@@ -98,6 +120,9 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - `learning_candidates`：运行中发现但尚未沉淀的经验。
 - `skill_updates`：已修改的 skill、修改摘要、校验结果。
 - `discovered_facts`、`assumptions`、`blocking_questions`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`：用于复盘场景判断、默认选择和跳过原因。
+- `workflow_improvement_spec`：由 `spec-driven-development` 轻量规格化得到的巡检目标、范围、成功标准和边界。
+- `orchestration_audit`：由 `workflow-orchestration-patterns` 检查得到的编排边界、checkpoint、失败恢复和幂等性问题。
+- `eval_cases`、`eval_results`：由 `llm-evaluation` 维护和执行的回归样例、指标、失败项。
 
 运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化、未知需求兜底判断时，先写入 `learning_candidates`。若候选项明确、可复用且归属清晰，应在本轮继续完成 skill 修改和校验，不把“是否沉淀”交回用户重复确认。每完成发现、归属、修改、校验、交付中的任一步，都要向 `completed_steps` 追加记录并同步更新 `last_completed_step`。实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。
 

@@ -18,6 +18,9 @@
 | `h5-testing-checklist` | 测试验收清单 |
 | `workflow-self-improvement` | 工作流自我更新成长 |
 | `admin-management-flow` | Vue/Element UI 管理后台、催收后台、运营后台功能开发 |
+| `spec-driven-development` | 复杂/模糊需求和工作流巡检前的轻量规格化 |
+| `workflow-orchestration-patterns` | 工作流巡检时检查主编排和子 skill 职责边界 |
+| `llm-evaluation` | 工作流优化后的回归样例评估 |
 
 ## 规则
 
@@ -27,6 +30,7 @@
 - 默认先查再问，只在缺少项目路径、目标页面/模块、业务目标或高风险业务结论时询问用户。
 - `scenes/`、`references/`、`CHECKLIST.md` 已拆到子 skill。
 - 用户明确要求“记住、完善工作流、更新 skill”时，调用 `workflow-self-improvement`。
+- 用户要求巡检或优化工作流时，先用 `spec-driven-development` 固化目标，再用 `workflow-orchestration-patterns` 做编排审查，最后用 `llm-evaluation` 做回归评估。
 - 普通业务任务中发现明确、可复用、归属清晰的判断标准时，默认调用 `workflow-self-improvement` 自动写入对应 skill。
 - 仅当沉淀项归属不清、风险较高或可能固化一次性项目事实时，交付时列为待确认沉淀项。
 - 发布国家码只有 `mx / co / ng`。

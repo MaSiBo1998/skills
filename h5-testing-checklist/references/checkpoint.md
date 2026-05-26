@@ -98,6 +98,10 @@
 | `selected_scene_reason` | 选择当前场景的证据说明 |
 | `candidate_scenes` | 复合或未知需求时的候选场景、证据和置信度 |
 | `skipped_skills` | 被跳过的可选子 skill 及原因 |
+| `workflow_improvement_spec` | 场景 H 巡检时由 `spec-driven-development` 产出的轻量规格：目标、范围、边界、成功标准、阻塞问题 |
+| `orchestration_audit` | 场景 H 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
+| `eval_cases` | 场景 H 巡检时由 `llm-evaluation` 维护的回归样例 |
+| `eval_results` | 场景 H 巡检时由 `llm-evaluation` 输出的指标、失败项和处理结果 |
 
 各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
 
@@ -110,7 +114,7 @@
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
-| H | `{ learning_candidates, skill_updates }` |
+| H | `{ learning_candidates, skill_updates, workflow_improvement_spec, orchestration_audit, eval_cases, eval_results }` |
 | I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 | J | `{ project_root, alert_scope, alert_api_path, h5_host_config, monitor_files }` |
 | K | `{ candidate_scenes, fallback_scene, exploration_paths, unresolved_blockers }` |
@@ -139,8 +143,8 @@
 // 场景 G（发布，4 步）
 { "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
 
-// 场景 H（工作流自我更新，5 步）
-{ "scene": "H", "step_names": { "1": "发现可沉淀项", "2": "判断归属", "3": "修改 skill", "4": "校验同步", "5": "交付" } }
+// 场景 H（工作流自我更新，7 步）
+{ "scene": "H", "step_names": { "1": "轻量规格化", "2": "发现可沉淀项", "3": "判断归属与编排审查", "4": "修改 skill", "5": "回归评估", "6": "校验同步", "7": "交付" } }
 
 // 场景 I（管理后台，5 步）
 { "scene": "I", "step_names": { "1": "输入收集", "2": "后台实现分析", "3": "管理后台功能开发", "4": "自动测试验收", "5": "交付" } }

@@ -11,6 +11,7 @@
 5. **测试结果**：`h5-testing-checklist/references/testing-checklist.md` 检查项通过率及失败项说明
 6. **待用户验收项**：需要用户在真实设备/浏览器上手动验证的功能点
 7. **规则沉淀结果**：已自动沉淀的判断标准，或暂不沉淀的项目特例与原因
+8. **巡检辅助结果**（场景 H 适用）：轻量规格、编排审查、回归样例和失败项处理结果
 
 ---
 
@@ -70,6 +71,9 @@
 | 场景识别问题 | `front-workflow/SKILL.md` | 增加证据判断标准或 K 兜底回落规则 |
 | 输入阻塞问题 | `h5-testing-checklist/references/input-collection.md` | 调整自动推断、非阻塞和阻塞问题分类 |
 | Checkpoint 复盘问题 | `h5-testing-checklist/references/checkpoint.md` | 增加需要记录的事实、假设或跳过原因字段 |
+| 巡检规格问题 | `workflow-self-improvement` 或 `front-workflow` | 用 `spec-driven-development` 补充目标、范围、成功标准和边界 |
+| 编排边界问题 | `front-workflow` 或对应子 skill | 用 `workflow-orchestration-patterns` 修正主编排和子 skill 职责边界 |
+| 回归评估问题 | `h5-testing-checklist/references/testing-workflow.md` 或 `workflow-self-improvement` | 用 `llm-evaluation` 增加样例、指标或失败处理规则 |
 
 **修改原则**：
 - 优先局部补充或修正判断标准，避免破坏已有流程；可以删除或改写明显冲突的旧规则。
@@ -83,6 +87,7 @@
 - 已自动推断的事实和假设。
 - 已沉淀的规则、所属文件和校验结果。
 - 暂不沉淀的项目特例、原因和触发再次沉淀的条件。
+- 场景 H 还需说明 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 的调用结论和未通过样例处理结果。
 
 > "已自动沉淀以下规则到工作流文件：[文件列表]。下次执行 h5 工作流时将自动应用这些改进。"
 
