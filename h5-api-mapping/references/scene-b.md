@@ -33,14 +33,15 @@
 
 ---
 
-## Step 3. 询问 vendor 架构
+## Step 3. 判断 vendor 架构
 
-询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）：
+自动判断本次是否需要执行 vendor 架构改造（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）：
 
-- **是** → 记录，将在 5.1 执行 vendor 架构建立
-- **否** → 跳过，直接进行后续开发
+- 用户明确要求、checkpoint 已有 `vendor_enabled=true`，或目标项目现有架构/构建约束明确依赖 `static-app/vendor` → 记录 `vendor_enabled=true`，将在 5.1 执行 vendor 架构建立。
+- 未出现上述条件 → 记录 `vendor_enabled=false`，跳过 vendor 架构，不向用户泛问。
+- 若项目事实互相冲突（例如已有 vendor 文件但构建脚本缺失且影响本次开发）→ 只询问具体阻断点。
 
-**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（询问 vendor）完成，context: vendor_enabled={是/否}
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（判断 vendor）完成，context: vendor_enabled={true/false}
 
 ---
 
@@ -58,7 +59,7 @@
 
 ### 5.1 vendor 架构建立（可选）
 
-仅当 Step 3 确认为需要时，执行 `h5-vendor-architecture/references/vendor-setup.md` 创建相关文件并运行 `npm run build:static`。未确认需要时跳过本步骤，不因场景 B 自动做 vendor 改造。
+仅当 Step 3 判定为需要时，执行 `h5-vendor-architecture/references/vendor-setup.md` 创建相关文件并运行 `npm run build:static`。未启用时跳过本步骤，不因场景 B 自动做 vendor 改造。
 
 ### 5.2 依赖清理
 

@@ -14,14 +14,15 @@
 
 ---
 
-## Step 2. 询问 vendor 架构
+## Step 2. 判断 vendor 架构
 
-询问用户**是否需要执行 vendor 架构改造**（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）。vendor 默认为不执行，只有用户确认或项目现有约束需要时才启用：
+自动判断是否需要执行 vendor 架构改造（将框架依赖预构建为独立 JS 文件，通过 script 标签加载）。vendor 默认为不执行：
 
-- **是** → 执行 Step 4 vendor 架构建立
-- **否** → 跳过 Step 4
+- 用户明确要求、checkpoint 已有 `vendor_enabled=true`，或目标项目现有架构/构建约束明确依赖 `static-app/vendor` → 记录 `vendor_enabled=true`，执行 Step 4。
+- 未出现上述条件 → 记录 `vendor_enabled=false`，跳过 Step 4，不向用户泛问。
+- 若项目事实互相冲突且会阻断本次开发或构建 → 只询问具体阻断点。
 
-**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 2（询问 vendor）完成，context: vendor_enabled={是/否}
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 2（判断 vendor）完成，context: vendor_enabled={true/false}
 
 ---
 
@@ -39,7 +40,7 @@
 
 ## Step 4. vendor 架构建立（可选）
 
-如 Step 2 确认不需要 vendor 架构，跳过本步骤，直接写入 checkpoint 并进入 Step 5。
+如 Step 2 判定未启用 vendor 架构，跳过本步骤，直接写入 checkpoint 并进入 Step 5。
 
 完整步骤见 `h5-vendor-architecture/references/vendor-setup.md`。创建相关文件后执行 `npm run build:static`。
 

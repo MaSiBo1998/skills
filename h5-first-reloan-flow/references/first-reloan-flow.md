@@ -32,7 +32,7 @@
 
 ## 执行流程
 
-1. 确认产品名、国家、项目根目录、本次需求类型和是否需要 vendor 架构。vendor 架构为可选项，默认不做；只有用户确认、checkpoint 中 `vendor_enabled=true` 或项目现有架构要求时才执行。
+1. 确认产品名、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构。vendor 架构为可选项，默认不做；只有用户明确要求、checkpoint 中 `vendor_enabled=true` 或项目现有架构要求时才执行；不要因普通首复贷需求泛问用户是否改造 vendor。
 2. 读取目标项目约束：`AGENTS.md`/`CLAUDE.md`/README、`package.json`、路由、首页、状态页、类型、API、bridge、风控模块。
 3. 判断是否涉及接口/字段替换：
    - 业务补充：不重新建立项目适配映射，直接复用现有首复贷入口、状态分发、类型、API 和 bridge。

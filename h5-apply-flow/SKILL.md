@@ -9,7 +9,7 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 
 ## 执行方式
 
-1. 确认产品、国家、项目根目录、本次需求类型和是否需要 vendor 架构；vendor 默认为不执行，只有用户确认或项目现有约束需要时才启用。
+1. 确认产品、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构；vendor 默认为不执行，只有用户明确要求、checkpoint 已启用或项目现有约束需要时才启用。
 2. 加载 `references/apply-flow.md`，按其中原流程执行。
 3. 加载 `references/country-profile-index.md`，根据国家选择差异 profile：
    - 墨西哥：`references/country-mexico.md`
