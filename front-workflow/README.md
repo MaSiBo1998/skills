@@ -1,6 +1,6 @@
 # front-workflow
 
-主编排 skill，只负责识别任务场景、调度子 skill、管理 checkpoint、汇总交付，并沉淀可复用流程规则。
+主编排 skill，作为需求决策器先读取项目证据，再识别任务场景、调度子 skill、管理 checkpoint、汇总交付，并沉淀可复用判断标准。
 
 ## 子 Skill
 
@@ -22,9 +22,12 @@
 ## 规则
 
 - 主 skill 不保存大段业务细节。
+- 触发词只是辅助信号，场景判断必须结合项目结构、路由、接口、配置、设计图、发布文件和 checkpoint 证据。
+- 未知或复合需求进入 K 兜底，先探索证据、列候选归属，再回落到最接近的现有子 skill。
+- 默认先查再问，只在缺少项目路径、目标页面/模块、业务目标或高风险业务结论时询问用户。
 - `scenes/`、`references/`、`CHECKLIST.md` 已拆到子 skill。
 - 用户明确要求“记住、完善工作流、更新 skill”时，调用 `workflow-self-improvement`。
-- 普通业务任务中发现明确、可复用、归属清晰的可沉淀项时，默认调用 `workflow-self-improvement` 自动写入对应 skill。
+- 普通业务任务中发现明确、可复用、归属清晰的判断标准时，默认调用 `workflow-self-improvement` 自动写入对应 skill。
 - 仅当沉淀项归属不清、风险较高或可能固化一次性项目事实时，交付时列为待确认沉淀项。
 - 发布国家码只有 `mx / co / ng`。
 - 危地马拉进件按 `mx` 发布，不存在 `gt` 发布码。

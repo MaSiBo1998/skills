@@ -1,6 +1,6 @@
 # Checkpoint 机制（通用模块）
 
-工作流中断恢复机制。通过 `.workflow-checkpoint.json` 记录执行进度，支持跨会话恢复。
+工作流中断恢复机制。通过 `.workflow-checkpoint.json` 记录执行进度、自动推断事实和关键假设，支持跨会话恢复与场景判断复盘。
 
 ---
 
@@ -19,6 +19,7 @@
 - 后续 Step 完成时，必须向 `completed_steps` **追加**一条完成记录，并同步更新 `last_completed_step` 和 `updated_at` 字段，不得删除或覆盖其他字段
 - `completed_steps` 是恢复和交付说明的完整执行轨迹，不能只记录最后一个完成步骤
 - `last_completed_step` 仅作为快速恢复索引，不能替代 `completed_steps`
+- `context` 必须保留场景判断依据，至少按需记录 `discovered_facts`、`assumptions`、`blocking_questions`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`
 - **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
 - **禁止**用新的步骤记录覆盖旧的 `completed_steps`；如果同一步重复执行，追加新记录并在 `note` 中说明 rerun/修正原因
 
@@ -56,14 +57,28 @@
     "5": "自动测试验收",
     "6": "交付"
   },
-  "context": {},
+  "context": {
+    "discovered_facts": [
+      "package.json 存在 build 脚本",
+      "接口文档路径来自用户输入"
+    ],
+    "assumptions": [
+      "未提供国家，不阻塞普通功能开发"
+    ],
+    "blocking_questions": [],
+    "scene_confidence": "high",
+    "selected_scene_reason": "需求为接口字段替换且没有首复贷/进件证据，归入 B",
+    "skipped_skills": [
+      { "skill": "h5-vendor-architecture", "reason": "未发现 vendor 架构需求" }
+    ]
+  },
   "updated_at": "2026-05-08T10:30:00"
 }
 ```
 
 | 字段 | 说明 |
 |------|------|
-| `scene` | 场景标识：A / B / C / D / E / F / G / H / I / J |
+| `scene` | 场景标识：A / B / C / D / E / F / G / H / I / J / K |
 | `last_completed_step` | 已完成的最后一个 Step 编号，仅作快速恢复索引 |
 | `completed_steps` | 已完成 Step 的追加式历史记录，记录每一步完成时间和说明 |
 | `step_names` | 各步骤名称映射 |
@@ -72,12 +87,24 @@
 
 ### context 字段规范
 
+所有场景都可以使用以下公共字段：
+
+| 字段 | 说明 |
+|------|------|
+| `discovered_facts` | 从代码、配置、文档、设计图、checkpoint 中确认的事实 |
+| `assumptions` | 缺失但不阻塞时采用的默认判断、来源和风险 |
+| `blocking_questions` | 已确认无法继续的最小问题；没有阻塞时为空数组 |
+| `scene_confidence` | 场景判断置信度：`high` / `medium` / `low` |
+| `selected_scene_reason` | 选择当前场景的证据说明 |
+| `candidate_scenes` | 复合或未知需求时的候选场景、证据和置信度 |
+| `skipped_skills` | 被跳过的可选子 skill 及原因 |
+
 各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
 
 | 场景 | 推荐 context 字段 |
 |------|-------------------|
-| A | `{}` |
-| B | `{ vendor_enabled, api_doc_path, project_config }` |
+| A | `{ vendor_enabled, build_script }` |
+| B | `{ vendor_enabled, api_doc_path, project_config, target_route }` |
 | C | `{ product_name, country, vendor_enabled, api_doc_path, project_config }` |
 | D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
@@ -86,6 +113,7 @@
 | H | `{ learning_candidates, skill_updates }` |
 | I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 | J | `{ project_root, alert_scope, alert_api_path, h5_host_config, monitor_files }` |
+| K | `{ candidate_scenes, fallback_scene, exploration_paths, unresolved_blockers }` |
 
 各场景 step_names 按对应场景文件中的步骤名填写：
 
@@ -119,6 +147,9 @@
 
 // 场景 J（飞书前端告警，5 步）
 { "scene": "J", "step_names": { "1": "输入收集", "2": "告警现状分析", "3": "飞书告警接入", "4": "自动测试验收", "5": "交付" } }
+
+// 场景 K（未知/复合需求分析，6 步）
+{ "scene": "K", "step_names": { "1": "输入收集", "2": "证据探索", "3": "候选归属判断", "4": "回落到现有子 skill 执行", "5": "自动测试验收", "6": "交付与沉淀判断" } }
 ```
 
 ---
