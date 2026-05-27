@@ -11,7 +11,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 
 任何前端任务都先按以下 5 步推进，不能只靠触发词命中：
 
-1. **读取需求和项目证据**：先看用户输入、当前目录、项目结构、路由、接口封装、配置文件、设计图目录、发布文件、已有 checkpoint。能从代码或材料推断的信息不问用户。
+1. **读取需求和项目证据**：先看用户输入、当前目录、项目结构、路由、接口封装、配置文件、设计图目录、发布文件、已有 checkpoint；若上下文包含 `Automation ID` 或 automation memory 路径，先读取 automation memory，再决定是否复用上轮结论。memory 路径优先使用上下文显式给出的路径；否则用 `$CODEX_HOME/automations/<id>/memory.md`；若 `CODEX_HOME` 为空或未设置，回退到当前用户目录下 `.codex/automations/<id>/memory.md`。能从代码或材料推断的信息不问用户。
 2. **识别场景**：结合触发词和证据判断已知场景 A-J、复合场景或 K 未知/复合需求分析；记录 `scene_confidence` 和选择理由。
 3. **生成执行链**：列出必调子 skill、可选子 skill、跳过子 skill 及原因；复合需求按主目标排序串联。
 4. **只询问阻塞信息**：仅当缺少项目路径、目标页面/模块、业务目标、高风险业务结论或发布/资金/风控确认时才问；一次只问当前无法继续的最小问题。
@@ -93,6 +93,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 ## 少问用户原则
 
 - 先查再问：项目根目录、技术栈、路由、页面、接口、构建命令、release-env、design 目录等都要先从文件系统和代码中推断。
+- 自动化续跑先查记忆：当用户消息包含 `Automation ID`、`Automation memory` 或上次运行时间时，必须先读取 automation memory 和项目 checkpoint；若 `CODEX_HOME` 为空，按用户目录下 `.codex/automations/<id>/memory.md` 回退，避免重复巡检已确认的漂移、阻塞和已完成修复。
 - 只问阻塞项：没有项目路径、找不到目标模块、业务目标含糊、高风险结论不可推断、外部文档/账号/接口不存在时才问。
 - 不泛问“请提供完整信息”；必须说明已查到什么、缺什么、为什么这个缺口阻塞继续执行。
 - 可选信息缺失不阻断：产品名、国家、角色权限、菜单入口、H5 域名、接口文档等若可从代码推断或不影响当前开发，写入 `assumptions` 或待验收项继续推进。
@@ -111,7 +112,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 - 场景 D 的国家差异和发布国家码由 `h5-apply-flow/references/country-profile-index.md` 维护；场景 G 的发布细节由 `h5-release-tag` 维护。
 - 管理后台场景使用 `admin-management-flow`；若只是后台接口字段替换且有新接口文档，可先参考 `h5-api-mapping` 的接口映射方法，但实现流程仍归属管理后台。
 - 场景 K 不能成为长期归属；一次任务结束时必须落回 A-J 中最接近的归属，或把新判断标准交给 `workflow-self-improvement`。
-- 场景 H 巡检必须把元能力结果写入 checkpoint：`workflow_improvement_spec`、`orchestration_audit`、`eval_cases`、`eval_results`；评估失败项进入 `learning_candidates`。
+- 场景 H 巡检必须把元能力结果写入 checkpoint：`workflow_improvement_spec`、`orchestration_audit`、`eval_cases`、`eval_results`、`automation_memory`；评估失败项进入 `learning_candidates`。
 
 ## 通用模块
 

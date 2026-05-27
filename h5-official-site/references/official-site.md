@@ -110,7 +110,7 @@
 - 明确列出已拿到和缺失项，缺失则先补齐再继续
 - 支持 `.doc/.docx/.txt/.md/.html/.pdf`，优先使用可直接提取文本的格式
 - 当输入包含 `.docx` 时，先检查 `docx` skill 可用性（例如全局 `~/.agents/skills/docx` 或项目 `.agents/skills/docx` 存在）；若不可用，立即阻断并提示安装，不得回退到其他解析器
-- 当输入包含 `.docx` 时，进入解析前先做 `docx` skill 依赖自检：若 `scripts/office/unpack.py` 执行时报缺依赖（例如 `defusedxml`），先在当前执行 Python 环境安装缺失依赖并重试；仍失败则阻断流程
+- 当输入包含 `.docx` 时，进入解析前先做当前可用 `docx` skill 的依赖自检；若其解析入口或脚本执行时报缺依赖（例如 `defusedxml`），先在当前执行 Python 环境安装缺失依赖并重试；仍失败则阻断流程
 - 记录输出文件命名规则：
   1) 若提供协议链接且链接路径以 `.html` 结尾，输出文件名默认使用链接最后一段名称（例如 `/concesion.html`）
   2) 若未提供链接或链接不含 `.html` 文件名，回退默认名：`authorization-agreement.html`、`privacy-policy.html`、`loan-agreement.html`、`terms-of-service.html`
@@ -217,7 +217,7 @@ public/
 
 完整交付模板见 `h5-testing-checklist/references/delivery.md`。
 
-**→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
+**→ 清理 checkpoint**: 按 `h5-testing-checklist/references/delivery.md` 的 Checkpoint 清理规则处理；普通一次性官网/协议任务完成后可删除，recurring automation、包含 automation memory 的续跑、场景 H 或仍有运行时漂移/外部阻塞时必须保留。
 
 ---
 

@@ -32,4 +32,4 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 进件项目必须按 country profile 额外检查国家差异；危地马拉需检查 `mx` 发布、字段映射四类、Entry/跳转/原生交互、键盘聚焦滚动处理。
 - 管理后台项目必须额外检查路由/菜单入口、左侧/侧边栏入口、权限展示、列表/详情/配置页/模型配置页数据流、Element UI 交互、后台接口错误态、i18n 文案和构建结果。
 - 场景 K 未知/复合需求必须检查最终回落场景的专项验收，并在交付中说明候选归属、选择理由和仍需人工确认的假设。
-- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例和失败项处理结果。
+- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、checkpoint 自动续跑/保留策略和失败项处理结果。

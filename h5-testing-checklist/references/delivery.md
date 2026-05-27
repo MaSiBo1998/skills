@@ -11,7 +11,7 @@
 5. **测试结果**：`h5-testing-checklist/references/testing-checklist.md` 检查项通过率及失败项说明
 6. **待用户验收项**：需要用户在真实设备/浏览器上手动验证的功能点
 7. **规则沉淀结果**：已自动沉淀的判断标准，或暂不沉淀的项目特例与原因
-8. **巡检辅助结果**（场景 H 适用）：轻量规格、编排审查、回归样例和失败项处理结果
+8. **巡检辅助结果**（场景 H 适用）：轻量规格、编排审查、回归样例、automation memory 读写状态、运行时漂移和失败项处理结果
 
 ---
 
@@ -87,7 +87,7 @@
 - 已自动推断的事实和假设。
 - 已沉淀的规则、所属文件和校验结果。
 - 暂不沉淀的项目特例、原因和触发再次沉淀的条件。
-- 场景 H 还需说明 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 的调用结论和未通过样例处理结果。
+- 场景 H 还需说明 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 的调用结论、automation memory 读写状态、未同步运行时漂移和未通过样例处理结果。
 
 > "已自动沉淀以下规则到工作流文件：[文件列表]。下次执行 h5 工作流时将自动应用这些改进。"
 
@@ -95,7 +95,8 @@
 
 ## Checkpoint 清理
 
-交付完成后删除 `.workflow-checkpoint.json`，工作流结束。
+- 普通一次性业务工作流交付完成后，可删除 `.workflow-checkpoint.json` 结束流程。
+- 场景 H、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞时，不删除 `.workflow-checkpoint.json`；必须保留最新 checkpoint，便于下次自动化直接复用本轮结论。
 
 ---
 

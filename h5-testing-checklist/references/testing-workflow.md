@@ -56,7 +56,7 @@
 **场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
 **场景 E（官网/协议/挂载 H5）**: 协议 HTML 需检查输出文件、文档结构、移动端可读性、链接入口和 WebView 打开方式；官网协议入口、iframe、App 内嵌问答或客服问答需额外检查路由、资源路径、交互状态、异常态和真实设备待验项。
 **场景 G（发布）**: 必须使用 `release`，在 `full` 基础上确认 `release-env` 有效、构建产物已生成、真实 App WebView 待验项已列出。
-**场景 H（工作流自我更新）**: 必须检查 `spec-driven-development` 是否产出轻量规格、`workflow-orchestration-patterns` 是否完成编排审查、`llm-evaluation` 是否执行至少 6 类回归样例且通过线随样例数量同步更新；同时确认修改过的 skill 通过 `quick_validate.py`、运行时目录已同步、失败样例已修复或进入待确认沉淀项。若运行时目录因权限不可写无法同步，必须列出漂移文件和受阻目录，并作为外部阻塞交付，不得在同一轮反复尝试失败。
+**场景 H（工作流自我更新）**: 必须检查 `spec-driven-development` 是否产出轻量规格、`workflow-orchestration-patterns` 是否完成编排审查、`llm-evaluation` 是否执行当前回归样例集且通过线随样例数量同步更新；自动化续跑还必须确认 automation memory 已读取、checkpoint 已复用且不询问“是否继续”、交付前会写回本轮摘要和下一轮关注点；同时确认修改过的 skill 通过 `quick_validate.py`、运行时 hash 比对命令无脚本错误、运行时目录已同步、失败样例已修复或进入待确认沉淀项。若运行时目录因权限不可写无法同步，必须列出经过无错误 hash 比对确认的漂移文件和受阻目录，并作为外部阻塞交付，不得在同一轮反复尝试失败。
 **场景 I（管理后台开发）**: 默认 `full`，需执行完整 14 项 + 后台专项检查。重点验证路由和菜单入口、左侧/侧边栏入口、角色权限展示、列表/详情/配置页/模型配置页接口数据流、轮询或顶部状态同步、Element UI 表单校验/弹窗/toast、后台 i18n 文案、异常态和构建结果。
 **场景 J（飞书前端告警）**: 默认 `full`，需执行完整 14 项 + 飞书前端告警专项检查。重点验证告警接口集中配置、只在线上生产且页面 host 匹配时发送、告警内容脱敏、同类错误去重限流、React 崩溃/全局 JS error/Promise rejection/白屏或长 loading 统一触发，以及人工模拟上报待验项。
 **场景 K（未知/复合需求分析）**: 必须先说明最终回落到哪个场景及证据；验收执行回落场景的专项检查，并额外检查 checkpoint 是否记录 `candidate_scenes`、`selected_scene_reason`、`assumptions` 和 `skipped_skills`。若 K 暴露可复用判断标准，交付时按 `workflow-self-improvement` 处理沉淀。

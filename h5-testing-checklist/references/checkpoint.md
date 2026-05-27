@@ -102,6 +102,7 @@
 | `orchestration_audit` | 场景 H 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
 | `eval_cases` | 场景 H 巡检时由 `llm-evaluation` 维护的回归样例 |
 | `eval_results` | 场景 H 巡检时由 `llm-evaluation` 输出的指标、失败项和处理结果 |
+| `automation_memory` | 自动化续跑时使用的 memory 路径、读取状态、写回状态、剩余运行时漂移和下一轮关注点 |
 
 各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
 
@@ -114,7 +115,7 @@
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
-| H | `{ learning_candidates, skill_updates, workflow_improvement_spec, orchestration_audit, eval_cases, eval_results }` |
+| H | `{ learning_candidates, skill_updates, workflow_improvement_spec, orchestration_audit, eval_cases, eval_results, automation_memory }` |
 | I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
 | J | `{ project_root, alert_scope, alert_api_path, h5_host_config, monitor_files }` |
 | K | `{ candidate_scenes, fallback_scene, exploration_paths, unresolved_blockers }` |
@@ -164,22 +165,23 @@
 
 1. **检测**：项目根目录是否存在 `.workflow-checkpoint.json`
 2. **解析校验**：读取并解析 JSON，如解析失败（文件损坏）则删除并重新开始
-3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始
-3. **询问用户**：
+3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始；场景 H、recurring automation、包含 automation memory 的续跑，或存在未同步运行时漂移/外部阻塞时，保留 checkpoint 作为续跑证据，不按普通过期规则删除
+4. **续跑判断**：recurring automation、包含 automation memory 的续跑、或 checkpoint 中 `automation_memory`/未同步运行时漂移仍存在时，默认复用 checkpoint 继续执行，不询问用户；只有普通交互式任务才询问是否继续。
    ```
    检测到未完成的工作流（场景 {scene}，已完成步骤：{completed_steps 中的 step 列表}；最新完成 Step {last_completed_step}：{step_names[last_completed_step]}）。
    是否继续？[是/否]
    ```
-4. **继续**：读取对应场景文件，从 `last_completed_step + 1` 开始执行；如 `completed_steps` 与 `last_completed_step` 不一致，以 `completed_steps` 中最大 step 为准并修正 `last_completed_step`
-5. **重新开始**：删除 checkpoint 文件，按正常流程从头执行
+5. **继续**：读取对应场景文件，从 `last_completed_step + 1` 开始执行；如 `completed_steps` 与 `last_completed_step` 不一致，以 `completed_steps` 中最大 step 为准并修正 `last_completed_step`
+6. **重新开始**：删除 checkpoint 文件，按正常流程从头执行
 
 ---
 
 ## 清理时机
 
-- 工作流全部完成（最后一步交付）→ 删除 checkpoint
+- 普通一次性工作流全部完成（最后一步交付）→ 删除 checkpoint
 - 用户选择重新开始 → 删除 checkpoint
-- checkpoint 超过 24 小时 → 自动删除
+- checkpoint 超过 24 小时且不属于场景 H、recurring automation、automation memory 续跑、未同步运行时漂移或外部阻塞 → 自动删除
+- 场景 H、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞 → 保留最新 checkpoint，直到阻塞消失或用户明确要求清理
 
 ---
 

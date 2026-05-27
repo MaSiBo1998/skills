@@ -30,7 +30,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - 新增 skill 或调整 skill 之间的调度链接后，必须同步到 Trae、Codex、Claude 的运行时 skill 目录，并确认引用方与被引用方都存在。
    - 同步运行时目录前先确认目标目录可写；若目录不在当前可写根或写入返回 Access denied/permission denied，不要在同一轮反复尝试覆盖，必须记录漂移文件、受阻运行时目录和后续需要在有权限环境同步的动作。
 4. 校验更新：
-   - 修改任意 skill 后，运行 `skill-creator/scripts/quick_validate.py <skill目录>`。
+   - 修改任意 skill 后，运行 `quick_validate.py <skill目录>`；优先使用本仓库 `skill-creator/scripts/quick_validate.py`，若不存在则使用可读的系统 skill 路径，例如 `C:\Users\11731\.codex\skills\.system\skill-creator\scripts\quick_validate.py`。
    - 检查 diff，确认只改了本次沉淀相关内容。
    - 新增 skill 后检查 `~/.trae/skills/<skill>`、`~/.codex/skills/<skill>`、`~/.claude/skills/<skill>` 都已同步；若本机还维护其他运行时目录，也一并同步。若同步被权限阻断，源目录校验仍要继续，交付中把运行时漂移列为外部阻塞而不是重复失败。
    - 若更新影响发版、验收、接口映射等关键流程，在交付中说明仍需真实项目执行验证的部分。
@@ -58,6 +58,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 当用户要求检查所有 skill、提高工作流质量或修复工作流连贯性时，必须额外执行以下巡检：
 
 - 先用 `spec-driven-development` 的轻量规格方式锁定本轮巡检目标、范围、边界、成功标准和阻塞问题；若用户已给出目标且无阻塞项，直接记录假设继续，不要要求额外确认。
+- 若本轮来自 recurring automation、包含 `Automation ID` 或 automation memory 路径，先解析并读取 automation memory（缺失则按空记忆处理），并与项目 `.workflow-checkpoint.json` 对照后再扫描；路径优先使用上下文显式给出的 memory 路径，其次使用 `$CODEX_HOME/automations/<automation_id>/memory.md`，若 `CODEX_HOME` 为空或未设置则回退到当前用户目录下 `.codex/automations/<automation_id>/memory.md`；交付前必须把本轮摘要、当前时间、未同步运行时漂移和下一轮关注点写回同一路径。
 - 扫描所有本地 skill 的 `SKILL.md`、`references/*.md` 和 `agents/openai.yaml`。
 - 若用户要求“一轮一轮跑”或“每轮结束后确认”，一轮默认表示本次范围内全部 skill 都检查、优化、校验并同步完成；不要在单个 skill 结束后停下等待确认，除非用户明确指定“每个 skill 后确认”。
 - 若用户要求优化工作流但没有指定轮次，默认进入自驱动巡检闭环：连续执行“扫描 -> 修改 -> 校验 -> 同步 -> 再扫描”，直到达到停止条件后再一次性交付，不要求用户逐轮输入“继续”。
@@ -65,7 +66,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 检查主工作流场景调度、子 skill 执行方式、测试验收和交付说明是否互相对齐。
 - 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。
 - 检查新增或调整触发语义后，是否同步更新对应 `agents/openai.yaml`。
-- 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；发现运行时与源目录不一致时，本轮必须同步。
+- 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；hash 比对脚本必须兼容当前 shell，Windows PowerShell 中不要依赖新版 .NET 才有的 `Path.GetRelativePath`；若比对命令出现脚本错误或输出被错误污染，本次漂移结论无效，必须改用兼容路径计算后重新比对。发现运行时与源目录不一致时，本轮必须同步。
 - 用 `workflow-orchestration-patterns` 的编排检查法审视主工作流和子 skill：主工作流是否只负责编排、子 skill 是否像 activity 一样职责清晰、checkpoint 是否能恢复、跳过/失败/重试是否有记录、更新操作是否幂等。
 - 用 `llm-evaluation` 建立或更新工作流回归样例，并在巡检收口前执行一次评估；评估失败项必须转成高价值问题或待确认沉淀项。
 - 对所有被修改的 skill 运行 `quick_validate.py`，并用关键字搜索验证旧规则不再残留。
@@ -86,7 +87,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - 加载 `references/workflow-regression-evaluation.md` 作为默认评估集。
    - 至少维护 6 类回归样例：明确场景、复合场景、信息不全、新需求、高风险场景、沉淀规则。
    - 每个样例按 5 个指标打分：场景识别、证据优先、少问用户、执行链合理、沉淀判断。
-   - 回归通过线必须跟随样例数量动态计算；新增或删除样例时，同步更新总分和通过分，不能保留旧的硬编码 30 分基准。
+   - 回归通过线必须跟随样例数量动态计算；巡检时把当前样例数、总分和通过分写入 checkpoint `eval_results`，不能在评估文件里保留旧的硬编码分母或固定通过线。
    - 若没有自动评测 runner，用 LLM-as-judge/规则化审查输出通过/失败表；失败项进入 `learning_candidates`。
 
 ### 自驱动停止条件
@@ -95,9 +96,10 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 1. 最近一轮没有发现新的高价值问题（场景调度冲突、执行阻塞、验收缺口、引用失效、运行时未同步、旧规则残留）。
 2. 所有本轮范围内被修改的 skill 源目录 `quick_validate.py` 通过。
-3. 已同步到 Trae/Codex/Claude 运行时目录，源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，且运行时目录校验通过。
+3. 已同步到 Trae/Codex/Claude 运行时目录，源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，hash 比对命令无脚本错误，且运行时目录校验通过。
 4. `llm-evaluation` 回归样例没有未处理失败项；若存在失败项，已修复或记录为待确认沉淀项。
-5. 关键残留搜索为空，例如旧询问式沉淀规则、错误场景命名、错误发布码、旧路径引用。
+5. 自动化续跑场景已更新 automation memory，后续运行能直接看到本轮结论和外部阻塞。
+6. 关键残留搜索为空，例如旧询问式沉淀规则、错误场景命名、错误发布码、旧路径引用。
 
 自驱动巡检最多连续执行 3 轮深查；如果第 3 轮仍发现系统性问题，先交付当前修复、列出剩余问题和下一轮建议，避免无限循环。
 
@@ -112,7 +114,8 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 未知需求失效：需求无法命中 A-J 时没有执行 K 兜底、候选归属或最小阻塞问题。
 - 验收缺口：业务开发完成后没有对应专项检查、人工验收项或发布前校验。
 - 归属冲突：同一规则在主工作流和子 skill 中重复维护，或细节写错位置。
-- 运行时漂移：源目录已改但 Codex/Trae/Claude 运行时目录未同步，或运行时目录中 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 与源目录 hash 不一致。
+- 运行时漂移：源目录已改但 Codex/Trae/Claude 运行时目录未同步，或运行时目录中 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 与源目录 hash 不一致；若漂移检测脚本在当前 shell 报错，先修正检测脚本并重跑，不能把错误输出当成有效漂移清单。
+- 自动化续跑重复劳动：automation memory 未读取或未写回，导致下一轮无法跳过已确认的漂移、阻塞和已完成修复。
 - 旧规则残留：历史 common/scenes/CHECKLIST 路径、旧沉淀询问、错误国家发布码、过期命令示例。
 
 ## Checkpoint 集成
@@ -127,6 +130,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - `workflow_improvement_spec`：由 `spec-driven-development` 轻量规格化得到的巡检目标、范围、成功标准和边界。
 - `orchestration_audit`：由 `workflow-orchestration-patterns` 检查得到的编排边界、checkpoint、失败恢复和幂等性问题。
 - `eval_cases`、`eval_results`：由 `llm-evaluation` 维护和执行的回归样例、指标、失败项。
+- `automation_memory`：自动化续跑时记录已读取的 memory 路径、本轮写回状态、剩余外部阻塞和下一轮关注点。
 
 运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化、未知需求兜底判断时，先写入 `learning_candidates`。若候选项明确、可复用且归属清晰，应在本轮继续完成 skill 修改和校验，不把“是否沉淀”交回用户重复确认。每完成发现、归属、修改、校验、交付中的任一步，都要向 `completed_steps` 追加记录并同步更新 `last_completed_step`。实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。
 
