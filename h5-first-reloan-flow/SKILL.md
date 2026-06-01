@@ -39,5 +39,7 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
 - 涉及原生交互时必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
 - 首复贷页面如还款 Payment、支付补充信息、银行/钱包账号等表单包含真实 `input` / `textarea` / `contentEditable`，必须检查键盘遮挡：根节点 ref、`input-wrapper`、`submit-bar`、16px 输入字体、打开选择器前 blur、多延迟校正；如果页面被 `Status` 或业务容器包在 `height: 100vh; overflow-y: auto` 的内部滚动区域里，不能只调用 `window.scrollTo`，必须滚动最近的真实可滚动父容器，并按键盘高度补足底部可滚动空间。
+- 首复贷状态页、还款页和支付过渡页需要兼容旧 Android / Flutter WebView：关键间距不要依赖 `gap`，安全区 padding 必须有普通固定值、`constant()` 和 `env()` 分层兜底，且不要把 `env()` 写进 `padding` 简写导致整条声明被丢弃。
+- 首复贷 banner 内跳参数应按接口原值透传给统一 bridge；除非接口文档或用户明确要求转换，不要在 H5 层自行解析、过滤枚举范围或改变字符串/数字格式。
 - 参考项目字段只能用于理解语义。用户或接口文档明确给出目标字段后，必须清理参考项目字段兼容读取；还款用户资料、路由 state 和类型定义必须只保留目标项目真实字段，并搜索确认旧字段无残留。
 - 首复贷场景的飞书告警实现细节归属 `h5-feishu-alert`，本 skill 只负责在用户明确要求时调度它。

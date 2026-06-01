@@ -1,4 +1,4 @@
 interface:
   display_name: "H5 首复贷状态流"
   short_description: "独立开发 H5 首贷/复贷状态流、订单详情和还款"
-  default_prompt: "使用 h5-first-reloan-flow 开发或修改这个内嵌 H5 的首贷/复贷状态流、产品详情、未确认贷款、放款、还款、App 列表、原生交互和风控上传；状态流里可以展示或跳转进件入口，但不实现 Apply 表单步骤；还款页如包含真实输入框，必须检查 App WebView 键盘遮挡、内部滚动容器和 visualViewport 失效兜底；参考项目字段只能用于理解语义，用户或接口文档给出真实字段后必须清理旧字段兼容读取；普通首复贷需求复用现有流程，只有明确新文档/新字段替换时才先调用 h5-api-mapping；如明确需要飞书前端告警，调度 h5-feishu-alert。"
+  default_prompt: "使用 h5-first-reloan-flow 开发或修改这个内嵌 H5 的首贷/复贷状态流、产品详情、未确认贷款、放款、还款、支付过渡页、App 列表、原生交互和风控上传；状态流里可以展示或跳转进件入口，但不实现 Apply 表单步骤；还款页如包含真实输入框，必须检查 App WebView 键盘遮挡、内部滚动容器和 visualViewport 失效兜底；还款支付过渡页必须检查非 URL 凭证复制兜底、服务费展示、渠道图标资源和空字符串渠道提示；首复贷 banner 内跳参数按接口原值透传给 bridge，不在 H5 层擅自解析或改变格式；旧 WebView 兼容需检查关键布局不依赖 gap，safe-area padding 有固定值、constant()、env() 分层兜底；参考项目字段只能用于理解语义，用户或接口文档给出真实字段后必须清理旧字段兼容读取；普通首复贷需求复用现有流程，只有明确新文档/新字段替换时才先调用 h5-api-mapping；如明确需要飞书前端告警，调度 h5-feishu-alert。"

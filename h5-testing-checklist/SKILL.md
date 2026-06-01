@@ -27,9 +27,11 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 本次调用 `h5-feishu-alert` 或涉及飞书告警、前端监控、白屏监控、线上异常告警时，必须执行飞书前端告警专项检查。
 - 任意涉及原生交互的场景都必须检查 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
 - 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表、还款期和首复贷 banner；如本次涉及接口/字段替换，再检查目标项目字段映射完整性。不得把某个项目的示例字段当作通用验收依据。
+- 内嵌 H5 面向旧 Android / Flutter WebView 时必须专项检查 CSS 兼容：关键布局不得依赖 `gap/row-gap/column-gap`，`safe-area-inset-*` 必须有普通固定值、`constant()`、`env()` 分层兜底，且不得把 `env()` 放进 `padding` 简写造成整条声明失效。
 - 首复贷还款页新增用户资料回显或支付输入框时，必须检查真实字段无旧参考字段残留，并检查 App WebView 键盘遮挡链路；未做真实设备验证时必须标记为人工待验。
+- 首复贷还款/支付过渡页涉及支付跳转、非 URL 凭证、空字符串渠道、服务费或渠道图标时，必须检查支付闭环、复制兜底、当前支付方式服务费、真实资源和 App WebView 待验项。
 - 同结构混淆字段替换必须检查接口地址、请求头、请求入参、响应字段、全局配置字段已替换，旧字段无残留，且业务流程未被重构。
 - 进件项目必须按 country profile 额外检查国家差异；危地马拉需检查 `mx` 发布、字段映射四类、Entry/跳转/原生交互、键盘聚焦滚动处理。
 - 管理后台项目必须额外检查路由/菜单入口、左侧/侧边栏入口、权限展示、列表/详情/配置页/模型配置页数据流、Element UI 交互、后台接口错误态、i18n 文案和构建结果。
 - 场景 K 未知/复合需求必须检查最终回落场景的专项验收，并在交付中说明候选归属、选择理由和仍需人工确认的假设。
-- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、checkpoint 自动续跑/保留策略和失败项处理结果。
+- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、未解析 `CODEX_HOME` memory 路径回退、checkpoint 自动续跑/保留策略、内部引用扫描无脚本错误或污染输出、运行时 hash 比对无脚本错误和失败项处理结果。

@@ -33,7 +33,7 @@
 □ 8. 交互流程检查 —— 跳转/表单/弹窗完整
 □ 9. 异常态检查 —— 加载态/空态/错误态
 □ 10. H5 内嵌规范检查 —— 无状态栏/触摸区域≥44px/安全区域
-□ 11. 浏览器兼容检查 —— ES5/CSS 前缀/Flexbox
+□ 11. 浏览器兼容检查 —— ES5/CSS 前缀/Flexbox/gap/safe-area 兜底
 □ 12. 构建架构检查 —— 仅场景 A 或 vendor_enabled=true 时执行；否则标记为“未启用 vendor，跳过”
 □ 13. 依赖清理检查 —— 对照 package.json 移除未引用依赖
 □ 14. 性能检查 —— 路由懒加载/分包/骨架屏/压缩
@@ -52,11 +52,11 @@
 
 **场景 A（架构改造）**: 重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）
 **场景 B / C / D（含接口或页面修改）**: 默认 `full`，需执行完整 14 项；本次涉及接口/字段替换时额外执行接口映射校验。同结构混淆字段替换需确认只替换接口地址、请求头、请求入参、响应字段和全局配置字段，业务流程未被重构。其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
-**场景 C（首复贷开发）**: 需执行完整 14 项 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期、首复贷 banner 展示/轮播/跳转和真实 WebView 原生交互。本次未涉及新接口文档/新字段替换时，不要求完成项目适配映射。
+**场景 C（首复贷开发）**: 需执行完整 14 项 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期、首复贷 banner 展示/轮播/跳转、旧 WebView CSS 兼容和真实 WebView 原生交互。本次未涉及新接口文档/新字段替换时，不要求完成项目适配映射。
 **场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
 **场景 E（官网/协议/挂载 H5）**: 协议 HTML 需检查输出文件、文档结构、移动端可读性、链接入口和 WebView 打开方式；官网协议入口、iframe、App 内嵌问答或客服问答需额外检查路由、资源路径、交互状态、异常态和真实设备待验项。
 **场景 G（发布）**: 必须使用 `release`，在 `full` 基础上确认 `release-env` 有效、构建产物已生成、真实 App WebView 待验项已列出。
-**场景 H（工作流自我更新）**: 必须检查 `spec-driven-development` 是否产出轻量规格、`workflow-orchestration-patterns` 是否完成编排审查、`llm-evaluation` 是否执行当前回归样例集且通过线随样例数量同步更新；自动化续跑还必须确认 automation memory 已读取、checkpoint 已复用且不询问“是否继续”、交付前会写回本轮摘要和下一轮关注点；同时确认修改过的 skill 通过 `quick_validate.py`、运行时 hash 比对命令无脚本错误、运行时目录已同步、失败样例已修复或进入待确认沉淀项。若运行时目录因权限不可写无法同步，必须列出经过无错误 hash 比对确认的漂移文件和受阻目录，并作为外部阻塞交付，不得在同一轮反复尝试失败。
+**场景 H（工作流自我更新）**: 必须检查 `spec-driven-development` 是否产出轻量规格、`workflow-orchestration-patterns` 是否完成编排审查、`llm-evaluation` 是否执行当前回归样例集且通过线随样例数量同步更新；自动化续跑还必须确认 automation memory 已读取、未解析的 `$CODEX_HOME` 字面量路径已回退处理、checkpoint 已复用且不询问“是否继续”、交付前会写回本轮摘要和下一轮关注点；同时确认修改过的 skill 通过 `quick_validate.py`、运行时 hash 比对命令无脚本错误、运行时目录已同步、失败样例已修复或进入待确认沉淀项。若运行时目录因权限不可写无法同步，必须列出经过无错误 hash 比对确认的漂移文件和受阻目录，并作为外部阻塞交付，不得在同一轮反复尝试失败。
 **场景 I（管理后台开发）**: 默认 `full`，需执行完整 14 项 + 后台专项检查。重点验证路由和菜单入口、左侧/侧边栏入口、角色权限展示、列表/详情/配置页/模型配置页接口数据流、轮询或顶部状态同步、Element UI 表单校验/弹窗/toast、后台 i18n 文案、异常态和构建结果。
 **场景 J（飞书前端告警）**: 默认 `full`，需执行完整 14 项 + 飞书前端告警专项检查。重点验证告警接口集中配置、只在线上生产且页面 host 匹配时发送、告警内容脱敏、同类错误去重限流、React 崩溃/全局 JS error/Promise rejection/白屏或长 loading 统一触发，以及人工模拟上报待验项。
 **场景 K（未知/复合需求分析）**: 必须先说明最终回落到哪个场景及证据；验收执行回落场景的专项检查，并额外检查 checkpoint 是否记录 `candidate_scenes`、`selected_scene_reason`、`assumptions` 和 `skipped_skills`。若 K 暴露可复用判断标准，交付时按 `workflow-self-improvement` 处理沉淀。

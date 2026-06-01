@@ -14,7 +14,9 @@
 | 规则沉淀 | 这个规则下次记住 | 进入 H，判断归属；明确可复用时直接沉淀并校验同步 |
 | 全量巡检 | 帮我巡检优化工作流 | 进入 H，自驱动执行轻量规格、全量扫描、编排审查、运行时 hash 比对和回归评估；运行时不可写时记录漂移与权限阻塞，不重复失败 |
 | 运行时漂移检测 | 巡检时 PowerShell 不支持 `[System.IO.Path]::GetRelativePath`，hash 比对命令报错并输出异常漂移清单 | 判定本次漂移结果无效，改用兼容当前 shell 的相对路径计算重新比对；只把无脚本错误的 verified drift 写入 checkpoint、automation memory 和交付说明 |
-| 自动化续跑 | Automation ID: automation；帮我巡检优化工作流；当前 shell 中 CODEX_HOME 为空 | 先按上下文显式路径或用户目录 `.codex/automations/automation/memory.md` 回退读取 automation memory 和项目 checkpoint，并默认复用 checkpoint 继续执行，不询问“是否继续”；再做增量巡检；交付前写回本轮摘要、未同步漂移和下一轮关注点；若仍有外部阻塞或运行时漂移，保留 `.workflow-checkpoint.json` 作为下次续跑证据 |
+| 引用扫描容错 | 内部引用扫描把 `.codex/automations/<id>/memory.md`、`npx tsc --noEmit` 或 `swaggerApi.json` 示例误当成本仓库路径，或把 reference 文件中的 `references/*.md` 只按当前文件目录解析，并伴随 `Test-Path` 非法字符错误或误报缺失 | 判定本次引用扫描结果无效，同时按当前文件目录、所属 skill 根目录和仓库根目录解析内部相对路径，过滤占位符、命令片段、模板路径和目标项目示例文件后重跑；只把无脚本错误的真实缺失引用写入 checkpoint 和交付说明 |
+| 自动化续跑 | Automation ID: automation；Automation memory: `$CODEX_HOME/automations/automation/memory.md`；当前 shell 中 CODEX_HOME 为空 | 不能把未解析的 `$CODEX_HOME/...` 字面量当作真实路径；先回退到用户目录 `.codex/automations/automation/memory.md` 读取 automation memory 和项目 checkpoint，并默认复用 checkpoint 继续执行，不询问“是否继续”；再做增量巡检；交付前写回本轮摘要、未同步漂移和下一轮关注点；若仍有外部阻塞或运行时漂移，保留 `.workflow-checkpoint.json` 作为下次续跑证据 |
+| 显式记忆路径 | Automation memory: `C:\tmp\codex-automation\memory.md`；Automation ID: automation | 显式路径已解析为真实路径时直接读取并写回该路径；不得改用默认 `$CODEX_HOME/automations/<id>/memory.md` 或用户目录回退路径；若文件不存在，按空记忆处理并在交付前创建同一路径 |
 
 ## 评分指标
 

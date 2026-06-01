@@ -1,5 +1,5 @@
 ﻿{
-    "last_run_at":  "2026-05-27T03:13:11.1517910+08:00",
+    "last_run_at":  "2026-05-30T03:12:08.4486770+08:00",
     "completed_steps":  [
                             {
                                 "step":  "workflow_improvement_spec",
@@ -220,97 +220,848 @@
                                 "step":  "automation_memory_write_runtime_hash_compat_2026_05_27",
                                 "status":  "completed",
                                 "summary":  "Wrote current run summary, runtime hash compatibility fix, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_no_new_source_gap_2026_05_27",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_27",
+                                "status":  "completed",
+                                "summary":  "Scanned root SKILL.md, references/*.md, agents/openai.yaml; no missing references or new high-value workflow gaps found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_27",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_27",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_27",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_27",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_incremental_2026_05_27_1910",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_27_1910",
+                                "status":  "completed",
+                                "summary":  "Scanned root SKILL.md, references/*.md, agents/openai.yaml, stale keywords, and internal references; no missing references or new high-value workflow gaps found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_27_1910",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_27_1910",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_27_1910",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_27_1910",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_27_2012",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused prior no-source-gap conclusions."
+                            },
+                            {
+                                "step":  "incremental_full_scan_2026_05_27_2012",
+                                "status":  "completed",
+                                "summary":  "Scanned root and auxiliary SKILL.md, references/*.md, and agents/openai.yaml; stale keyword and internal reference checks are clean."
+                            },
+                            {
+                                "step":  "validation_2026_05_27_2012",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_27_2012",
+                                "status":  "completed",
+                                "summary":  "Workflow regression remains 9 cases, score 45/45, dynamic pass line 40, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_blocked_2026_05_27_2012",
+                                "status":  "blocked",
+                                "summary":  "Runtime drift persists for h5-feishu-alert and h5-official-site in Trae/Codex/Claude; sync is blocked by current writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_27_2012",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation, regression, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_27_2110",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_27_2110",
+                                "status":  "completed",
+                                "summary":  "Scanned root and auxiliary SKILL.md, references/*.md, agents/openai.yaml, stale keywords, internal references, and runtime drift; no new source workflow gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_27_2110",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_27_2110",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_27_2110",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_27_2110",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_27_2213",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_27_2213",
+                                "status":  "completed",
+                                "summary":  "Scanned root and auxiliary SKILL.md, references/*.md, agents/openai.yaml, stale keywords, internal references, and runtime drift; no new source workflow gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_27_2213",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_27_2213",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_27_2213",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_27_2213",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_incremental_2026_05_27_231132",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and checkpoint; reused prior clean-source conclusions and known runtime drift blockers."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_27_231132",
+                                "status":  "completed",
+                                "summary":  "Scanned SKILL.md, references/*.md, agents/openai.yaml, stale keywords, and internal references; no missing references or new high-value workflow gaps found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_27_231132",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_27_231132",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, dynamic pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_27_231132",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_27_231132",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_literal_codex_home_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md after resolving literal $CODEX_HOME path through the user .codex fallback."
+                            },
+                            {
+                                "step":  "incremental_scan_literal_codex_home_gap_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Found a reusable automation gap: explicit Automation memory paths can contain an unresolved $CODEX_HOME placeholder when CODEX_HOME is empty."
+                            },
+                            {
+                                "step":  "source_update_literal_codex_home_fallback_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Updated front-workflow, workflow-self-improvement, h5-testing-checklist, and workflow regression wording to require fallback instead of treating unresolved $CODEX_HOME as a real path."
+                            },
+                            {
+                                "step":  "validation_literal_codex_home_fallback_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_literal_codex_home_fallback_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, dynamic pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_literal_codex_home_fallback_2026_05_28",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_literal_codex_home_fallback_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, unresolved CODEX_HOME fallback fix, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_0111",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md after unresolved $CODEX_HOME path."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_0111",
+                                "status":  "completed",
+                                "summary":  "Scanned root SKILL.md, references/*.md, agents/openai.yaml and found no missing internal references or new high-value workflow gaps."
+                            },
+                            {
+                                "step":  "validation_2026_05_28_0111",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_28_0111",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_28_0111",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_28_0111",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, regression result, runtime drift blocker, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_no_new_source_gap_2026_05_28_0209",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_0209",
+                                "status":  "completed",
+                                "summary":  "Scanned root and auxiliary SKILL.md, references/*.md, agents/openai.yaml; no missing internal references or stale workflow rules found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_28_0209",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_28_0209",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_28_0209",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_28_0209",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_0311",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused prior completed scan conclusions."
+                            },
+                            {
+                                "step":  "incremental_doc_alignment_2026_05_28_0311",
+                                "status":  "completed",
+                                "summary":  "Aligned front-workflow README automation memory wording with unresolved CODEX_HOME fallback rules."
+                            },
+                            {
+                                "step":  "validation_2026_05_28_0311",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; workflow regression has 9 cases, 45 total points, pass line 40, score 45."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_28_0311",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison confirmed runtime drift remains for h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md in Trae, Codex, and Claude."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_1807",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via user .codex fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_1807",
+                                "status":  "completed",
+                                "summary":  "Scanned source SKILL.md, references/*.md, agents/openai.yaml, README files and filtered local references; no new missing internal references or old-rule residuals found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_28_1807",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_28_1807",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_28_1807",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_28_1807",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_1908",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via user .codex fallback and reused prior completed cleanup conclusions."
+                            },
+                            {
+                                "step":  "incremental_source_scan_2026_05_28_1908",
+                                "status":  "completed",
+                                "summary":  "Residual search and filtered internal reference scan found no new source workflow gaps in SKILL.md, README.md, references/*.md, or agents/openai.yaml."
+                            },
+                            {
+                                "step":  "validation_2026_05_28_1908",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; workflow regression has 9 cases, 45 total points, pass line 40, score 45."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_28_1908",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows drift only for h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md in Trae, Codex, and Claude; runtime directories remain outside writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_28_1908",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_2010",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via user .codex fallback after the explicit CODEX_HOME path was unresolved."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_2010",
+                                "status":  "completed",
+                                "summary":  "Scanned root SKILL.md, references/*.md, agents/openai.yaml, README files, stale keywords, and filtered internal references; no new source workflow gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_28_2010",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; workflow regression has 9 cases, 45 total points, dynamic pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_28_2010",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows drift only for h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md in Trae, Codex, and Claude; runtime directories remain outside writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_28_2010",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift blocker, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_no_source_update_2026_05_28_2111",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md because CODEX_HOME is empty in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_2111",
+                                "status":  "completed",
+                                "summary":  "Scanned root and auxiliary SKILL.md, references/*.md, agents/openai.yaml, README.md, stale keywords, and internal reference paths; no new high-value source workflow gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_28_2111",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_28_2111",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 9 cases, 45 total points, pass line 40, score 45, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_28_2111",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_28_2111",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression score, unchanged runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_explicit_path_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via user .codex fallback and reused prior checkpoint conclusions."
+                            },
+                            {
+                                "step":  "explicit_memory_path_gap_scan_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Found wording ambiguity: resolved explicit automation memory paths could be misread as falling through to the default CODEX_HOME path."
+                            },
+                            {
+                                "step":  "source_update_explicit_memory_path_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Clarified front-workflow and workflow-self-improvement so resolved explicit memory paths are used directly; added a regression case."
+                            },
+                            {
+                                "step":  "validation_explicit_memory_path_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; regression evaluation has 10 cases, 50 total points, pass line 44, score 50."
+                            },
+                            {
+                                "step":  "runtime_drift_check_explicit_memory_path_2026_05_28",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_explicit_memory_path_2026_05_28",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, explicit memory path clarification, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_28_2312",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback because the provided CODEX_HOME path is unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_28_2312",
+                                "status":  "completed",
+                                "summary":  "Scanned root SKILL.md, references/*.md, agents/openai.yaml and current diff; no new high-value workflow source gaps found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_28_2312",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_28_2312",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 10 cases, 50 total points, pass line 44, score 50, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_28_2312",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_28_2312",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_0109",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md because CODEX_HOME was unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_29_0109",
+                                "status":  "completed",
+                                "summary":  "Scanned SKILL.md, references/*.md, agents/openai.yaml, current diff, and stale-rule keywords; no new high-value workflow source gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_29_0109",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_29_0109",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 10 cases, 50 total points, pass line 44, score 50, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_29_0109",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_29_0109",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_0214",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback and reused prior runtime drift conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_29_0214",
+                                "status":  "completed",
+                                "summary":  "Reviewed current dirty diff, source SKILL.md, references/*.md, agents/openai.yaml, README/share docs, stale-rule keywords, and internal references; no new high-value source workflow gap found."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_29_0214",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_29_0214",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 10 cases, 50 total points, pass line 44, score 50, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_29_0214",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_no_source_update_2026_05_29_0214",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, unchanged runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md because the explicit $CODEX_HOME path is unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_testing_alignment_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "Scanned source SKILL.md, references/*.md, agents/openai.yaml, README/share docs, stale-rule keywords, and internal references; found one h5-testing-checklist top-level alignment gap."
+                            },
+                            {
+                                "step":  "source_update_testing_entry_alignment_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "Updated h5-testing-checklist/SKILL.md to surface payment transition acceptance and scene H unresolved CODEX_HOME/runtime hash validation at the entry level."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py after the h5-testing-checklist update."
+                            },
+                            {
+                                "step":  "reference_scan_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "Internal reference scan returned no missing SKILL.md, references/*.md, agents/openai.yaml, README, or sharing-doc references."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_0307",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 10 cases, 50 total points, dynamic pass line 44, score 50, and no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_0307",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_0312",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, h5-testing-checklist alignment fix, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused the prior no-source-gap baseline plus runtime drift focus."
+                            },
+                            {
+                                "step":  "reference_scan_rule_fix_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "Sedimented reference scan tolerance: resolve paths by file, skill root, and repo root; ignore placeholders, templates, commands, and project-only examples; rerun after script errors."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "workflow-self-improvement and h5-testing-checklist passed quick_validate.py after the reference scan rule update."
+                            },
+                            {
+                                "step":  "reference_scan_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "Skill-root-aware sanitized reference scan completed with no missing internal refs and no script errors or polluted output."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, dynamic pass line 49, score 55, and no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_1816",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories; runtime roots are outside writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_1816",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, reference scan rule fix, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_1913",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and reused prior completed cleanup conclusions before scanning."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_29_1913",
+                                "status":  "completed",
+                                "summary":  "Scanned source SKILL.md, references/*.md, agents/openai.yaml, stale-rule patterns, and internal references; no new source workflow gap found after rerunning polluted reference scans with compatible filters."
+                            },
+                            {
+                                "step":  "validation_no_source_update_2026_05_29_1913",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills and 3 auxiliary meta skills passed quick_validate.py; no source skill files were modified this run."
+                            },
+                            {
+                                "step":  "regression_no_source_update_2026_05_29_1913",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_no_source_update_2026_05_29_1913",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_1913",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via user .codex fallback because CODEX_HOME was unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_old_path_noise_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "Found one residual-search noise source: workflow-self-improvement named an old common scenes/checklist path literally inside its stale-rule category."
+                            },
+                            {
+                                "step":  "source_update_old_path_noise_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "Updated workflow-self-improvement/SKILL.md to describe old scene/checklist residues without embedding the obsolete path literal."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus .agents spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py; filtered internal reference scan checked 74 refs across 50 files with no missing paths."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, dynamic pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_2000",
+                                "status":  "blocked",
+                                "summary":  "Error-free compatible hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_2000",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, source cleanup, validation, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_2110",
+                                "status":  "completed",
+                                "summary":  "Read C:\\Users\\11731\\.codex\\automations\\automation\\memory.md via fallback because the explicit $CODEX_HOME path is unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_no_new_source_gap_2026_05_29_2110",
+                                "status":  "completed",
+                                "summary":  "Reviewed current dirty workflow diff and reran corrected reference/stale-rule checks; no new high-value source workflow gaps found."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_2110",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py."
+                            },
+                            {
+                                "step":  "reference_scan_2026_05_29_2110",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan checked 434 candidates across 55 files, skipped template/project examples, and found 0 missing internal references."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_2110",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, pass line 49, score 55, and no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_2110",
+                                "status":  "blocked",
+                                "summary":  "Error-free runtime hash comparison still shows only h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude; runtime directories are outside writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_2111",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, no-source-update result, validation result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_2212",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused prior no-source-update conclusions."
+                            },
+                            {
+                                "step":  "incremental_scan_2026_05_29_2212",
+                                "status":  "completed",
+                                "summary":  "Stale-rule search was empty; corrected internal reference scan checked 55 files and 90 candidates with 0 real missing references."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_2212",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus .agents spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_2212",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_2212",
+                                "status":  "blocked",
+                                "summary":  "Runtime hash drift remains only for h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md in Trae, Codex, and Claude; runtime directories are outside writable roots."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_2212",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md because the explicit $CODEX_HOME path was unresolved in this shell."
+                            },
+                            {
+                                "step":  "incremental_scan_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "Stale-rule search returned no matches; corrected internal reference scan checked 50 files and 70 repo-reference candidates with 0 missing references."
+                            },
+                            {
+                                "step":  "source_update_not_needed_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "Reviewed current dirty workflow diff and found no new high-value source workflow rule requiring additional edits this run."
+                            },
+                            {
+                                "step":  "validation_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus .agents spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, dynamic pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_29_2312",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_29_2312",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and reused the previous checkpoint conclusions."
+                            },
+                            {
+                                "step":  "reference_scan_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "Corrected internal reference scan checked 50 files and 72 repo-reference candidates after filtering templates/external paths; found 0 missing references."
+                            },
+                            {
+                                "step":  "stale_rule_search_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "Stale-rule residue search returned no matches."
+                            },
+                            {
+                                "step":  "validation_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus .agents spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, dynamic pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_validation_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "The six drifted runtime skill directories still pass quick_validate.py, but their file hashes differ from source."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_30_0010",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_30_0010",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, regression result, runtime drift, and next focus to automation memory."
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and checkpoint; reused prior conclusions for completed workflow cleanup."
+                            },
+                            {
+                                "step":  "reference_scan_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "Corrected noisy target-project-example filtering and scanned 50 files with 88 repo-reference candidates; no missing internal references remain."
+                            },
+                            {
+                                "step":  "validation_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "All 13 root source skills plus .agents spec-driven-development, workflow-orchestration-patterns, and llm-evaluation passed quick_validate.py."
+                            },
+                            {
+                                "step":  "regression_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "Workflow regression evaluation has 11 cases, 55 total points, pass line 49, score 55, no failed cases."
+                            },
+                            {
+                                "step":  "runtime_validation_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "The six drifted runtime skill directories still pass quick_validate.py, but their file hashes differ from source."
+                            },
+                            {
+                                "step":  "runtime_drift_check_2026_05_30_0312",
+                                "status":  "blocked",
+                                "summary":  "Error-free hash comparison still shows h5-feishu-alert SKILL.md/openai.yaml and h5-official-site references/official-site.md drift in Trae, Codex, and Claude runtime directories."
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_05_30_0312",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation result, unchanged runtime drift, and next focus to automation memory."
                             }
                         ],
-    "last_completed_step":  "automation_memory_write_runtime_hash_compat_2026_05_27",
-    "workflow_improvement_spec":  {
-                                      "objective":  "Continue recurring workflow inspection and close the runtime drift hash comparison compatibility gap so automation does not record errored drift output.",
-                                      "scope":  [
-                                                    "C:\\Users\\11731\\Desktop\\skills source workflows",
-                                                    "workflow-self-improvement runtime drift rules and regression evaluation",
-                                                    "h5-testing-checklist scene H validation wording",
-                                                    "automation memory at C:\\Users\\11731\\.codex\\automations\\automation\\memory.md",
-                                                    "Trae/Codex/Claude runtime hash comparison"
-                                                ],
-                                      "success_criteria":  [
-                                                               "Runtime drift hash comparison uses shell-compatible relative path calculation",
-                                                               "Script errors or noisy drift output invalidate the drift conclusion and force a corrected rerun",
-                                                               "Regression case covers runtime drift detection compatibility",
-                                                               "Scene H validation requires hash comparison without script errors",
-                                                               "All root source skills pass quick_validate.py",
-                                                               "Runtime drift is synchronized or recorded as blocked",
-                                                               "Automation memory is written before return"
-                                                           ],
-                                      "boundaries":  [
-                                                         "Do not modify business project code",
-                                                         "Do not write outside current writable roots",
-                                                         "Do not repeat prior CODEX_HOME fallback, dynamic pass-line, docx-reference, checkpoint-retention, or checkpoint-resume cleanup unless files drift",
-                                                         "Do not treat hash comparison output as valid when the comparison command reports script errors"
-                                                     ],
-                                      "blocking_questions":  [
-
-                                                             ]
-                                  },
-    "orchestration_audit":  {
-                                "workflow_activity_boundary":  "front-workflow remains the orchestrator; workflow-self-improvement owns audit/update mechanics; h5-testing-checklist owns checkpoint recovery, cleanup, validation, and delivery rules.",
-                                "checkpoint_resume":  "Recurring automation and automation_memory reruns continue to reuse checkpoint by default and do not ask whether to continue while prior state, drift, or blockers still exist.",
-                                "automation_memory_resume":  "Automation memory was read from the user .codex fallback path because CODEX_HOME was unavailable in this shell; this run wrote summary, validation, drift, and next focus back to the same path.",
-                                "runtime_hash_compare":  "Initial Path.GetRelativePath-based comparison failed in Windows PowerShell and was discarded; a substring-based compatible comparison reran without script errors before recording verified drift.",
-                                "idempotency":  "Repeated automation runs can skip already-completed fallback, dynamic pass-line, docx-reference, checkpoint-retention, checkpoint-resume, and runtime-hash-compatibility fixes, then continue from recorded drift/blocker state.",
-                                "runtime_drift":  [
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.trae\\skills",
-                                                          "skill":  "h5-feishu-alert",
-                                                          "files":  [
-                                                                        "SKILL.md",
-                                                                        "agents\\openai.yaml"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert in a writable environment."
-                                                      },
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.codex\\skills",
-                                                          "skill":  "h5-feishu-alert",
-                                                          "files":  [
-                                                                        "SKILL.md",
-                                                                        "agents\\openai.yaml"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert in a writable environment."
-                                                      },
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.claude\\skills",
-                                                          "skill":  "h5-feishu-alert",
-                                                          "files":  [
-                                                                        "SKILL.md",
-                                                                        "agents\\openai.yaml"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert in a writable environment."
-                                                      },
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.trae\\skills",
-                                                          "skill":  "h5-official-site",
-                                                          "files":  [
-                                                                        "references\\official-site.md"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site in a writable environment."
-                                                      },
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.codex\\skills",
-                                                          "skill":  "h5-official-site",
-                                                          "files":  [
-                                                                        "references\\official-site.md"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site in a writable environment."
-                                                      },
-                                                      {
-                                                          "runtime":  "C:\\Users\\11731\\.claude\\skills",
-                                                          "skill":  "h5-official-site",
-                                                          "files":  [
-                                                                        "references\\official-site.md"
-                                                                    ],
-                                                          "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site in a writable environment."
-                                                      }
-                                                  ]
-                            },
     "eval_cases":  [
                        "明确场景",
                        "复合场景",
@@ -320,27 +1071,9 @@
                        "规则沉淀",
                        "全量巡检",
                        "运行时漂移检测",
-                       "自动化续跑"
+                       "自动化续跑",
+                       "引用扫描容错"
                    ],
-    "eval_results":  {
-                         "method":  "rule-based LLM-as-judge review of workflow-regression-evaluation.md after runtime hash comparison compatibility update",
-                         "cases":  9,
-                         "total_points":  45,
-                         "pass_line":  40,
-                         "score":  45,
-                         "failed_cases":  [
-
-                                          ]
-                     },
-    "automation_memory":  {
-                              "path":  "C:\\Users\\11731\\.codex\\automations\\automation\\memory.md",
-                              "read_status":  "read_via_user_codex_fallback_because_CODEX_HOME_empty_or_unavailable",
-                              "write_status":  "written_2026-05-27T03:13:11.1517910+08:00",
-                              "next_focus":  [
-                                                 "Do not repeat CODEX_HOME fallback, quick_validate fallback, dynamic pass-line, docx-reference, checkpoint-retention, checkpoint-resume, or runtime-hash-compatibility cleanup unless files drift.",
-                                                 "Check whether h5-feishu-alert and h5-official-site runtime copies can be synchronized in a writable environment."
-                                             ]
-                          },
     "learning_candidates":  [
                                 {
                                     "type":  "runtime_drift",
@@ -365,6 +1098,21 @@
                                 {
                                     "type":  "validation_gap",
                                     "summary":  "Runtime drift hash comparison must be compatible with the active shell; errored/noisy comparison output is invalid until rerun cleanly.",
+                                    "status":  "fixed_and_regression_covered"
+                                },
+                                {
+                                    "type":  "automation_memory_path_resolution",
+                                    "summary":  "Literal $CODEX_HOME in an explicit Automation memory path must fall back to the user .codex automation memory path when the environment variable is empty.",
+                                    "status":  "fixed_and_regression_covered"
+                                },
+                                {
+                                    "type":  "automation_memory_path_resolution",
+                                    "summary":  "Resolved explicit automation memory paths must be used directly; only unresolved CODEX_HOME placeholders or missing explicit paths should fall back.",
+                                    "status":  "fixed_and_regression_covered"
+                                },
+                                {
+                                    "type":  "validation_gap",
+                                    "summary":  "Internal reference scans must resolve relative paths by file, skill root, and repo root, and must ignore placeholders, templates, command snippets, and target-project examples before reporting missing refs.",
                                     "status":  "fixed_and_regression_covered"
                                 }
                             ],
@@ -517,6 +1265,193 @@
                                         ],
                               "summary":  "Added scene H validation that runtime hash comparison must complete without script errors and only report verified drift.",
                               "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "front-workflow",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml"
+                                        ],
+                              "summary":  "Clarified that explicit automation memory paths with unresolved CODEX_HOME must use the user .codex fallback.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Added unresolved CODEX_HOME fallback handling to full-audit rules and regression expectations.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "agents/openai.yaml",
+                                            "references/testing-workflow.md"
+                                        ],
+                              "summary":  "Added scene H validation that unresolved CODEX_HOME automation memory paths were fallback-resolved.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "front-workflow",
+                              "files":  [
+                                            "README.md"
+                                        ],
+                              "summary":  "Aligned public README automation memory wording with unresolved CODEX_HOME fallback behavior already present in SKILL.md and openai.yaml.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "front-workflow",
+                              "files":  [
+                                            "SKILL.md",
+                                            "README.md",
+                                            "agents/openai.yaml"
+                                        ],
+                              "summary":  "Clarified automation memory path precedence so resolved explicit paths are used directly and only unresolved placeholders/default paths fall back.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Clarified explicit automation memory path handling and added a regression case for resolved explicit paths.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "SKILL.md"
+                                        ],
+                              "summary":  "Surfaced payment transition acceptance and scene H unresolved CODEX_HOME/runtime hash validation in the checklist entry rules.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Added reference-scan tolerance, skill-root-aware path resolution, a high-value problem category, and a regression case.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml"
+                                        ],
+                              "summary":  "Added scene H acceptance that internal reference scans must have no script errors or polluted output.",
+                              "validation":  "quick_validate.py passed"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md"
+                                        ],
+                              "summary":  "Removed obsolete path literal from stale-rule residue wording so future residual searches are not polluted by the guard text itself.",
+                              "validation":  "quick_validate.py passed"
                           }
-                      ]
+                      ],
+    "runtime_drift":  [
+                          {
+                              "runtime":  "C:\\Users\\11731\\.trae\\skills",
+                              "skill":  "h5-feishu-alert",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents\\openai.yaml"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert when runtime directories are writable."
+                          },
+                          {
+                              "runtime":  "C:\\Users\\11731\\.trae\\skills",
+                              "skill":  "h5-official-site",
+                              "files":  [
+                                            "references\\official-site.md"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site when runtime directories are writable."
+                          },
+                          {
+                              "runtime":  "C:\\Users\\11731\\.codex\\skills",
+                              "skill":  "h5-feishu-alert",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents\\openai.yaml"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert when runtime directories are writable."
+                          },
+                          {
+                              "runtime":  "C:\\Users\\11731\\.codex\\skills",
+                              "skill":  "h5-official-site",
+                              "files":  [
+                                            "references\\official-site.md"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site when runtime directories are writable."
+                          },
+                          {
+                              "runtime":  "C:\\Users\\11731\\.claude\\skills",
+                              "skill":  "h5-feishu-alert",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents\\openai.yaml"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-feishu-alert when runtime directories are writable."
+                          },
+                          {
+                              "runtime":  "C:\\Users\\11731\\.claude\\skills",
+                              "skill":  "h5-official-site",
+                              "files":  [
+                                            "references\\official-site.md"
+                                        ],
+                              "required_action":  "Sync from C:\\Users\\11731\\Desktop\\skills\\h5-official-site when runtime directories are writable."
+                          }
+                      ],
+    "last_completed_step":  "automation_memory_write_2026_05_30_0312",
+    "workflow_improvement_spec":  {
+                                      "objective":  "Run an incremental self-driven workflow audit for C:\\Users\\11731\\Desktop\\skills using automation memory and checkpoint evidence.",
+                                      "scope":  "Automation memory, .workflow-checkpoint.json, root source skills, auxiliary meta skills, internal references, stale rules, validation, regression evaluation, and runtime hash drift.",
+                                      "success_criteria":  [
+                                                               "No new high-value source workflow gaps remain",
+                                                               "All source and auxiliary skills pass quick_validate.py",
+                                                               "Workflow regression score meets dynamic pass line",
+                                                               "Runtime drift is either synchronized or recorded as an external blocker",
+                                                               "Automation memory is updated for the next recurring run"
+                                                           ],
+                                      "boundaries":  [
+                                                         "Do not overwrite unrelated dirty worktree changes",
+                                                         "Do not write outside writable roots",
+                                                         "Do not repeat already-completed prior cleanup unless files drift"
+                                                     ],
+                                      "blocking_questions":  [
+
+                                                             ]
+                                  },
+    "orchestration_audit":  {
+                                "workflow_boundary":  "front-workflow remains the orchestrator; workflow-self-improvement owns rule sedimentation and validation; h5-testing-checklist owns acceptance coverage.",
+                                "checkpoint_recovery":  "Automation memory and .workflow-checkpoint.json were reused; recurring automation continued without asking whether to continue.",
+                                "idempotency":  "This pass reused prior memory/checkpoint, reran corrected reference scan after filtering target-project examples, stale-rule search, quick_validate, regression scoring, and runtime drift comparison; no source skill update was needed.",
+                                "blocker":  "Runtime synchronization remains blocked because Trae/Codex/Claude runtime directories are outside current writable roots."
+                            },
+    "eval_results":  {
+                         "case_count":  11,
+                         "total_points":  55,
+                         "pass_line":  49,
+                         "score":  55,
+                         "failed_cases":  [
+
+                                          ],
+                         "evaluated_at":  "2026-05-30T03:12:08.4486770+08:00"
+                     },
+    "automation_memory":  {
+                              "path":  "C:\\Users\\11731\\.codex\\automations\\automation\\memory.md",
+                              "read_at":  "2026-05-30T03:12:08.4486770+08:00",
+                              "write_required":  true,
+                              "path_resolution":  "Explicit $CODEX_HOME path was unresolved in this shell; used user .codex fallback. Resolved explicit paths should still be used directly.",
+                              "written_at":  "2026-05-30T03:12:08.4486770+08:00"
+                          }
 }

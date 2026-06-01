@@ -58,13 +58,13 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 当用户要求检查所有 skill、提高工作流质量或修复工作流连贯性时，必须额外执行以下巡检：
 
 - 先用 `spec-driven-development` 的轻量规格方式锁定本轮巡检目标、范围、边界、成功标准和阻塞问题；若用户已给出目标且无阻塞项，直接记录假设继续，不要要求额外确认。
-- 若本轮来自 recurring automation、包含 `Automation ID` 或 automation memory 路径，先解析并读取 automation memory（缺失则按空记忆处理），并与项目 `.workflow-checkpoint.json` 对照后再扫描；路径优先使用上下文显式给出的 memory 路径，其次使用 `$CODEX_HOME/automations/<automation_id>/memory.md`，若 `CODEX_HOME` 为空或未设置则回退到当前用户目录下 `.codex/automations/<automation_id>/memory.md`；交付前必须把本轮摘要、当前时间、未同步运行时漂移和下一轮关注点写回同一路径。
+- 若本轮来自 recurring automation、包含 `Automation ID` 或 automation memory 路径，先解析并读取 automation memory（缺失则按空记忆处理），并与项目 `.workflow-checkpoint.json` 对照后再扫描；路径优先解析上下文显式给出的 memory 路径，显式路径已解析为真实路径时使用解析结果；若显式路径包含未解析的 `$CODEX_HOME`、`${CODEX_HOME}` 或 `%CODEX_HOME%` 且环境变量为空或未设置，不得把字面量路径当作真实路径，必须回退到当前用户目录下 `.codex/automations/<automation_id>/memory.md`；未提供显式路径时再使用 `$CODEX_HOME/automations/<automation_id>/memory.md`，`CODEX_HOME` 为空或未设置时同样回退；交付前必须把本轮摘要、当前时间、未同步运行时漂移和下一轮关注点写回同一路径。
 - 扫描所有本地 skill 的 `SKILL.md`、`references/*.md` 和 `agents/openai.yaml`。
 - 若用户要求“一轮一轮跑”或“每轮结束后确认”，一轮默认表示本次范围内全部 skill 都检查、优化、校验并同步完成；不要在单个 skill 结束后停下等待确认，除非用户明确指定“每个 skill 后确认”。
 - 若用户要求优化工作流但没有指定轮次，默认进入自驱动巡检闭环：连续执行“扫描 -> 修改 -> 校验 -> 同步 -> 再扫描”，直到达到停止条件后再一次性交付，不要求用户逐轮输入“继续”。
 - 用户明确排除的 skill（例如 vendor 架构）不纳入本轮巡检、优化或同步范围。
 - 检查主工作流场景调度、子 skill 执行方式、测试验收和交付说明是否互相对齐。
-- 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。
+- 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。引用扫描必须同时按当前文件目录、所属 skill 根目录和仓库根目录解析内部相对路径，并过滤 `<id>`、`<skill>` 等占位符、`$CODEX_HOME` 模板路径、命令片段和目标项目内才会存在的示例文件；若扫描命令出现 `Test-Path` 非法字符、脚本错误或错误输出污染，本次引用结论无效，必须改用兼容当前 shell 的过滤规则后重跑。
 - 检查新增或调整触发语义后，是否同步更新对应 `agents/openai.yaml`。
 - 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；hash 比对脚本必须兼容当前 shell，Windows PowerShell 中不要依赖新版 .NET 才有的 `Path.GetRelativePath`；若比对命令出现脚本错误或输出被错误污染，本次漂移结论无效，必须改用兼容路径计算后重新比对。发现运行时与源目录不一致时，本轮必须同步。
 - 用 `workflow-orchestration-patterns` 的编排检查法审视主工作流和子 skill：主工作流是否只负责编排、子 skill 是否像 activity 一样职责清晰、checkpoint 是否能恢复、跳过/失败/重试是否有记录、更新操作是否幂等。
@@ -94,7 +94,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 自驱动巡检必须同时满足以下条件才停止：
 
-1. 最近一轮没有发现新的高价值问题（场景调度冲突、执行阻塞、验收缺口、引用失效、运行时未同步、旧规则残留）。
+1. 最近一轮没有发现新的高价值问题（场景调度冲突、执行阻塞、验收缺口、引用失效、引用扫描脚本错误、运行时未同步、旧规则残留）。
 2. 所有本轮范围内被修改的 skill 源目录 `quick_validate.py` 通过。
 3. 已同步到 Trae/Codex/Claude 运行时目录，源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，hash 比对命令无脚本错误，且运行时目录校验通过。
 4. `llm-evaluation` 回归样例没有未处理失败项；若存在失败项，已修复或记录为待确认沉淀项。
@@ -114,9 +114,10 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 未知需求失效：需求无法命中 A-J 时没有执行 K 兜底、候选归属或最小阻塞问题。
 - 验收缺口：业务开发完成后没有对应专项检查、人工验收项或发布前校验。
 - 归属冲突：同一规则在主工作流和子 skill 中重复维护，或细节写错位置。
+- 引用扫描失真：把占位符、命令片段或目标项目示例文件误当成本仓库缺失引用，或扫描脚本报错但仍把污染输出当成有效结论。
 - 运行时漂移：源目录已改但 Codex/Trae/Claude 运行时目录未同步，或运行时目录中 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 与源目录 hash 不一致；若漂移检测脚本在当前 shell 报错，先修正检测脚本并重跑，不能把错误输出当成有效漂移清单。
 - 自动化续跑重复劳动：automation memory 未读取或未写回，导致下一轮无法跳过已确认的漂移、阻塞和已完成修复。
-- 旧规则残留：历史 common/scenes/CHECKLIST 路径、旧沉淀询问、错误国家发布码、过期命令示例。
+- 旧规则残留：历史旧场景目录、旧 checklist 路径、旧沉淀询问、错误国家发布码、过期命令示例。
 
 ## Checkpoint 集成
 

@@ -26,7 +26,7 @@
 
 - 主 skill 不保存大段业务细节。
 - 触发词只是辅助信号，场景判断必须结合项目结构、路由、接口、配置、设计图、发布文件和 checkpoint 证据。
-- automation 续跑必须先读取 automation memory 和 checkpoint；memory 路径优先使用上下文显式路径，`CODEX_HOME` 为空时回退到用户目录下 `.codex/automations/<id>/memory.md`，避免重复处理已确认的漂移、阻塞和已完成修复。
+- automation 续跑必须先读取 automation memory 和 checkpoint；memory 路径优先解析上下文显式路径，解析成功时使用解析结果；若显式路径里的 `$CODEX_HOME` 未解析或环境变量为空，回退到用户目录下 `.codex/automations/<id>/memory.md`；未提供显式路径时才使用默认 `$CODEX_HOME/automations/<id>/memory.md`，避免重复处理已确认的漂移、阻塞和已完成修复。
 - 未知或复合需求进入 K 兜底，先探索证据、列候选归属，再回落到最接近的现有子 skill。
 - 默认先查再问，只在缺少项目路径、目标页面/模块、业务目标或高风险业务结论时询问用户。
 - 历史大文件已拆到子 skill，主工作流不再引用旧路径。
