@@ -100,7 +100,7 @@
   - 同结构混淆字段替换模式下，字段映射表已覆盖 `header`、`endpoint`、`request`、`response`、`global_config` 五类
   - 同结构混淆字段替换模式下，只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段
   - 同结构混淆字段替换模式下，未增删字段、未改变字段类型、未改变数组/对象层级、未改变枚举业务含义、未重构业务流程
-  - 原生方法名和 H5 全局回调字段未随服务端混淆字段一起改名
+  - 原生方法名和 H5 全局回调字段未随服务端混淆字段一起改名；若用户明确提供原生混淆协议，则只使用用户提供的混淆方法名 / 回调名，不保留原始方法名映射或兜底
   - 个人信息页级联地址提交值是否符合接口分隔符要求；Confiq-H5 应为 `州-市-区`，每级 trim 后 `join('-')`，不能提交 `州 - 市 - 区`
   - 身份证性别提交枚举是否与接口一致；Confiq-H5 男性传 `H`、女性传 `M`，不能直接传内部状态值 `male/female`
 - **失败判定**: 存在映射表中标注但未修改的参数
@@ -146,6 +146,10 @@
   - 全局样式是否统一处理移动端默认点击高亮与 focus 线框：`button`、`a`、`[role='button']`、`[tabindex]` 至少应覆盖 `outline: none` 和 `-webkit-tap-highlight-color: transparent`
   - 局部按钮如相机拍摄按钮是否有 `:focus`、`:focus-visible`、`:active` 兜底，点击后不出现额外系统线框
   - 若本次涉及原生交互，native bridge 必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议；不得分散直连原生全局对象
+  - 若本次涉及原生入参 / 出参 AES 加密，必须检查加解密是否沉到独立工具函数，调用原生前只做 payload 加密，接收原生回调或 window 注入数据后先解密再解析
+  - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须来自 `.env.*` 或项目配置层，不应硬编码在业务 hook 中
+  - 原生通信通道只保留用户明确要求的 WebView 能力；例如只要求 Flutter 时，不得额外添加 Android / iOS WKWebView 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
+  - 用户要求删除临时联调组件或协议文档时，必须确认组件文件、样式文件、入口引用和文档引用均已移除
 - **失败判定**: 违反任一 H5 内嵌约束
 
 ---

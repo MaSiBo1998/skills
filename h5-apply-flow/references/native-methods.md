@@ -13,6 +13,18 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - 不要使用 `callHandler(action, payload)` 作为通用桥接；App 端只注册统一 handler `flutter` 后再按 `method` 分发。
 - 进件原生方法以本文档方法清单为准。
 
+## 混淆与加密联调规则
+
+当用户或 App 联调材料明确提供原生方法名、H5 回调名、URL query key 或 window 注入字段的混淆值，并要求入参 / 出参整体加密时，按以下规则处理：
+
+- 直接使用用户提供的混淆值调用原生和注册 H5 回调；不要在代码里保留“原方法名 -> 混淆名”的映射表，也不要保留原始方法名兜底。
+- 只封装独立加解密工具，例如 `nativeCrypto.ts`；工具只负责 `encryptNativePayload(params)` 和 `decryptNativePayload(payload)`，不要把原生调用、回调注册、方法映射混在同一个工具里。
+- H5 调用原生前，对原始业务入参整体 `JSON.stringify` 后 AES 加密；H5 接收原生回调或 window 注入数据时，先 AES 解密再 `JSON.parse`。
+- AES key / iv、URL query 混淆 key、window 注入字段名等可变协议值应放在 `.env.*` 或等价配置层；若 key 已由联调方补齐到 16 位，代码不要再根据 appName 动态补零、截断或大小写转换。
+- 原生通道只实现用户明确要求的 WebView 能力。若用户只要求 Flutter，则只保留 `window.flutter.postMessage` 和 / 或 `window.flutter_inappwebview.callHandler('flutter', ...)`，不要主动添加 Android、iOS WKWebView 等兼容分支。
+- Flutter InAppWebView 仍使用统一 handler `flutter`，消息体为 `JSON.stringify({ method: 混淆方法名, value: 加密payload })`。
+- 调试组件、临时联调文档或旧协议说明只有用户明确要求保留时才保留；用户要求删除时必须同步移除入口引用和样式文件。
+
 ## 方法清单
 
 | 原生方法 | 说明 | H5 调用参数 | 原生回调 |
