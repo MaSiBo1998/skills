@@ -23,8 +23,8 @@
 问题记录表
 | # | 场景 | 步骤 | 问题 | 原因 | 修复建议 | 是否已修复 |
 |---|------|------|------|------|----------|------------|
-| 1 | B | API 解析 | $ref 链超过 3 层解析失败 | 递归解析未处理循环引用 | api-parsing.md 增加循环引用检测逻辑 | 否 |
-| 2 | B | Vendor 建立 | antd-mobile-icons 构建报错 | 包路径指向了 ESM 入口，需切到 CJS | vendor-setup.md 中修正 entry 路径 | 是 |
+| 1 | B | API 解析 | $ref 链超过 3 层解析失败 | 递归解析未处理循环引用 | h5-api-mapping/references/api-mapping.md 增加循环引用检测逻辑 | 否 |
+| 2 | B | Vendor 建立 | antd-mobile-icons 构建报错 | 包路径指向了 ESM 入口，需切到 CJS | h5-vendor-architecture/references/vendor-setup.md 中修正 entry 路径 | 是 |
 | 3 | D | 测试验收 | 路由懒加载检查项误报 | 场景 D 的基础信息页不支持懒加载 | testing-checklist.md 第 5 项增加排除说明 | 否 |
 ```
 

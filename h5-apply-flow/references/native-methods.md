@@ -21,6 +21,7 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - 只封装独立加解密工具，例如 `nativeCrypto.ts`；工具只负责 `encryptNativePayload(params)` 和 `decryptNativePayload(payload)`，不要把原生调用、回调注册、方法映射混在同一个工具里。
 - H5 调用原生前，对原始业务入参整体 `JSON.stringify` 后 AES 加密；H5 接收原生回调或 window 注入数据时，先 AES 解密再 `JSON.parse`。
 - AES key / iv、URL query 混淆 key、window 注入字段名等可变协议值应放在 `.env.*` 或等价配置层；若 key 已由联调方补齐到 16 位，代码不要再根据 appName 动态补零、截断或大小写转换。
+- URL query 传递 AES/Base64 类值时，`+` 必须由 App 侧编码为 `%2B`；若 App 侧存在裸 `+` 传参风险，H5 读取 `URLSearchParams` 后必须把值中的空格还原为 `+`，避免 Base64 被破坏。
 - 原生通道只实现用户明确要求的 WebView 能力。若用户只要求 Flutter，则只保留 `window.flutter.postMessage` 和 / 或 `window.flutter_inappwebview.callHandler('flutter', ...)`，不要主动添加 Android、iOS WKWebView 等兼容分支。
 - Flutter InAppWebView 仍使用统一 handler `flutter`，消息体为 `JSON.stringify({ method: 混淆方法名, value: 加密payload })`。
 - 调试组件、临时联调文档或旧协议说明只有用户明确要求保留时才保留；用户要求删除时必须同步移除入口引用和样式文件。

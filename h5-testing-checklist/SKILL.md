@@ -26,7 +26,7 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - vendor 完整性和构建架构检查只在场景 A 或 `vendor_enabled=true` 时执行；未启用 vendor 时必须标记为跳过，不能判失败。
 - 本次调用 `h5-feishu-alert` 或涉及飞书告警、前端监控、白屏监控、线上异常告警时，必须执行飞书前端告警专项检查。
 - 任意涉及原生交互的场景都必须检查 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
-- 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表、还款期和首复贷 banner；按设计图改首复贷状态页时，还必须确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点未因截图缺失被误删，且只影响目标状态分支；如本次涉及接口/字段替换，再检查目标项目字段映射完整性。不得把某个项目的示例字段当作通用验收依据。
+- 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表、还款期和首复贷 banner；当接口文档、用户示例或现有类型已经明确字段结构时，必须检查页面按固定结构直接取值或解析，未引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案；按设计图改首复贷状态页时，还必须确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点未因截图缺失被误删，且只影响目标状态分支；如本次涉及接口/字段替换，再检查目标项目字段映射完整性。不得把某个项目的示例字段当作通用验收依据。
 - 内嵌 H5 面向旧 Android / Flutter WebView 时必须专项检查 CSS 兼容：关键布局不得依赖 `gap/row-gap/column-gap`，`safe-area-inset-*` 必须有普通固定值、`constant()`、`env()` 分层兜底，且不得把 `env()` 放进 `padding` 简写造成整条声明失效。
 - 首复贷还款页新增用户资料回显或支付输入框时，必须检查真实字段无旧参考字段残留，并检查 App WebView 键盘遮挡链路；未做真实设备验证时必须标记为人工待验。
 - 首复贷还款/支付过渡页涉及支付跳转、非 URL 凭证、空字符串渠道、服务费、渠道图标或返回入口时，必须检查支付闭环、复制兜底、当前支付方式服务费、真实资源、顶部返回与原生 `window.onNativeBack` 同入口，以及 App WebView 待验项。
@@ -34,4 +34,4 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 进件项目必须按 country profile 额外检查国家差异；危地马拉需检查 `mx` 发布、字段映射四类、Entry/跳转/原生交互、键盘聚焦滚动处理。
 - 管理后台项目必须额外检查路由/菜单入口、左侧/侧边栏入口、权限展示、列表/详情/配置页/模型配置页数据流、Element UI 交互、后台接口错误态、i18n 文案和构建结果。
 - 场景 K 未知/复合需求必须检查最终回落场景的专项验收，并在交付中说明候选归属、选择理由和仍需人工确认的假设。
-- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、未解析 `CODEX_HOME` memory 路径回退、checkpoint 自动续跑/保留策略、文件发现递归覆盖 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 和隐藏/被 ignore 的 `.agents/skills` 辅助 skill，且记录分类计数；回归样例计数必须只统计 `## 评估样例` 区段，不能把 `## 输出格式` 示例表或其他说明表计入动态通过线，且按排除表头和分隔行后的数据行统计，不要求首列是编号；若使用 `rg`，必须有 hidden、ignore 覆盖和 `**/` 递归 glob，不能因 `.gitignore` 或窄 glob 导致 reference/openai 计数为 0；内部引用扫描无脚本错误或污染输出，文件发现 glob、可选校验 runner fallback、已发现辅助 skill 的说明性导航和跨 skill 导航引用未被误报为缺失引用，运行时 hash 比对无脚本错误，且已把 `.agents/skills/<skill>` 这类隐藏辅助 skill 源路径归一化为 `<runtime>/<skill>` 后再判定漂移或缺失；失败项必须修复或记录为待确认沉淀项。
+- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、未解析 `CODEX_HOME` memory 路径回退、checkpoint 自动续跑/保留策略、文件发现递归覆盖 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 和隐藏/被 ignore 的 `.agents/skills` 辅助 skill，且记录分类计数；回归样例计数必须只统计 `## 评估样例` 区段，不能把 `## 输出格式` 示例表或其他说明表计入动态通过线，且按排除表头和分隔行后的数据行统计，不要求首列是编号；若使用 `rg`，必须有 hidden、ignore 覆盖和 `**/` 递归 glob，不能因 `.gitignore` 或窄 glob 导致 reference/openai 计数为 0；内部引用扫描无脚本错误或污染输出，未解析 CODEX_HOME 模板路径、正则裁剪后的 `CODEX_HOME/...` 片段、斜杠分隔的概念标签/枚举/比例/尺寸、文件发现 glob、可选校验 runner fallback、已发现辅助 skill 的说明性导航和跨 skill 导航引用未被误报为缺失引用，运行时 hash 比对无脚本错误，且已把 `.agents/skills/<skill>` 这类隐藏辅助 skill 源路径归一化为 `<runtime>/<skill>` 后再判定漂移或缺失；失败项必须修复或记录为待确认沉淀项。
