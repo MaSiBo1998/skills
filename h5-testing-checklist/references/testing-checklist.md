@@ -48,7 +48,7 @@
 - **方法**: 对比 `src/` 中的 import 和 `FRAMEWORK_GLOBALS` 配置
 - **检查项**:
   - 对 `src/` 中每个 `import ... from 'xxx'`（第三方包），确认 `FRAMEWORK_GLOBALS` 中已包含
-  - 如果某包有 import 但不在 FRAMEWORK_GLOBALS 中 → 需手动添加到 vendor 配置（`build-static.mjs` + `FRAMEWORK_GLOBALS` + `VENDOR_SCRIPTS`）
+  - 如果某包有 import 但不在 FRAMEWORK_GLOBALS 中 → 需手动添加到本地依赖配置（`build-static.mjs` + `FRAMEWORK_GLOBALS` + 依赖注入清单）
   - 如果某包在 FRAMEWORK_GLOBALS 中但 src/ 中无 import → 无需处理（react 等通过 window 全局引用）
 - **失败判定**: `npm run build` 后 `dist/` 中包含已被 import 但未配置 vendor 的第三方库代码
 
@@ -172,16 +172,17 @@
 
 ## 12. 构建架构检查
 
-- **适用条件**: 仅场景 A 或 checkpoint/context 中 `vendor_enabled=true` 时执行；未启用 vendor 时标记为“跳过：未启用 vendor 架构”，不得要求项目存在 `static-app/vendor`、external globals 或 `build:static`。
+- **适用条件**: 仅场景 A 或 checkpoint/context 中 `vendor_enabled=true` 时执行；未启用 vendor 时标记为“跳过：未启用 vendor 架构”，不得要求项目存在本地依赖目录、external globals 或 `build:static`。
 - **方法**: 检查构建配置文件和构建产物
 - **检查项**:
-  - `static-app/vendor/` 目录是否存在，各框架 JS 文件齐全
-  - `index.html` 中所有框架 JS 通过 `<script>` 标签加载，使用 `local-resource://h5/` 协议
+  - 本地依赖目录是否存在，各框架 JS/CSS 文件齐全；新改造优先由 `.env.*` 的 `DEPEND_ASSET_DIR` 控制目录
+  - 文件名前缀是否由 `DEPEND_ASSET_DIR` 派生；例如 `DEPEND_ASSET_DIR=depend` 时产物应为 `depend-react.js`、`depend-mobile-ui.css`
+  - `index.html` 中所有框架 JS 通过 `<script>` 标签加载，协议前缀是否由 `DEPEND_ASSET_DIR` 派生；例如 `local-depend:/depend/depend-react.js`
   - `vite.config.ts`（或 `vite.config.js`）配置了 `rollup-plugin-external-globals` 映射所有框架
   - `build.rollupOptions.external` 精确列出主模块（不含 `react/jsx-dev-runtime` 等子路径）
-  - dev server 配置了 `static-app/` 的中间件（仅 dev，不进 build）
+  - dev server 配置了 `DEPEND_ASSET_DIR` 对应目录的中间件（仅 dev，不进 build）
   - `npm run build` 产物中不包含框架代码
-  - `npm run build` 产物中无 `static-app/` 内容
+  - `npm run build` 产物中无旧 `static-app/vendor` 内容，除非维护的旧项目明确保留该架构
   - `npm run dev` 可正常启动，script 标签加载的框架 JS 正常
   - `npm run build:static` 能正常执行（esbuild 打包 + UMD 拷贝）
   - 所有框架库保持已安装（`node_modules` 可解析子路径）
@@ -198,7 +199,7 @@
   - 确认可移除后执行 `npm uninstall <包名>`
   - **注意**：不要移除 `react`、`react-dom` 等框架库（它们在代码中通过 window 全局引用，无 import 语句）
   - **注意**：不要移除插件类包（`@vitejs/plugin-react`、`eslint` 等 vite/eslint 配置中引用的包）
-  - **vendor 校验（仅 vendor_enabled=true）**：对 `FRAMEWORK_GLOBALS` 中每个模块，确认 `src/` 中有对应的 `import ... from '模块名'`。未被引用的模块应从 `FRAMEWORK_GLOBALS`、`VENDOR_SCRIPTS`、`build-static.mjs` 中移除，避免生成多余的 vendor 文件
+  - **vendor 校验（仅 vendor_enabled=true）**：对 `FRAMEWORK_GLOBALS` 中每个模块，确认 `src/` 中有对应的 `import ... from '模块名'`。未被引用的模块应从 `FRAMEWORK_GLOBALS`、依赖注入清单、`build-static.mjs` 中移除，避免生成多余的本地依赖文件
 - **失败判定**: 存在明显未使用的依赖包未清理
 
 ---

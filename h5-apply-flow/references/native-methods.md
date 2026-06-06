@@ -26,6 +26,12 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - Flutter InAppWebView 仍使用统一 handler `flutter`，消息体为 `JSON.stringify({ method: 混淆方法名, value: 加密payload })`。
 - 调试组件、临时联调文档或旧协议说明只有用户明确要求保留时才保留；用户要求删除时必须同步移除入口引用和样式文件。
 
+## 固定结构回调处理规则
+
+- 当用户、App 联调材料或项目已有类型已明确说明 `getDeviceInfoCallBack` 回传数据结构与项目 `DeviceInfo` 类型完全一致时，H5 必须把该回调结果直接按 `DeviceInfo` 保存和读取；不要再对设备信息做语义字段还原、旧字段兼容、多格式探测、optional chaining 兜底或默认空对象兜底。
+- 设备信息里的已映射字段应体现在 `DeviceInfo` 类型定义和后续读取处，例如 `device`、`appInfo`、`userInfo`、`appName`、`appVersion`、`adjustInfo`、`firebaseInfo`、`isNew` 使用 App 提供的混淆字段；设备内部没有映射的字段保持原字段名。
+- `getDeviceInfoCallBack` 与 `window` 注入的设备信息属于同一份原生真实结构；保存到本地后，业务请求头、风控上报、埋点等后续逻辑直接按 `DeviceInfo` 取值。只有真实联调数据证明存在多种结构，或用户明确要求兼容旧结构时，才做最小范围兼容并在交付中说明原因。
+
 ## 方法清单
 
 | 原生方法 | 说明 | H5 调用参数 | 原生回调 |

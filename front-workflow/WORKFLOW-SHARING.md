@@ -75,7 +75,7 @@ flowchart TD
 
 | 场景 | 归属 | 典型意图 | 主要执行链 |
 | --- | --- | --- | --- |
-| A | 架构改造 | static-app、vendor、本地资源、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
+| A | 架构改造 | depend、vendor、static-app、本地资源、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
 | B | 功能/API 开发 | 普通功能、新接口、字段适配 | 可选 `h5-api-mapping` -> `h5-testing-checklist` |
 | C | 首复贷开发 | 首贷、复贷、状态流、订单、还款、额度确认 | 可选 `h5-api-mapping` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
 | D | 进件开发 | Apply、Entry、步骤页、原生交互、国家差异 | 可选 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
