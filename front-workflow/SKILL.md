@@ -1,147 +1,116 @@
 ---
 name: front-workflow
-description: 马嗣博专属工作流。用于先读取项目证据再识别架构改造、功能/API、管理后台、首复贷、进件、官网协议、飞书告警、设计图复原、发布、测试验收、自我更新和未知/复合需求，并协调对应子 skill 执行。
+description: 主编排骨架。先判方向，再判场景，当前覆盖前端 H5/管理后台 workflow，预留 backend/flutter 扩展位，并协调子 skill、验收和规则沉淀。
 ---
 
-# 马嗣博专属工作流
+# 马嗣博主编排工作流
 
-本 skill 是需求决策器，只负责读取证据、判断场景、生成执行链、识别阻塞问题、管理交付出口。执行细节必须进入对应子 skill 或 reference，不在主 skill 重复维护。
+本 skill 只做编排，不做方向内的大段业务实现说明。它的职责只有四件事：
 
-## 决策骨架
+- 读取证据
+- 判定方向和场景
+- 拼装最小可行执行链
+- 识别阻塞问题并决定何时沉淀规则
 
-任何前端任务都先按以下 5 步推进，不能只靠触发词命中：
+主 skill 不是总章程。方向内细节、场景细节、专项验收和未来扩展位都应下沉到 reference 或子 skill。
 
-1. **读取需求和项目证据**：先看用户输入、当前目录、项目结构、路由、接口封装、配置文件、设计图目录、发布文件、已有 checkpoint；若上下文包含 `Automation ID` 或 automation memory 路径，先读取 automation memory，再决定是否复用上轮结论。memory 路径优先解析上下文显式给出的路径；若显式路径已解析为真实路径则使用解析结果；若显式路径包含未解析的 `$CODEX_HOME`、`${CODEX_HOME}` 或 `%CODEX_HOME%` 且环境变量为空或未设置，不得把字面量路径当作真实路径，必须回退到当前用户目录下 `.codex/automations/<id>/memory.md`；未提供显式路径时，使用 `$CODEX_HOME/automations/<id>/memory.md`，`CODEX_HOME` 为空或未设置时同样回退。能从代码或材料推断的信息不问用户。
-2. **识别场景**：结合触发词和证据判断已知场景 A-J、复合场景或 K 未知/复合需求分析；记录 `scene_confidence` 和选择理由。
-3. **生成执行链**：列出必调子 skill、可选子 skill、跳过子 skill 及原因；复合需求按主目标排序串联。
-4. **只询问阻塞信息**：仅当缺少项目路径、目标页面/模块、业务目标、高风险业务结论或发布/资金/风控确认时才问；一次只问当前无法继续的最小问题。
-5. **交付后沉淀**：交付前后自动检查本次是否暴露场景识别、执行顺序、验收缺口或项目特例问题；明确、可复用、归属清晰的规则调度 `workflow-self-improvement` 直接沉淀。
+## 优先读取
 
-## 元能力辅助
+执行本 skill 时，优先按以下顺序读取：
 
-以下三个 skill 是工作流辅助能力，不替代 A-J 业务子 skill：
+1. `references/orchestrator-contract.md`
+2. `references/direction-registry.md`
+3. 当前方向对应的 scene map
+   - frontend：`references/frontend-scene-map.md`
+4. 相关子 skill / 验收 reference / checkpoint / automation memory
 
-| 辅助 skill | 触发时机 | 用法 |
-| --- | --- | --- |
-| `spec-driven-development` | 需求模糊、跨多个模块、进入 K、预计超过 30 分钟、或用户要求优化/巡检工作流 | 先产出轻量 spec：目标、范围、边界、成功标准、阻塞问题；只问无法从证据推断的关键问题 |
-| `workflow-orchestration-patterns` | 场景 H 的工作流优化、全量巡检、调度链重构、checkpoint/恢复机制调整 | 只借用编排思想检查 workflow/activity 边界、状态保存、失败恢复、跳过原因、幂等更新；不得照搬 Temporal 技术实现 |
-| `llm-evaluation` | 工作流优化后、巡检收口前、触发语义或调度规则变化后 | 生成并执行工作流回归样例，检查场景识别、少问用户、执行链、沉淀判断和交付说明是否退化 |
+## 核心流程
 
-普通小改、明确单场景业务开发、文案/样式修补不主动调用这些元能力，避免把简单任务流程变重。
+任何任务都按下面的稳定骨架推进：
 
-## 需求识别决策树
+1. 读取用户输入、当前目录、项目结构、材料、checkpoint、automation memory。
+2. 先判 `primary_direction`，并保留 `candidate_directions`。
+3. 再判 `primary_scene`，并保留 `candidate_scenes` 与 `supporting_capabilities`。
+4. 按“输入补齐 -> 前置约束 -> 核心实现 -> 风险附加 -> 验收收口”拼出 `execution_chain`。
+5. 只有缺少当前无法继续的最小信息时才问用户。
+6. 交付前后检查是否需要把新判断标准沉淀到 `workflow-self-improvement`。
 
-按证据优先级从高到低判断：
+## 当前支持范围
 
-1. **用户明确意图**：发布、设计图复原、工作流更新、飞书告警等明确词可直接给高置信度，但仍要检查是否与项目证据冲突。
-2. **项目结构证据**：`package.json`、`vite.config.*`、`src/router`、`src/pages`、`views`、`public`、`design/`、`release-env`、后台 `src/api`/`src/views`/`permission` 等决定候选场景。
-3. **业务代码证据**：接口封装、状态枚举、Apply/Entry 路由、订单/还款/额度页面、协议/客服页面、monitor/error boundary/loading 组件决定是否串联子 skill。
-4. **材料证据**：接口文档、协议文档、设计图、线上链接、WebView 入口、release-env 等决定输入完整度和验收等级。
-5. **相似场景归属**：新需求若没有精确命中，先判断更像页面开发、接口迁移、状态流、后台、官网、发布、测试还是工作流问题，再进入对应场景或 K 兜底。
+- `frontend`：
+  当前 active。使用 `references/frontend-scene-map.md` 和现有前端子 skill。
+- `backend`：
+  当前 planned。若命中 backend 方向，先记录方向候选，做最小探索和轻量 spec；未落地 dedicated backend workflow 前，不伪装成已支持。
+- `flutter`：
+  当前 planned。若命中 flutter 方向，先记录方向候选，做最小探索和轻量 spec；未落地 dedicated flutter workflow 前，不把 Flutter 细节继续堆回主 skill。
+- `workflow/meta`：
+  当前 active。直接回落到 frontend scene H，由 `workflow-self-improvement` 处理。
 
-触发词只是辅助信号。若触发词与证据冲突，以项目证据和用户最新说明为准，并在 checkpoint `assumptions` 中记录判断依据。
+## 判定规则
 
-## 场景调度
+- 方向优先于场景；不要在方向未定时直接套 scene。
+- 触发词只是信号，不是最终路由。弱触发词只能形成候选。
+- 设计图、接口文档、告警、vendor、发布配置默认先视为 `supporting_capabilities`，不抢主方向和主场景。
+- 高置信度时直接执行；中置信度时写入 `assumptions` 后继续；低置信度时进入 K 做最小探索。
+- 如果方向尚未 active，只做扩展设计或最小分析，不伪装成“已经有完整 workflow”。
 
-| 场景 | 触发意图 | 调用子 skill |
-| --- | --- | --- |
-| A 架构改造 | depend、vendor、static-app、本地资源加载、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
-| B 功能/API 开发 | 接口/字段替换型迁移、普通功能/API 开发、新接口、字段适配 | 可选 `h5-api-mapping`（仅接口/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-testing-checklist` |
-| C 首复贷开发 | 首贷、复贷、状态流、订单列表、未确认、放款中、放款失败、还款、额度确认、产品详情 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-first-reloan-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
-| D 进件开发 | Apply、进件、步骤页、Entry、原生交互、国家差异 | 可选 `h5-api-mapping`（仅新文档/字段替换时） -> 可选 `h5-vendor-architecture` -> `h5-apply-flow` -> 可选 `h5-feishu-alert` -> `h5-testing-checklist` |
-| E 官网/协议/挂载 H5 | 官网相关需求；授权、隐私、贷款、条款文档转 HTML；官网协议入口、协议 Tab、iframe 展示；App 内嵌官网协议问答；App 内嵌客服/客服问答页；官网域名下独立小 H5 挂载 | `h5-official-site` -> `h5-testing-checklist` |
-| F 设计图复原 | 根据 design 文件夹图片复原 UI、照图实现页面、截图复刻、切图规范化 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
-| G 国家发布 | 发布代码、发版、打 tag、发布 mx/co/ng | `h5-release-tag` |
-| H 工作流自我更新 | 记住规则、优化/巡检/迭代/完善流程、修正 skill、补充验收项、沉淀本次经验 | `spec-driven-development`（巡检/优化/迭代必调；单条明确规则沉淀可轻量内联） -> `workflow-self-improvement`（巡检时充分使用 `workflow-orchestration-patterns` 和 `llm-evaluation`） |
-| I 管理后台开发 | 管理后台、后台管理、催收后台、运营后台、系统后台、Vue/Element UI 后台、顶部全局状态、角色权限展示、后台接口接入、左侧菜单入口、模型配置/配置模型 | `admin-management-flow` -> `h5-testing-checklist` |
-| J 飞书前端告警 | 飞书告警、飞书预警、前端监控、白屏监控、线上异常告警、React 崩溃告警、Promise 异常告警 | `h5-feishu-alert` -> `h5-testing-checklist` |
-| K 未知/复合需求分析 | 不能稳定命中 A-J、多个场景交织、用户描述过宽或新类型 H5/后台工具 | 先探索证据并列候选归属 -> 选择最接近的现有子 skill -> `h5-testing-checklist` |
+## 执行链规则
 
-## 触发规则
+- 没有专属 skill 的普通功能/API 开发，默认直接在目标项目实现。
+- 用户直接贴出目标文件里的少量现有代码，并明确要求调整局部调用顺序、并行化互不依赖的 async，或修正 `loading/initializing` 一类状态收口条件时，按高置信度普通功能小改直接定位实现，不先停在方案描述。
+- 只有证据表明确实需要时，才追加 `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、设计图能力或发布能力。
+- 不要因为命中关键词，就机械把所有可选 skill 串上。
+- 验收总是收口，但等级按风险控制，不让小改自动升级成全量重流程。
 
-以下规则用于快速形成候选场景，不得替代证据探索：
+## 少问用户
 
-- “发布 / 发版 / 打 tag / 发布 mx / 发布 co / 发布 ng”直接进入场景 G。
-- “设计图 / design 文件夹 / 还原页面 / 照图实现 / 截图复刻 / 切图命名”直接进入场景 F。
-- “记住 / 下次按这个来 / 优化工作流 / 巡检工作流 / 迭代工作流 / 完善工作流 / 更新 skill / 自我成长 / 规则不对”直接进入场景 H；优化、巡检、迭代或较大的工作流改造必须先用 `spec-driven-development` 固化目标和成功标准，再由 `workflow-self-improvement` 执行；单条明确规则沉淀可在场景 H 内轻量记录目标后直接沉淀。
-- “飞书告警 / 飞书预警 / 前端监控 / 白屏监控 / 线上异常告警 / React 崩溃告警 / Promise 异常告警”直接进入场景 J；若同一需求同时属于首复贷或进件，则作为场景 C/D 的可选操作串联 `h5-feishu-alert`。
-- “官网需求 / 官网页面 / 官网域名 / 小 H5 挂载 / 独立 H5 / 协议入口 / 协议 Tab / 隐私协议 tab / 贷款协议 tab / 条款协议 tab / iframe 展示协议 / 线上协议链接 / App 内嵌协议 / App 隐私入口 / WebView 协议问答 / App 内嵌客服 / 客服问答 / 客服页面 / customer-service / 服务中心”进入场景 E，由 `h5-official-site` 处理官网、协议展示、App 内嵌问答、App 内嵌客服问答和官网域名挂载规则；若涉及设计图复原或切图，还需按场景 F 规则使用 `design-image-analysis`、`design-image-restore` 辅助视觉还原；交付前仍需执行 `h5-testing-checklist` 验收。
-- “新项目 / 复制旧 H5 项目 / 字段名替换 / 接口地址替换 / 参数名替换 / 混淆字段替换 / 业务流程不变”进入场景 B 的同结构字段/API 替换模式，不自动改首复贷或进件业务流程。
-- “首贷 / 复贷 / 首复贷 / 状态流 / 订单状态 / 未确认贷款 / 放款中 / 放款失败 / 还款期 / 产品详情 / App 列表”进入场景 C，不归并为普通功能/API 或进件。
-- “Apply / 进件 / 步骤页 / Entry / 个人信息 / 工作信息 / 联系人 / 证件 / 人脸 / 银行卡”进入场景 D。
-- “管理后台 / 后台管理 / 催收后台 / 运营后台 / 系统后台 / Vue2 后台 / Element UI / Navbar / 顶部状态 / 角色权限展示 / 后台列表页 / 后台详情页 / 后台配置页 / 左侧菜单入口 / 侧边栏入口 / 模型配置 / 配置模型”进入场景 I，不归并为 H5 普通功能/API。
+- 先查再问，能从代码、目录、文档、checkpoint 推断的信息不问。
+- 不泛问“请提供完整信息”。
+- 每次只问一个最小阻塞问题。
+- 只有项目路径、目标模块、业务目标、高风险业务结论、关键外部依赖缺失时才问。
 
-## 未知需求兜底
+## Scene H
 
-当需求不能稳定命中 A-J 时，不能停止或要求用户补完整需求，先进入 K：
+当任务是优化 workflow、记住规则、修 skill、补回归或检查流程质量时：
 
-1. 搜索项目结构和最近相关文件，至少确认项目类型、路由/页面入口、接口组织方式和可运行脚本。
-2. 列出 1-3 个候选归属，给出证据和置信度，例如“更像 I 管理后台，因为存在 `src/views/system` 和 Element UI 表格”。
-3. 选择置信度最高且风险最低的现有子 skill 执行；如果只是普通页面/接口补充，默认归入 B。
-4. 若候选归属会影响发布、资金、风控、权限、真实用户状态流，必须先问用户确认业务结论。
-5. 若缺少项目路径、目标页面/模块或业务目标导致无法探索，才提出最小阻塞问题。
-6. 交付时记录 K 的最终归属和判断标准；若可复用，调度 `workflow-self-improvement` 将判断标准沉淀到主工作流或子 skill。
+- 进入 frontend scene H。
+- 先区分 `规则补丁 / 流程调优 / 全量巡检`。
+- 再交给 `workflow-self-improvement` 执行闭环。
 
-## 复合场景处理
+scene H 的具体扫描范围、编排审查和回归评估规则由 `workflow-self-improvement` 维护，不在主 skill 重复展开。
 
-- 复合需求先确定主目标，再按辅助能力串联；例如“根据设计图改后台配置页并接接口”执行 `design-image-analysis` -> `design-image-restore` 辅助视觉，主实现走 `admin-management-flow`，接口字段替换时参考 `h5-api-mapping`，最后 `h5-testing-checklist`。
-- 设计图只是视觉输入时不抢占业务主场景；后台页面仍归 I，首复贷页面仍归 C，进件页面仍归 D。
-- 接口文档只是字段/路径输入时不抢占业务主场景；新接口/字段替换先用 `h5-api-mapping`，实现仍回到 B/C/D/I/E。
-- 飞书告警只有用户明确要求监控/预警/白屏/线上异常时才串联；不要把普通报错处理误归为 J。
-- 发布场景 G 只处理版本发布；普通交付后的发布确认由 `h5-testing-checklist/references/delivery.md` 出口统一触发。
+## 未来扩展
 
-## 少问用户原则
+后续增加 backend/flutter 方向时，按以下顺序扩展：
 
-- 先查再问：项目根目录、技术栈、路由、页面、接口、构建命令、release-env、design 目录等都要先从文件系统和代码中推断。
-- 自动化续跑先查记忆：当用户消息包含 `Automation ID`、`Automation memory` 或上次运行时间时，必须先读取 automation memory 和项目 checkpoint；显式 memory 路径解析成功时使用解析结果，未提供显式路径才使用 `$CODEX_HOME/automations/<id>/memory.md`；若显式 memory 路径中的 `CODEX_HOME` 没有解析成功，或 `CODEX_HOME` 为空，按用户目录下 `.codex/automations/<id>/memory.md` 回退，避免重复巡检已确认的漂移、阻塞和已完成修复。
-- 只问阻塞项：没有项目路径、找不到目标模块、业务目标含糊、高风险结论不可推断、外部文档/账号/接口不存在时才问。
-- 不泛问“请提供完整信息”；必须说明已查到什么、缺什么、为什么这个缺口阻塞继续执行。
-- 可选信息缺失不阻断：产品名、国家、角色权限、菜单入口、H5 域名、接口文档等若可从代码推断或不影响当前开发，写入 `assumptions` 或待验收项继续推进。
-- 每次选择默认值都要在 checkpoint `assumptions` 记录来源和风险；交付时同步说明。
-- 当用户、接口文档、原生联调材料或项目现有类型已经明确并确认字段结构时，按该结构直接修改类型和字段取值；不要额外新增通用解析器、多层兜底、字段探测、格式修复工具或兼容旧结构。只有真实线上/联调数据已证明存在多种格式且用户要求兼容时，才做最小范围兜底，并在交付中说明原因。
+1. 更新 `references/direction-registry.md`
+2. 为新方向新增 scene map/reference
+3. 需要时新增 dedicated workflow/skill
+4. 只为受影响方向补验收和回归
 
-## 调度原则
+不要直接把 backend/flutter 的业务细节继续加长主 skill。
 
-- 主工作流只决定场景和调用顺序；实现细节落到对应子 skill。
-- 任何 H5 项目或页面改动都默认遵守 H5 基础质量要求：以 375px 宽设计图为基准做尺寸体系；优先采用“源码样式保留设计稿 `px`、入口 `setRem` 设置根字号、构建阶段用 postcss-px-to-rem 或等价方案输出 `rem`”的链路，不要把 CSS/SCSS 源码直接手写成 `rem`。运行时通过 JS 注入的动态尺寸或 CSS 变量若不会经过构建转换，必须使用同一基准工具从设计稿 `px` 转成 `rem`。避免依赖按屏幕宽高查询的零散适配；首屏加载速度必须作为实现约束，避免首屏同步加载非关键资源、调试工具或重型依赖；样式必须按 base/layout/components/page 等职责拆分，避免把大段样式堆在单文件里导致后续难维护。只有项目既有架构明确不同、用户明确要求保留或真实兼容性证据要求例外时，才偏离该基线，并在交付中说明原因。
-- 每个业务场景执行和交付时都要自动做一次可沉淀项检查；发现明确、可复用、归属清晰的规则时，调度 `workflow-self-improvement` 直接沉淀，不要求用户主动说“沉淀工作流”。
-- 用户要求优化、巡检或迭代工作流但没有要求逐轮确认时，调度 `workflow-self-improvement` 的自驱动巡检闭环，连续跑到停止条件满足后再汇总。
-- 只有沉淀项会固化一次性项目事实、归属不清、风险较高或缺少业务结论时，才在交付中列为“待确认沉淀项”并询问用户。
-- 涉及新接口文档、新字段、新接口地址、新项目迁移或字段替换时，先调用 `h5-api-mapping`；普通业务补充复用目标项目现有 API。
-- Vendor 架构只在场景 A 默认执行；场景 B/C/D 中仅用户明确要求、checkpoint 已确认或项目现有架构需要时，才调用 `h5-vendor-architecture`。
-- 凡是证据显示页面会在 App 内嵌 WebView 打开（包括首复贷、进件、官网挂载小 H5、App 内嵌协议/客服、活动页等），交付前必须让 `h5-testing-checklist` 按风险选择 `quick/focused/full/release` 验收等级；纯样式/文案小改只做局部 WebView 风险抽查，不因小改、调试工具接入或用户未明确说“低版本手机”而忽略风险，也不要机械执行整套验收拖慢进度。
-- 飞书前端告警仅在用户明确要求“飞书告警 / 预警 / 白屏监控 / 前端监控 / 线上异常告警”时调用 `h5-feishu-alert`；交付前必须让 `h5-testing-checklist` 执行飞书专项验收。
-- 任意涉及原生交互的任务统一遵守 `h5-apply-flow/references/native-methods.md`，业务 skill 和验收 skill 只引用该协议。
-- 任意 H5 项目交付前都必须让 `h5-testing-checklist` 按本次改动风险检查 H5 基础质量要求：375px 设计稿 `px` 源码、入口 `setRem`、构建产物 `rem`、首屏加载速度、样式拆分可维护性、App WebView 兼容和真实设备待验边界；`quick` 小改只检查本次 diff 是否破坏这些基线。
-- 场景 D 的国家差异和发布国家码由 `h5-apply-flow/references/country-profile-index.md` 维护；场景 G 的发布细节由 `h5-release-tag` 维护。
-- 管理后台场景使用 `admin-management-flow`；若只是后台接口字段替换且有新接口文档，可先参考 `h5-api-mapping` 的接口映射方法，但实现流程仍归属管理后台。
-- 场景 K 不能成为长期归属；一次任务结束时必须落回 A-J 中最接近的归属，或把新判断标准交给 `workflow-self-improvement`。
-- 场景 H 巡检必须把元能力结果写入 checkpoint：`workflow_improvement_spec`、`orchestration_audit`、`eval_cases`、`eval_results`、`automation_memory`；评估失败项进入 `learning_candidates`。
+## 当前前端子 skill
 
-## 通用模块
+- `h5-vendor-architecture`
+- `h5-api-mapping`
+- `h5-apply-flow`
+- `h5-first-reloan-flow`
+- `h5-feishu-alert`
+- `h5-official-site`
+- `design-image-analysis`
+- `design-image-restore`
+- `h5-release-tag`
+- `admin-management-flow`
+- `h5-testing-checklist`
+- `workflow-self-improvement`
+- `spec-driven-development`
+- `workflow-orchestration-patterns`
+- `llm-evaluation`
 
-- 输入收集：`h5-testing-checklist/references/input-collection.md`
-- Checkpoint：`h5-testing-checklist/references/checkpoint.md`
-- 交付与发布确认：`h5-testing-checklist/references/delivery.md`
-- 测试验收：`h5-testing-checklist/references/testing-workflow.md`
-- API 映射：`h5-api-mapping/references/api-mapping.md`
-- 规格化辅助：`spec-driven-development`
-- 编排巡检辅助：`workflow-orchestration-patterns`
-- 工作流回归评估：`llm-evaluation`
+## 通用出口
 
-## 内容归属
-
-- vendor 架构：`h5-vendor-architecture`
-- 接口映射：`h5-api-mapping`
-- 进件流程与国家差异：`h5-apply-flow`
-- 首复贷状态流与订单详情：`h5-first-reloan-flow`
-- 飞书前端告警：`h5-feishu-alert`
-- 官网需求、协议 HTML、官网协议入口、iframe 展示、App 内嵌协议问答、App 内嵌客服问答与官网域名小 H5 挂载：`h5-official-site`
-- 设计图解析：`design-image-analysis`
-- 设计图复原：`design-image-restore`
-- 国家发布：`h5-release-tag`
-- 管理后台功能、Vue/Element UI 后台接口接入、顶部全局组件、角色权限展示、左侧菜单入口、模型配置/配置模型、后台 i18n 与构建验收：`admin-management-flow`
-- 测试验收、输入收集、checkpoint、交付：`h5-testing-checklist`
-- 工作流自我更新：`workflow-self-improvement`
-- 未知/复合需求判断标准：先由 `front-workflow` 处理；形成稳定业务细节后再沉淀到对应子 skill。
-- 工作流规格化、编排审查、回归评估：分别由 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 辅助场景 H，不承载业务实现细节。
+- 输入和 checkpoint：`h5-testing-checklist/references/input-collection.md`
+- 验收：`h5-testing-checklist/references/testing-workflow.md`
+- 交付：`h5-testing-checklist/references/delivery.md`
+- 规则沉淀：`workflow-self-improvement`

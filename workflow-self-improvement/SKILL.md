@@ -5,7 +5,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 # 工作流自我更新成长
 
-本 skill 只负责把一次任务中的可复用经验沉淀为稳定规则，并完成修改、校验和交付说明。沉淀时优先提炼“判断标准”，不要把每个新需求都写成孤立限制。不要执行具体业务开发；具体业务仍交给对应工作流或子 skill。
+本 skill 只负责把一次任务中的可复用经验沉淀为稳定规则，并完成修改、校验和交付说明。沉淀时优先提炼“判断标准”，不要把每个新需求都写成孤立限制。目标不是把 workflow 继续写成更长的硬编码说明，而是保留稳定约束、削掉重复判断、把固定框架改成可编排规则。不要执行具体业务开发；具体业务仍交给对应工作流或子 skill。
 
 ## 更新闭环
 
@@ -53,9 +53,38 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 沉淀优先级：先补“如何判断”，再补“如何执行”，最后才补具体限制。若只能写成“遇到 X 不要 Y”但没有判断依据，先记录为待确认沉淀项。
 
+## 优化级别
+
+工作流优化先定级，避免所有改动都走同一套重流程：
+
+| 级别 | 适用情况 | 默认动作 |
+| --- | --- | --- |
+| `规则补丁` | 单条规则、提示词、触发语义或验收描述不对；修改范围通常在 1-2 个 skill 内 | 只扫描相关 skill、相关 `references/*.md`、相关 `agents/openai.yaml`；记录轻量 spec；跑定向回归和 `quick_validate.py` |
+| `流程调优` | 某一段识别/调度/验收/恢复链路太僵、太重或重复判断多；会影响一个主 workflow 和若干子 skill | 扫描相关 skill 集合；做局部编排审查；跑覆盖变更判断的定向回归；必要时同步相关运行时目录 |
+| `全量巡检` | 用户明确要求优化整个工作流、检查所有 skill、修系统性僵化或运行时漂移问题 | 执行完整“扫描 -> 修改 -> 校验 -> 同步 -> 再扫描”闭环，并满足全量停止条件 |
+
+默认选择规则：
+
+- 用户只说“记住这个规则”“这个提示词不对”时，默认 `规则补丁`。
+- 用户说“这段流程太重/太死/太像模板”“把某个场景调灵活一点”时，默认 `流程调优`。
+- 用户说“整个工作流”“所有 skill”“全量巡检”“系统性优化”时，默认 `全量巡检`。
+
+## 反模板化检查表
+
+优化 workflow 时优先查以下高价值问题：
+
+- 触发词是否被当成最终路由，而不是候选信号。
+- 新方向接入是否直接把 backend/flutter 细节塞进主 skill，而不是先新增方向注册和方向内 scene map。
+- 设计图、接口文档、告警、vendor、发布这类输入是否错误抢占了主场景。
+- 执行链是否写成固定流水线，而不是“输入补齐 -> 前置约束 -> 核心实现 -> 风险附加 -> 验收收口”的最小可行链。
+- 可选 skill 是否缺少明确加入条件，导致每次都被机械串联。
+- 同一条判断是否同时写在主 workflow、子 skill 和验收说明里，形成重复维护。
+- 验收或巡检是否没有分级，导致轻量修改也要跑整套重流程。
+- K 兜底是否只会把问题退回用户，而不是先做最小探索再回落到现有场景。
+
 ## 全量巡检
 
-当用户要求检查所有 skill、提高工作流质量或修复工作流连贯性时，必须额外执行以下巡检：
+只有在 `全量巡检` 级别下，才执行以下完整巡检：
 
 - 先用 `spec-driven-development` 的轻量规格方式锁定本轮巡检目标、范围、边界、成功标准和阻塞问题；若用户已给出目标且无阻塞项，直接记录假设继续，不要要求额外确认。
 - 若本轮来自 recurring automation、包含 `Automation ID` 或 automation memory 路径，先解析并读取 automation memory（缺失则按空记忆处理），并与项目 `.workflow-checkpoint.json` 对照后再扫描；路径优先解析上下文显式给出的 memory 路径，显式路径已解析为真实路径时使用解析结果；若显式路径包含未解析的 `$CODEX_HOME`、`${CODEX_HOME}` 或 `%CODEX_HOME%` 且环境变量为空或未设置，不得把字面量路径当作真实路径，必须回退到当前用户目录下 `.codex/automations/<automation_id>/memory.md`；未提供显式路径时再使用 `$CODEX_HOME/automations/<automation_id>/memory.md`，`CODEX_HOME` 为空或未设置时同样回退；交付前必须把本轮摘要、当前时间、未同步运行时漂移和下一轮关注点写回同一路径。
@@ -72,23 +101,34 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 用 `llm-evaluation` 建立或更新工作流回归样例，并在巡检收口前执行一次评估；评估失败项必须转成高价值问题或待确认沉淀项。
 - 对所有被修改的 skill 运行 `quick_validate.py`，并用关键字搜索验证旧规则不再残留。
 
+## 定向调优
+
+当优化级别是 `规则补丁` 或 `流程调优` 时，不需要机械扫描所有 skill，但仍要完成闭环：
+
+- 先用 `spec-driven-development` 记录轻量 spec，至少包含 `objective`、`scope`、`success_criteria`、`boundaries`、`blocking_questions`，并新增 `optimization_level`。
+- `规则补丁` 只扫描本次涉及的 skill、本 skill 引用的 `references/*.md`、对应 `agents/openai.yaml`，以及直接受影响的验收/回归文件。
+- `流程调优` 至少扫描主 workflow、受影响的子 skill、相关验收说明和回归样例文件；若调整跨 skill 调度，再补做局部运行时同步检查。
+- 回归评估优先跑覆盖改动判断的定向样例；只有当前改动触及全局触发语义、全局 scene H 机制或运行时同步规则时，才升级为全量回归集。
+- 不因“不是全量巡检”而跳过 `quick_validate.py`、diff 复核或关键残留搜索。
+
 ## 巡检元能力调用
 
 场景 H 的巡检必须充分调用三个辅助 skill，但只取适用于本地 skill 工作流的部分：
 
 1. `spec-driven-development`：
    - 输出轻量 spec，不创建冗长文档。
-   - 至少记录 `objective`、`scope`、`success_criteria`、`boundaries`、`blocking_questions`。
+   - 至少记录 `objective`、`scope`、`success_criteria`、`boundaries`、`blocking_questions`、`optimization_level`。
    - 对“优化工作流”“不好用”“巡检一下”这类模糊请求，先把目标转成可验收条件，例如“未知需求能进入 K 兜底”“非阻塞信息不问用户”“巡检有回归样例”。
 2. `workflow-orchestration-patterns`：
    - 把 `front-workflow` 当 workflow，把各业务子 skill 当 activity。
-   - 重点检查 workflow/activity 边界、状态保存、失败恢复、可重试/幂等、长期任务中断恢复。
+   - `规则补丁` 只检查本次变更触及的边界是否更清晰；`流程调优` 和 `全量巡检` 重点检查 workflow/activity 边界、状态保存、失败恢复、可重试/幂等、长期任务中断恢复。
    - 只引用原则，不引入 Temporal 依赖、服务端 worker、task queue 等实现细节。
 3. `llm-evaluation`：
    - 加载 `references/workflow-regression-evaluation.md` 作为默认评估集。
    - 至少维护 6 类回归样例：明确场景、复合场景、信息不全、新需求、高风险场景、沉淀规则。
    - 每个样例按 5 个指标打分：场景识别、证据优先、少问用户、执行链合理、沉淀判断。
    - 回归通过线必须跟随样例数量动态计算；巡检时只能统计 `## 评估样例` 区段内的样例表，遇到下一个二级标题即停止，不能把 `## 输出格式` 或其他说明里的示例表计入样例数；样例行只能按表头行和分隔行排除后统计，不要求首列是编号，也不得因为数据单元格包含“输入”“期望”“场景类型”等词而过滤整行；把当前样例数、总分和通过分写入 checkpoint `eval_results`，不能在评估文件里保留旧的硬编码分母或固定通过线。
+   - `规则补丁` 和 `流程调优` 优先跑与本次改动直接相关的样例；`全量巡检` 跑完整评估集。
    - 若没有自动评测 runner，用 LLM-as-judge/规则化审查输出通过/失败表；失败项进入 `learning_candidates`。
 
 ### 自驱动停止条件
@@ -131,8 +171,9 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - `last_completed_step`：最新完成步骤编号，仅作快速恢复索引，不能替代 `completed_steps`。
 - `learning_candidates`：运行中发现但尚未沉淀的经验。
 - `skill_updates`：已修改的 skill、修改摘要、校验结果。
-- `discovered_facts`、`assumptions`、`blocking_questions`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`：用于复盘场景判断、默认选择和跳过原因。
-- `workflow_improvement_spec`：由 `spec-driven-development` 轻量规格化得到的巡检目标、范围、成功标准和边界。
+- `discovered_facts`、`assumptions`、`blocking_questions`、`candidate_scenes`、`supporting_capabilities`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`：用于复盘场景判断、默认选择和跳过原因。
+- `primary_direction`、`candidate_directions`：用于复盘方向层判断和未来方向扩展决策。
+- `workflow_improvement_spec`：由 `spec-driven-development` 轻量规格化得到的巡检目标、范围、成功标准、边界和 `optimization_level`。
 - `orchestration_audit`：由 `workflow-orchestration-patterns` 检查得到的编排边界、checkpoint、失败恢复和幂等性问题。
 - `eval_cases`、`eval_results`：由 `llm-evaluation` 维护和执行的回归样例、指标、失败项。
 - `automation_memory`：自动化续跑时记录已读取的 memory 路径、本轮写回状态、剩余外部阻塞和下一轮关注点。
@@ -160,6 +201,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 ## 约束
 
 - 不把大段业务细节塞回主工作流。
+- 新增 backend/flutter 方向时，不把方向内细节直接塞进主 skill；先新增方向注册和该方向自己的 scene map/reference，再决定是否需要 dedicated workflow/skill。
 - 不把一次性项目事实沉淀为通用规则，除非用户明确要求。
 - 不覆盖用户未要求修改的 skill 内容。
 - 不自动创建新的国家进件 skill；国家差异优先沉淀到 `h5-apply-flow` 的 country profile。
