@@ -26,6 +26,16 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - Flutter InAppWebView 仍使用统一 handler `flutter`，消息体为 `JSON.stringify({ method: 混淆方法名, value: 加密payload })`。
 - 调试组件、临时联调文档或旧协议说明只有用户明确要求保留时才保留；用户要求删除时必须同步移除入口引用和样式文件。
 
+## 原生入参字段映射规则
+
+当用户或 App 联调材料只补充某个原生方法入参字段的混淆值，例如 `orderId -> dbecb709a21f`，按以下规则处理：
+
+- 若项目已有统一原生字段映射层，例如 `NATIVE_FIELD_CODES`、`encodeNativePayload`、`decodeNativePayload`，业务层继续传语义字段，优先在统一映射表补充“语义字段 -> 混淆字段”。
+- 不要在页面组件、状态组件或业务调用处直接写混淆 key，也不要把 hook / utility 的业务参数名改成混淆名；避免同一字段在多个调用点重复手动转换。
+- 修改前先搜索目标原生方法的调用链，确认 payload 会经过统一编码；修改后搜索语义字段和混淆字段，确认混淆值只存在于统一映射层或协议文档中。
+- 若项目没有统一字段映射层，才在 bridge utility 内新增最小映射/编码逻辑，不下沉到具体页面。
+- 完成后必须执行类型检查、lint 或构建中当前项目可用的校验；真实 App WebView 参数接收仍列为联调待验项。
+
 ## 固定结构回调处理规则
 
 - 当用户、App 联调材料或项目已有类型已明确说明 `getDeviceInfoCallBack` 回传数据结构与项目 `DeviceInfo` 类型完全一致时，H5 必须把该回调结果直接按 `DeviceInfo` 保存和读取；不要再对设备信息做语义字段还原、旧字段兼容、多格式探测、optional chaining 兜底或默认空对象兜底。

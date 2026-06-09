@@ -38,6 +38,7 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 - 首贷和复贷优先复用状态组件；差异通过数据源、路径、状态分支、埋点 code 和原生方法表达，不复制两套页面。
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
 - 涉及原生交互时必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
+- 首复贷状态流里若原生方法新增业务入参的混淆字段，例如 `toEditStepInfo` 需要把 `orderId` 转成 App 指定字段，先检查项目是否已有统一原生字段映射和 payload 编码；有则只在映射层补字段，页面和 hook 调用继续使用语义参数，不把混淆 key 写进状态组件。
 - 还款页或支付过渡页存在返回入口时，必须把顶部返回、底部返回按钮和原生 `window.onNativeBack` 收敛到同一个 H5 `handleBack`；不能只依赖 `HeaderNav` 默认 `navigate(-1)`，因为 App 原生返回只会调用 H5 暴露的全局回调。页面挂载时注册、卸载时清理，特殊挽留弹窗等业务分支也必须挂在这个统一入口上。
 - 首复贷页面如还款 Payment、支付补充信息、银行/钱包账号等表单包含真实 `input` / `textarea` / `contentEditable`，必须检查键盘遮挡：根节点 ref、`input-wrapper`、`submit-bar`、16px 输入字体、打开选择器前 blur、多延迟校正；如果页面被 `Status` 或业务容器包在 `height: 100vh; overflow-y: auto` 的内部滚动区域里，不能只调用 `window.scrollTo`，必须滚动最近的真实可滚动父容器，并按键盘高度补足底部可滚动空间。
 - 首复贷状态页、还款页和支付过渡页需要兼容旧 Android / Flutter WebView：关键间距不要依赖 `gap`，安全区 padding 必须有普通固定值、`constant()` 和 `env()` 分层兜底，且不要把 `env()` 写进 `padding` 简写导致整条声明被丢弃。

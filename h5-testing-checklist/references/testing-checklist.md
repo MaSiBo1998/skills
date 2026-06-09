@@ -150,6 +150,7 @@
   - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须来自 `.env.*` 或项目配置层，不应硬编码在业务 hook 中
   - URL query 承载 AES/Base64 值时，必须检查 `+` 不会被 `URLSearchParams` 解析为空格：App 侧应传 `%2B`，或 H5 侧读取后对指定字段执行空格还原 `+`
   - 原生通信通道只保留用户明确要求的 WebView 能力；例如只要求 Flutter 时，不得额外添加 Android / iOS WKWebView 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
+  - vConsole、监控 SDK、埋点、音频、复制、权限探测等调试/辅助能力必须在页面首屏渲染后初始化，并有能力检测、try/catch 或降级路径；辅助能力失败不能阻塞 React/Vue 页面渲染、路由初始化或主业务请求
   - 用户要求删除临时联调组件或协议文档时，必须确认组件文件、样式文件、入口引用和文档引用均已移除
 - **失败判定**: 违反任一 H5 内嵌约束
 
@@ -159,12 +160,16 @@
 
 - **方法**: 检查构建配置和代码
 - **检查项**:
-  - Babel 配置是否编译到 ES5（`@babel/preset-env` target）
+  - 任意 App 内嵌 H5 默认检查旧 WebView 兼容；即使用户未明确说“低版本”，也必须确认目标 App WebView 能执行生产包，或在交付中写明项目证据说明无需 legacy
+  - 生产构建是否提供旧 WebView 可执行产物：Vite/现代构建项目不能只产 `type="module"` 主包，旧 Android/iOS WebView 场景需确认 `nomodule`/legacy chunk、SystemJS/polyfill 或等价构建链路，且 `dist/index.html` 中 legacy 入口和资源路径可访问
+  - Babel 配置是否编译到 ES5（`@babel/preset-env` target）或通过 Vite legacy 等价方案生成旧包
   - CSS 是否包含必要的 `-webkit-` 前缀（Autoprefixer 配置）
   - 是否使用了 CSS Grid 等低版本不支持的布局方式（应优先 Flexbox）
-  - 旧 Android / Flutter WebView 兼容场景下，关键布局不得依赖 `gap`、`row-gap`、`column-gap`；应全文搜索确认并用 `margin`、相邻兄弟选择器或稳定 flex 子项间距替代
+  - 关键布局不得依赖 `gap`、`row-gap`、`column-gap`；应全文搜索确认并用 `margin`、相邻兄弟选择器或稳定 flex 子项间距替代
+  - 固定比例容器不得只依赖 `aspect-ratio`；旧 WebView 需有 `height/padding-top`、固定尺寸或图片自身占位等 fallback
   - `safe-area-inset-*` 不得直接写进 `padding` 简写；安全区 padding 应先有普通固定值，再按需追加 `constant(safe-area-inset-*)` 和 `env(safe-area-inset-*)`，使用 `max()` 时也必须提供固定值或 `calc()` 兜底
-  - 是否使用了 ES6+ API（如 Promise.allSettled、?. 可选链需 polyfill）
+  - 渲染首屏、路由、query 解析、请求初始化不得无兜底依赖旧内核常缺 API；重点搜索 `URLSearchParams`、`AbortController`、`fetch`、`Promise.finally`、`Promise.allSettled`、`Array.from`、`Object.assign`、`Symbol`、`Map`、`Set`、可选链等是否已转译、polyfill 或降级
+  - vConsole、监控、埋点、音频等调试/辅助库如果必须线上默认启用，应确认其初始化在页面渲染后执行，并被 try/catch 保护；第三方库不兼容时页面仍可展示
   - 图片格式是否包含 JPEG 回退（使用 `<picture>` 或 CSS fallback）
 - **失败判定**: 存在低版本浏览器不兼容的语法或特性
 

@@ -108,6 +108,7 @@ description: 马嗣博专属工作流。用于先读取项目证据再识别架�
 - 只有沉淀项会固化一次性项目事实、归属不清、风险较高或缺少业务结论时，才在交付中列为“待确认沉淀项”并询问用户。
 - 涉及新接口文档、新字段、新接口地址、新项目迁移或字段替换时，先调用 `h5-api-mapping`；普通业务补充复用目标项目现有 API。
 - Vendor 架构只在场景 A 默认执行；场景 B/C/D 中仅用户明确要求、checkpoint 已确认或项目现有架构需要时，才调用 `h5-vendor-architecture`。
+- 凡是证据显示页面会在 App 内嵌 WebView 打开（包括首复贷、进件、官网挂载小 H5、App 内嵌协议/客服、活动页等），交付前必须让 `h5-testing-checklist` 执行 App WebView 兼容专项；不因需求只是小改、调试工具接入或用户未明确说“低版本手机”而跳过。
 - 飞书前端告警仅在用户明确要求“飞书告警 / 预警 / 白屏监控 / 前端监控 / 线上异常告警”时调用 `h5-feishu-alert`；交付前必须让 `h5-testing-checklist` 执行飞书专项验收。
 - 任意涉及原生交互的任务统一遵守 `h5-apply-flow/references/native-methods.md`，业务 skill 和验收 skill 只引用该协议。
 - 场景 D 的国家差异和发布国家码由 `h5-apply-flow/references/country-profile-index.md` 维护；场景 G 的发布细节由 `h5-release-tag` 维护。
