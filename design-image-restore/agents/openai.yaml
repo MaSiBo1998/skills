@@ -1,4 +1,4 @@
 interface:
   display_name: "设计图图片复原设计"
   short_description: "基于375宽设计图解析结果复原页面并规范资源切图命名"
-  default_prompt: "使用 design-image-restore 基于 design-image-analysis 的 375px 宽基准解析清单复原页面；没有解析清单时，先按 375px 宽基准解析项目 design 文件夹里的设计图，再优先复用 src/assets、assets、public 等项目资源目录中的切图并规范切图命名；设计图缺少现有业务模块时，先核对并保留当前代码里的 banner、轮播、埋点、轮询、原生 bridge、按钮回调和兜底展示，只调整目标视觉结构和样式；同组件多状态分支只改用户点名分支；有本地页面时优先截图对比验收。"
+  default_prompt: "使用 design-image-restore 基于 design-image-analysis 的 375px 宽基准解析清单复原页面；没有解析清单时，先按 375px 宽基准解析项目 design 文件夹里的设计图；H5 样式源码默认保留设计稿 px，通过入口 setRem + 构建阶段 px-to-rem 或项目既有等价方案输出 rem，不要把解析尺寸直接手写成 rem；运行时动态尺寸若不会经过构建转换，必须用同一基准从 px 转 rem；再优先复用 src/assets、assets、public 等项目资源目录中的切图并规范切图命名；设计图缺少现有业务模块时，先核对并保留当前代码里的 banner、轮播、埋点、轮询、原生 bridge、按钮回调和兜底展示，只调整目标视觉结构和样式；同组件多状态分支只改用户点名分支；有本地页面时优先截图对比验收。"

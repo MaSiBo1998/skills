@@ -10,8 +10,8 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 ## 执行方式
 
 1. 加载 `references/testing-workflow.md`，确认当前场景应执行哪些检查。
-2. 加载 `references/testing-checklist.md`，按原 14 项和专项清单逐项验收。
-3. 先确定验收等级：`focused`、`full`、`release`。
+2. 加载 `references/testing-checklist.md`，按当前验收等级执行对应通用检查和专项清单。
+3. 先确定验收等级：`quick`、`focused`、`full`、`release`。
 4. 命令能执行就必须实际执行，未执行不能标为通过。
 5. 移动端键盘遮挡等真实 WebView 行为必须列为人工验收项，不能只靠桌面静态判断。
 6. 输入收集和交付说明遵守 `references/input-collection.md`、`references/checkpoint.md`、`references/delivery.md`，记录自动推断、假设、阻塞问题和跳过原因。
@@ -19,15 +19,16 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 ## 约束
 
 - 每项输出通过或失败，失败必须说明原因。
-- `focused` 用于普通小改、文案、样式、小交互；执行类型检查、构建、相关静态检查和专项检查。
-- `full` 用于默认业务开发、接口替换、首复贷/进件改动；执行完整 14 项 + 场景专项。
+- `quick` 用于纯样式数值、文案、单文件 CSS、静态展示微调，且不涉及 JS/TS 逻辑、接口、路由、原生桥、构建配置、样式入口、资源加载或发布；只执行目标文件 diff 审查、相关静态搜索和必要专项抽查，不默认跑 type-check/build。
+- `focused` 用于普通小交互、少量 JS/TS 改动、组件 import/export 变化、原生方法调用点、样式入口/适配策略/资源加载变化；执行与改动相关的最小命令和静态检查，例如 TS 改动跑 type-check，样式架构或入口变化才跑 build。
+- `full` 用于默认业务开发、接口替换、首复贷/进件改动；执行完整通用检查 + 场景专项。
 - `release` 用于准备发布；执行 `full`，并要求记录 release-env、构建产物和人工 WebView 待验项。
 - 未指定验收等级时，场景 B/C/D/F/I 默认使用 `full`；场景 E 若只是协议 HTML/纯文档生成可用专项检查，若涉及页面、路由、iframe 或客服问答交互则使用 `full`；发布前必须使用 `release`。
 - vendor 完整性和构建架构检查只在场景 A 或 `vendor_enabled=true` 时执行；未启用 vendor 时必须标记为跳过，不能判失败。
 - 本次调用 `h5-feishu-alert` 或涉及飞书告警、前端监控、白屏监控、线上异常告警时，必须执行飞书前端告警专项检查。
 - 任意涉及原生交互的场景都必须检查 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
 - 首复贷项目必须额外检查 Home/Status 状态分发、首贷/复贷数据源、申贷确认、原生回调、风控上传、App 列表、还款期和首复贷 banner；当接口文档、用户示例或现有类型已经明确字段结构时，必须检查页面按固定结构直接取值或解析，未引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案；按设计图改首复贷状态页时，还必须确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点未因截图缺失被误删，且只影响目标状态分支；如本次涉及接口/字段替换，再检查目标项目字段映射完整性。不得把某个项目的示例字段当作通用验收依据。
-- 任意内嵌 H5 都必须默认专项检查 App WebView 兼容，不限于用户明确提到低版本时才检查：生产构建需有旧 WebView 可执行的产物或明确目标环境不需要 legacy；渲染阶段不得依赖未兜底的 `URLSearchParams`、`AbortController`、`fetch`、`Promise.finally`、`Array.from` 等旧内核常缺 API；vConsole、监控、埋点、音频等调试/辅助能力必须延后、降级或 try/catch，不能阻塞页面首屏；关键布局不得依赖 `gap/row-gap/column-gap`、无 fallback 的 `aspect-ratio`，`safe-area-inset-*` 必须有普通固定值、`constant()`、`env()` 分层兜底，且不得把 `env()` 放进 `padding` 简写造成整条声明失效；未做真实 App WebView 验证时必须列为人工待验。
+- 任意内嵌 H5 都必须默认专项检查 App WebView 兼容，但 `quick` 小改只检查本次 diff 是否引入 WebView 风险点，不要求重跑全量 WebView 兼容清单；生产构建、legacy 包、旧内核 API、vConsole/监控/埋点/音频、gap/aspect-ratio/safe-area、源码 `px` 到产物 `rem` 转换链路等全量检查仅在触及相关文件、改动范围较大、进入 `focused/full/release` 或发布前执行。未做真实 App WebView 验证时按本次风险范围列为人工待验。
 - 首复贷还款页新增用户资料回显或支付输入框时，必须检查真实字段无旧参考字段残留，并检查 App WebView 键盘遮挡链路；未做真实设备验证时必须标记为人工待验。
 - 首复贷还款/支付过渡页涉及支付跳转、非 URL 凭证、空字符串渠道、服务费、渠道图标或返回入口时，必须检查支付闭环、复制兜底、当前支付方式服务费、真实资源、顶部返回与原生 `window.onNativeBack` 同入口，以及 App WebView 待验项。
 - 同结构混淆字段替换必须检查接口地址、请求头、请求入参、响应字段、全局配置字段已替换，旧字段无残留，且业务流程未被重构。
