@@ -27,12 +27,12 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - 仅当沉淀项可能固化一次性项目事实、影响多个团队约定、归属不清、会改变发布/资金/风控等高风险流程，或需要用户补充业务结论时，才先在交付里列出“待确认沉淀项”并询问。
    - 保持 `name` 和目录名稳定，除非用户明确要求改 skill ID。
    - 同步更新 `agents/openai.yaml` 中与展示、默认提示相关的文案。
-   - 新增 skill 或调整 skill 之间的调度链接后，必须同步到 Trae、Codex、Claude 的运行时 skill 目录，并确认引用方与被引用方都存在。
+   - 新增 skill 或调整 skill 之间的调度链接后，必须同步到 Trae、Codex、Claude 的运行时 skill 目录；若本机存在 `C:\Users\11731\.agents\skills` 或当前会话从该目录加载 skill，也必须把它作为运行时目录同步，并确认引用方与被引用方都存在。
    - 同步运行时目录前先确认目标目录可写；若目录不在当前可写根或写入返回 Access denied/permission denied，不要在同一轮反复尝试覆盖，必须记录漂移文件、受阻运行时目录和后续需要在有权限环境同步的动作。
 4. 校验更新：
    - 修改任意 skill 后，运行 `quick_validate.py <skill目录>`；优先使用当前仓库里的 skill-creator quick_validate 脚本（若存在），若不存在则使用可读的系统 skill 路径，例如 `C:\Users\11731\.codex\skills\.system\skill-creator\scripts\quick_validate.py`。
    - 检查 diff，确认只改了本次沉淀相关内容。
-   - 新增 skill 后检查 `~/.trae/skills/<skill>`、`~/.codex/skills/<skill>`、`~/.claude/skills/<skill>` 都已同步；若本机还维护其他运行时目录，也一并同步。若同步被权限阻断，源目录校验仍要继续，交付中把运行时漂移列为外部阻塞而不是重复失败。
+   - 新增 skill 后检查 `~/.trae/skills/<skill>`、`~/.codex/skills/<skill>`、`~/.claude/skills/<skill>` 都已同步；若本机存在或当前会话正在使用 `~/.agents/skills/<skill>`，也作为运行时镜像检查和同步。若本机还维护其他运行时目录，也一并同步。若同步被权限阻断，源目录校验仍要继续，交付中把运行时漂移列为外部阻塞而不是重复失败。
    - 若更新影响发版、验收、接口映射等关键流程，在交付中说明仍需真实项目执行验证的部分。
 5. 交付输出：
    - 说明沉淀了什么规则。
@@ -93,10 +93,10 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 若用户要求优化工作流但没有指定轮次，默认进入自驱动巡检闭环：连续执行“扫描 -> 修改 -> 校验 -> 同步 -> 再扫描”，直到达到停止条件后再一次性交付，不要求用户逐轮输入“继续”。
 - 用户明确排除的 skill（例如 vendor 架构）不纳入本轮巡检、优化或同步范围。
 - 检查主工作流场景调度、子 skill 执行方式、测试验收和交付说明是否互相对齐。
-- 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。引用扫描必须同时按当前文件目录、所属 skill 根目录和仓库根目录解析内部相对路径，并过滤 `<id>`、`<skill>` 等占位符、`$CODEX_HOME`/`${CODEX_HOME}`/`%CODEX_HOME%` 模板路径、正则裁剪后剩余的 `CODEX_HOME/...` 片段、命令片段、斜杠分隔的概念标签/枚举/比例/尺寸（例如 `A/B`、`B/C/D`、`Vue/Element`、`GET/POST`、`0/1`、`12px/24px`）、用于文件发现的 glob 模式（例如 `references/*.md`、`**/SKILL.md`）、目标项目内才会存在的示例文件，以及外部/辅助 skill 文档中的跨 skill 导航引用（例如 `skills/<skill>/SKILL.md`，除非当前仓库明确把该路径作为本地 source path 维护）；若引用值是已发现的辅助 skill 名或其说明性 `SKILL.md` 导航，先按发现清单归一化到实际源目录再判断，不得直接报缺失；若扫描命令出现 `Test-Path` 非法字符、脚本错误或错误输出污染，本次引用结论无效，必须改用兼容当前 shell 的过滤规则后重跑。
+- 检查引用路径是否真实存在；不得保留已迁移的旧 common 场景目录引用。引用扫描必须同时按当前文件目录、所属 skill 根目录和仓库根目录解析内部相对路径，并过滤 `<id>`、`<skill>` 等占位符、`$CODEX_HOME`/`${CODEX_HOME}`/`%CODEX_HOME%` 模板路径、正则裁剪后剩余的 `CODEX_HOME/...`、`codex/automations/...`、`agents/skills/...` 片段、命令片段、斜杠分隔的概念标签/枚举/比例/尺寸（例如 `A/B`、`B/C/D`、`Vue/Element`、`GET/POST`、`0/1`、`12px/24px`）、用于文件发现的 glob 模式（例如 `references/*.md`、`**/SKILL.md`）、目标项目内才会存在的示例文件，以及外部/辅助 skill 文档中的跨 skill 导航引用（例如 `skills/<skill>/SKILL.md`，除非当前仓库明确把该路径作为本地 source path 维护）；若引用值是已发现的辅助 skill 名或其说明性 `SKILL.md` 导航，先按发现清单归一化到实际源目录再判断，不得直接报缺失；若扫描命令出现 `Test-Path` 非法字符、脚本错误或错误输出污染，本次引用结论无效，必须改用兼容当前 shell 的过滤规则后重跑。
 - 对可选校验 runner 的说明性引用，若当前仓库、系统 skill 或 `.agents` skill 路径中已有任一可读实现，不得在内部引用扫描中误报为缺失引用。
 - 检查新增或调整触发语义后，是否同步更新对应 `agents/openai.yaml`。
-- 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；隐藏辅助 skill 源目录（例如仓库内 `.agents/skills/<skill>`）只表示发现来源，运行时目标必须按 skill 名归一化为 `<runtime>/<skill>`，不得按 `.agents/skills/<skill>` 字面路径映射到 runtime 根目录后误报缺失；hash 比对脚本必须兼容当前 shell，Windows PowerShell 中不要依赖新版 .NET 才有的 `Path.GetRelativePath`；若比对命令出现脚本错误、输出被错误污染或未完成隐藏辅助 skill 路径归一化，本次漂移结论无效，必须改用兼容路径计算后重新比对。发现运行时与源目录不一致时，本轮必须同步。
+- 检查源目录与 `~/.trae/skills`、`~/.codex/skills`、`~/.claude/skills` 的内容级漂移；若本机存在或当前会话正在使用 `~/.agents/skills`，也必须纳入运行时漂移比对：至少比对 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 的文件存在性和 hash；隐藏辅助 skill 源目录（例如仓库内 `.agents/skills/<skill>`）只表示发现来源，运行时目标必须按 skill 名归一化为 `<runtime>/<skill>`，不得按 `.agents/skills/<skill>` 字面路径映射到 runtime 根目录后误报缺失；hash 比对脚本必须兼容当前 shell，Windows PowerShell 中不要依赖新版 .NET 才有的 `Path.GetRelativePath`；若比对命令出现脚本错误、输出被错误污染或未完成隐藏辅助 skill 路径归一化，本次漂移结论无效，必须改用兼容路径计算后重新比对。发现运行时与源目录不一致时，本轮必须同步。
 - 用 `workflow-orchestration-patterns` 的编排检查法审视主工作流和子 skill：主工作流是否只负责编排、子 skill 是否像 activity 一样职责清晰、checkpoint 是否能恢复、跳过/失败/重试是否有记录、更新操作是否幂等。
 - 用 `llm-evaluation` 建立或更新工作流回归样例，并在巡检收口前执行一次评估；评估失败项必须转成高价值问题或待确认沉淀项。
 - 对所有被修改的 skill 运行 `quick_validate.py`，并用关键字搜索验证旧规则不再残留。
@@ -137,7 +137,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 
 1. 最近一轮没有发现新的高价值问题（场景调度冲突、执行阻塞、验收缺口、扫描范围缩水、引用失效、引用扫描脚本错误、运行时未同步、旧规则残留）。
 2. 所有本轮范围内被修改的 skill 源目录 `quick_validate.py` 通过。
-3. 已同步到 Trae/Codex/Claude 运行时目录，源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，hash 比对命令无脚本错误，且运行时目录校验通过。
+3. 已同步到 Trae/Codex/Claude 运行时目录；若 `~/.agents/skills` 存在或当前会话正在使用，也已同步该运行时目录。源目录与运行时目录的 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 不存在内容级漂移，hash 比对命令无脚本错误，且运行时目录校验通过。
 4. `llm-evaluation` 回归样例没有未处理失败项；若存在失败项，已修复或记录为待确认沉淀项。
 5. 自动化续跑场景已更新 automation memory，后续运行能直接看到本轮结论和外部阻塞。
 6. 关键残留搜索为空，例如旧询问式沉淀规则、错误场景命名、错误发布码、旧路径引用。
@@ -156,10 +156,10 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
 - 验收缺口：业务开发完成后没有对应专项检查、人工验收项或发布前校验。
 - 归属冲突：同一规则在主工作流和子 skill 中重复维护，或细节写错位置。
 - 扫描范围缩水：文件发现命令漏掉各 skill 子目录中的 `references/*.md`、`agents/openai.yaml` 或隐藏/被 ignore 目录中的辅助 skill（例如 `.agents/skills`），导致后续引用扫描、触发语义检查、运行时漂移比对只覆盖 `SKILL.md` 或部分文件；必须改用包含隐藏、ignore 覆盖和 `**/` 递归 glob 的发现方式，并记录分类计数后重跑。
-- 引用扫描失真：把占位符、命令片段、斜杠分隔的概念标签/枚举/比例/尺寸、未解析或被裁剪的 CODEX_HOME 记忆路径片段、文件发现 glob、目标项目示例文件、已发现辅助 skill 的说明性导航，或外部/辅助 skill 文档中的跨 skill 导航引用误当成本仓库缺失引用，或扫描脚本报错但仍把污染输出当成有效结论。
+- 引用扫描失真：把占位符、命令片段、斜杠分隔的概念标签/枚举/比例/尺寸、未解析或被裁剪的 CODEX_HOME/`.codex` 记忆路径片段、被裁剪前导点的 `.agents/skills` 辅助导航片段、文件发现 glob、目标项目示例文件、已发现辅助 skill 的说明性导航，或外部/辅助 skill 文档中的跨 skill 导航引用误当成本仓库缺失引用，或扫描脚本报错但仍把污染输出当成有效结论。
 - 回归计数污染：回归样例统计越过 `## 评估样例` 区段，把 `## 输出格式` 的示例表、评分指标表或其他说明表计入样例数，假设样例行首列必须是数字导致计数为 0，或按“输入/期望/场景类型”等内容关键词过滤数据行导致计数偏小，导致通过线和 automation memory 记录失真；必须限定解析区段后只排除表头/分隔行并按数据行重算，再写回 checkpoint/automation memory。
 - 运行时路径归一化失真：把 `.agents/skills/<skill>` 这类隐藏辅助 skill 源路径按字面量同步或比对到 `<runtime>/.agents/skills/<skill>`，导致 runtime 根级已存在的 `<skill>` 被误报为缺失；必须按 skill 目录名归一化后重跑 hash 比对。
-- 运行时漂移：源目录已改但 Codex/Trae/Claude 运行时目录未同步，或运行时目录中 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 与源目录 hash 不一致；若漂移检测脚本在当前 shell 报错，先修正检测脚本并重跑，不能把错误输出当成有效漂移清单。
+- 运行时漂移：源目录已改但 Codex/Trae/Claude/当前会话实际使用的 `.agents` 运行时目录未同步，或运行时目录中 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 与源目录 hash 不一致；若漂移检测脚本在当前 shell 报错，先修正检测脚本并重跑，不能把错误输出当成有效漂移清单。
 - 自动化续跑重复劳动：automation memory 未读取或未写回，导致下一轮无法跳过已确认的漂移、阻塞和已完成修复。
 - 旧规则残留：历史旧场景目录、旧 checklist 路径、旧沉淀询问、错误国家发布码、过期命令示例。
 
@@ -216,6 +216,7 @@ description: 工作流自我更新成长。用于在用户要求“记住、下�
    - `C:\Users\11731\.trae\skills\<skill>`
    - `C:\Users\11731\.codex\skills\<skill>`
    - `C:\Users\11731\.claude\skills\<skill>`
+   - `C:\Users\11731\.agents\skills\<skill>`（当该目录存在，或当前会话实际从 `.agents\skills` 加载 skill 时）
 3. 如果引用方 skill 的 `SKILL.md` 或 `agents/openai.yaml` 发生变化，也同步引用方目录，避免运行时仍使用旧调度关系。
-4. 同步后用关键字搜索确认 Trae、Codex、Claude 三处都能找到新增 skill 名和调度链接。
+4. 同步后用关键字搜索确认 Trae、Codex、Claude 以及已启用的 `.agents` 运行时都能找到新增 skill 名和调度链接。
 5. 对源目录和同步后的关键目录运行 `quick_validate.py`，至少覆盖新增 skill 和 `workflow-self-improvement`。

@@ -2,15 +2,20 @@
     "eval_cases":  [
                        "明确场景",
                        "复合场景",
+                       "弱触发词不抢场景",
+                       "新方向扩展",
                        "信息不全",
                        "新需求",
                        "高风险",
                        "规则沉淀",
+                       "最小执行链",
+                       "流程调优分级",
                        "全量巡检",
                        "运行时漂移检测",
                        "引用扫描容错",
                        "文件发现范围",
                        "运行时路径归一化",
+                       "活动运行时同步",
                        "设计图业务保留",
                        "原生 Base64 加号",
                        "首复贷明确接口结构",
@@ -121,6 +126,18 @@
                                     "status":  "fixed_and_regression_covered",
                                     "type":  "execution_order",
                                     "at":  "2026-06-09T01:14:42.3033928+08:00"
+                                },
+                                {
+                                    "type":  "runtime_drift",
+                                    "summary":  "Active ~/.agents/skills runtime mirror must be included in workflow audits, sync targets, and automation memory.",
+                                    "status":  "fixed_and_regression_covered",
+                                    "at":  "2026-06-09T18:17:43.6620223+08:00"
+                                },
+                                {
+                                    "type":  "validation_gap",
+                                    "summary":  "Internal reference scans must filter regex-stripped .codex automation memory and .agents/skills helper navigation fragments when the leading dot is trimmed.",
+                                    "status":  "fixed_and_regression_covered",
+                                    "at":  "2026-06-10T00:28:24.9443206+08:00"
                                 }
                             ],
     "skill_updates":  [
@@ -647,9 +664,65 @@
                               "summary":  "No new source skill edits were required; existing uncommitted workflow changes were re-audited and validated.",
                               "validation":  "quick_validate passed for all source-relevant and drift-relevant skills",
                               "at":  "2026-06-09T03:12:24.4289051+08:00"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Added active ~/.agents/skills runtime mirror to sync/drift rules and regression coverage.",
+                              "validation":  "quick_validate.py passed",
+                              "at":  "2026-06-09T18:17:43.6620223+08:00"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/testing-workflow.md"
+                                        ],
+                              "summary":  "Added scene H validation for active ~/.agents/skills runtime mirror checks.",
+                              "validation":  "quick_validate.py passed",
+                              "at":  "2026-06-09T18:17:43.6620223+08:00"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Added filtering for leading-dot-trimmed codex/automations and agents/skills reference fragments, and kept active .agents runtime mirror handling.",
+                              "validation":  "quick_validate.py passed",
+                              "at":  "2026-06-10T00:28:24.9443206+08:00"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "SKILL.md",
+                                            "agents/openai.yaml",
+                                            "references/testing-workflow.md"
+                                        ],
+                              "summary":  "Aligned scene H validation wording with the new internal reference false-positive filter and active .agents runtime mirror check.",
+                              "validation":  "quick_validate.py passed",
+                              "at":  "2026-06-10T00:28:24.9443206+08:00"
+                          },
+                          {
+                              "skill":  "none_current_run",
+                              "summary":  "No new source skill edits were required; prior uncommitted workflow changes were re-audited and validated.",
+                              "validation":  "quick_validate.py passed for workflow-self-improvement and h5-testing-checklist; filtered reference scan 144 candidates/0 missing; regression 25 cases passed",
+                              "at":  "2026-06-10T01:12:45.2327688+08:00"
+                          },
+                          {
+                              "skill":  "none_current_run",
+                              "summary":  "No new source skill edits were required; recurring audit revalidated current workflow state and external runtime drift blocker.",
+                              "validation":  "quick_validate.py passed for all 16 local skills; filtered reference scan 104 candidates/0 missing; regression 26 cases passed; runtime drift 24 entries remains external-blocked",
+                              "at":  "2026-06-10T02:15:03.3369563+08:00"
                           }
                       ],
-    "last_run_at":  "2026-06-09T02:14:24.9019783+08:00",
+    "last_run_at":  "2026-06-10T02:15:03.3369563+08:00",
     "completed_steps":  [
                             {
                                 "step":  "workflow_improvement_spec",
@@ -3854,85 +3927,403 @@
                                 "status":  "completed",
                                 "summary":  "Wrote current run summary, validation results, verified runtime drift, and next focus to automation memory.",
                                 "at":  "2026-06-09T03:13:05.1726251+08:00"
+                            },
+                            {
+                                "step":  "spec_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Lightweight spec kept this automation run as full workflow audit optimization, with source fixes for active .agents runtime synchronization.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "file_discovery_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Recursive discovery covered 16 SKILL.md, 29 references/*.md, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "source_update_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Updated workflow-self-improvement and h5-testing-checklist so active ~/.agents/skills runtime mirrors are included in drift checks, sync targets, validation, prompt text, and regression coverage.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Corrected a PowerShell regex scanner error, reran with compatible filtering, and found 0 true missing internal references.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement and h5-testing-checklist.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_1810",
+                                "status":  "completed",
+                                "summary":  "Normalized hash comparison completed without script errors and verified 24 runtime drift entries, including active .agents runtime drift; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T18:17:43.6620223+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_09_1817",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, active .agents runtime sync rule, verified runtime drift, and next focus to automation memory.",
+                                "at":  "2026-06-09T18:18:09.2153222+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_rewrite_2026_06_09_1819",
+                                "status":  "completed",
+                                "summary":  "Rewrote automation memory without Markdown backticks so PowerShell does not emit escape characters.",
+                                "at":  "2026-06-09T18:18:54.5018297+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory from the user .codex automation path after CODEX_HOME was unresolved.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Full discovery found 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents helper skills.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan completed without script errors and found 0 true missing repository references.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement and h5-testing-checklist.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and verified 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_09_1911",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, unchanged runtime blocker, and next focus to automation memory.",
+                                "at":  "2026-06-09T19:14:00.7316408+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused existing checkpoint evidence.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Full discovery covered 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files including hidden helper skills.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan completed without script errors; true missing internal references: 0.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "eval_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Workflow regression suite counted 26 cases, score 130, dynamic pass line 115, and no failed cases.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement and h5-testing-checklist.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and verified 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T20:18:10.3106738+08:00"
+                            },
+                            {
+                                "step":  "eval_correction_2026_06_09_current",
+                                "status":  "completed",
+                                "summary":  "Corrected regression count to exclude the table header: 25 cases, score 125, dynamic pass line 110.",
+                                "at":  "2026-06-09T20:20:26.4219065+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and reused checkpoint evidence from the prior 20:21 run.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "Full discovery reconfirmed 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "First reference scan attempt errored on PowerShell Trim arguments; corrected scanner reran and found 0 true missing internal references.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement, h5-testing-checklist, and front-workflow.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and reconfirmed 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_09_2116",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, unchanged runtime blocker, and next focus to automation memory.",
+                                "at":  "2026-06-09T21:16:28.3013435+08:00"
+                            },
+                            {
+                                "step":  "spec_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Lightweight spec kept this automation run as full workflow audit optimization without new source edits unless new high-value issues appeared.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "file_discovery_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Recursive discovery reconfirmed 16 SKILL.md, 29 references/*.md, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan covered 58 key files, discarded target-project example false positives, and found 0 true missing internal references.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement, h5-testing-checklist, and front-workflow.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and reconfirmed 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_09_2215",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, unchanged runtime blocker, and next focus to automation memory.",
+                                "at":  "2026-06-09T22:15:39.0818309+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md and reused checkpoint evidence from the prior 22:15 run.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Full discovery reconfirmed 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files including hidden helper skills.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Broad reference scan produced expected false positives; corrected filtered scanner reran without script errors and found 0 true missing internal references.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement, h5-testing-checklist, and front-workflow.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and reconfirmed 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_09_2322",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, unchanged runtime blocker, and next focus to automation memory.",
+                                "at":  "2026-06-09T23:22:38.6030364+08:00"
+                            },
+                            {
+                                "step":  "workflow_audit_reference_scan_patch_2026_06_10_0028",
+                                "summary":  "Filtered leading-dot-trimmed codex automation and agents/skills fragments from internal reference scan false positives.",
+                                "at":  "2026-06-10T00:28:24.9443206+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "Read automation memory from C:\\Users\\11731\\.codex\\automations\\automation\\memory.md after CODEX_HOME was unavailable in shell.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "file_discovery_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "Recursive discovery covered 16 SKILL.md, 29 references/*.md, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan checked 58 files and 144 repository candidates with 0 true missing references.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "Regression parser counted 25 evaluation cases, total 125 points, dynamic pass line 110, score 125, failed cases 0.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "quick_validate_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for workflow-self-improvement and h5-testing-checklist; git diff --check reported only line-ending warnings.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_10_0111",
+                                "status":  "blocked",
+                                "summary":  "Hash comparison checked 232 key files and reconfirmed 24 verified drift entries across .agents, Trae, Codex, and Claude runtime mirrors outside writable roots.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "no_source_update_2026_06_10_0111",
+                                "status":  "completed",
+                                "summary":  "No new high-value workflow issue was found, so no source skill file was changed in this follow-up run.",
+                                "at":  "2026-06-10T01:12:45.2327688+08:00"
+                            },
+                            {
+                                "step":  "all_skill_quick_validate_2026_06_10_0114",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for all 16 local skill directories.",
+                                "at":  "2026-06-10T01:13:43.4671108+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_write_2026_06_10_0114",
+                                "status":  "completed",
+                                "summary":  "Wrote current run summary, validation results, verified runtime drift, and next focus to automation memory.",
+                                "at":  "2026-06-10T01:13:43.4671108+08:00"
+                            },
+                            {
+                                "step":  "automation_memory_read_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "Read fallback automation memory and reused checkpoint evidence to avoid duplicate source edits.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "Recursive discovery reconfirmed 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "Filtered internal reference scan completed without script errors; checked 58 key files and 104 explicit doc/config path candidates with 0 true missing references.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 26 cases in the evaluation section only; score 130, pass line 115, failed cases 0.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "all_skill_quick_validate_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for all 16 local skill directories.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026_06_10_0215",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and reconfirmed 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-10T02:15:03.3369563+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026-06-10T03_10_55_1051247+08_00",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-10T03:10:55.1051247+08:00"
+                            },
+                            {
+                                "step":  "discovery_2026-06-10T03_16_46_4203385+08_00",
+                                "status":  "completed",
+                                "summary":  "Recursive discovery found 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files.",
+                                "at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+                            {
+                                "step":  "reference_scan_2026-06-10T03_16_46_4203385+08_00",
+                                "status":  "completed",
+                                "summary":  "Token-level filtered internal reference scan completed without script errors; checked 58 key files and 160 explicit doc/config path candidates with 0 true missing references.",
+                                "at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+                            {
+                                "step":  "regression_eval_2026-06-10T03_16_46_4203385+08_00",
+                                "status":  "completed",
+                                "summary":  "Regression evaluation counted 25 cases in the evaluation section only; score 125, pass line 110, failed cases 0.",
+                                "at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+                            {
+                                "step":  "all_skill_quick_validate_2026-06-10T03_16_46_4203385+08_00",
+                                "status":  "completed",
+                                "summary":  "quick_validate.py passed for all 16 discovered local skill directories, including hidden auxiliary skills.",
+                                "at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+                            {
+                                "step":  "runtime_drift_2026-06-10T03_16_46_4203385+08_00",
+                                "status":  "completed",
+                                "summary":  "Normalized runtime hash comparison checked 232 key files and verified 24 drift entries; synchronization remains blocked by writable roots.",
+                                "at":  "2026-06-10T03:16:46.4203385+08:00"
                             }
                         ],
-    "last_completed_step":  "automation_memory_write_2026_06_09_0311",
-    "workflow_improvement_spec":  {
-                                      "objective":  "Recurring workflow audit optimization: avoid repeating prior work, verify scan/eval/drift state, and update durable automation state.",
-                                      "scope":  [
-                                                    "all discovered local skill metadata files",
-                                                    "workflow checkpoint",
-                                                    "automation memory",
-                                                    "runtime drift comparison"
-                                                ],
-                                      "success_criteria":  [
-                                                               "file discovery includes hidden helper skills and records counts",
-                                                               "internal reference scan has no script errors and no true missing refs",
-                                                               "regression suite uses dynamic 20-case count and passes",
-                                                               "modified/source-relevant skills pass quick_validate",
-                                                               "runtime drift is either synced or recorded as external blocker",
-                                                               "automation memory is written for next run"
-                                                           ],
-                                      "boundaries":  [
-                                                         "do not revert existing uncommitted source changes",
-                                                         "do not write Trae/Codex/Claude runtime directories outside writable roots",
-                                                         "do not treat target project routes, commands, package names, templates, or auxiliary skill navigation as missing repository references"
-                                                     ],
-                                      "blocking_questions":  [
-
-                                                             ],
-                                      "updated_at":  "2026-06-09T03:12:24.4289051+08:00"
-                                  },
-    "orchestration_audit":  {
-                                "workflow_boundary":  "front-workflow remains the orchestrator; business implementation details stay in child skills.",
-                                "activity_boundary":  "workflow-self-improvement owns rule deposition and audit closure; h5-testing-checklist owns validation; helper skills only provide spec/orchestration/eval methods.",
-                                "checkpoint_recovery":  "Automation memory and .workflow-checkpoint.json were read before scanning; this run appended resumable completed_steps.",
-                                "failure_recovery":  "Reference scan errors were invalidated and rerun with safer filtering; runtime drift is recorded rather than repeatedly failed because targets are outside writable roots.",
-                                "idempotency":  "Repeated runs should converge: same verified drift list, dynamic eval count, and no new source edits unless a high-value rule appears.",
-                                "updated_at":  "2026-06-09T03:12:24.4289051+08:00"
-                            },
-    "eval_results":  {
-                         "case_count":  20,
-                         "total_points":  100,
-                         "pass_line":  88,
-                         "score":  100,
-                         "failed_cases":  [
-
-                                          ],
-                         "evaluated_at":  "2026-06-09T03:12:24.4289051+08:00"
-                     },
-    "runtime_drift":  {
-                          "blocked_runtime_dirs":  [
-                                                       "C:\\Users\\11731\\.trae\\skills",
-                                                       "C:\\Users\\11731\\.codex\\skills",
-                                                       "C:\\Users\\11731\\.claude\\skills"
-                                                   ],
-                          "drift_files":  [
-                                              "h5-feishu-alert/SKILL.md",
-                                              "h5-feishu-alert/agents/openai.yaml",
-                                              "h5-official-site/references/official-site.md"
-                                          ],
-                          "verified_drifts":  [
-                                                  "C:\\Users\\11731\\.trae\\skills h5-feishu-alert/SKILL.md hash-diff",
-                                                  "C:\\Users\\11731\\.trae\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
-                                                  "C:\\Users\\11731\\.trae\\skills h5-official-site/references/official-site.md hash-diff",
-                                                  "C:\\Users\\11731\\.codex\\skills h5-feishu-alert/SKILL.md hash-diff",
-                                                  "C:\\Users\\11731\\.codex\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
-                                                  "C:\\Users\\11731\\.codex\\skills h5-official-site/references/official-site.md hash-diff",
-                                                  "C:\\Users\\11731\\.claude\\skills h5-feishu-alert/SKILL.md hash-diff",
-                                                  "C:\\Users\\11731\\.claude\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
-                                                  "C:\\Users\\11731\\.claude\\skills h5-official-site/references/official-site.md hash-diff"
-                                              ],
-                          "verified_at":  "2026-06-09T03:12:24.4289051+08:00"
-                      },
-    "automation_memory":  {
-                              "path":  "C:\\Users\\11731\\.codex\\automations\\automation\\memory.md",
-                              "read_status":  "read_from_user_dot_codex_fallback_after_CODEX_HOME_unset",
-                              "write_status":  "written",
-                              "note":  "Current run reconfirmed no new source skill edits required; runtime drift remains external-blocked by writable roots.",
-                              "last_write_at":  "2026-06-09T03:13:05.1726251+08:00"
-                          },
-    "updated_at":  "2026-06-09T03:13:05.1726251+08:00",
     "assumptions":  [
                         {
                             "summary":  "Runtime directories remain outside current writable roots; drift is recorded rather than synchronized.",
@@ -3958,6 +4349,16 @@
                             "summary":  "Runtime directories remain outside current writable roots; this run records verified drift instead of attempting blocked synchronization.",
                             "risk":  "Trae/Codex/Claude runtime skills may remain stale until a separate writable sync is run.",
                             "at":  "2026-06-09T03:12:24.4289051+08:00"
+                        },
+                        {
+                            "summary":  "Runtime directories remain outside current writable roots; this run records verified drift instead of attempting blocked synchronization.",
+                            "risk":  "Runtime skills may remain stale until a separate writable sync is run.",
+                            "at":  "2026-06-09T19:14:00.7316408+08:00"
+                        },
+                        {
+                            "summary":  "Runtime directories remain outside current writable roots; this run records verified drift instead of attempting blocked synchronization.",
+                            "risk":  "Runtime skills may remain stale until a separate writable sync is run.",
+                            "at":  "2026-06-09T21:16:28.3013435+08:00"
                         }
                     ],
     "discovered_facts":  [
@@ -4000,6 +4401,205 @@
                              {
                                  "summary":  "Current normalized runtime hash comparison reconfirmed the same 9 drift entries for h5-feishu-alert and h5-official-site across Trae, Codex, and Claude runtime directories.",
                                  "at":  "2026-06-09T03:12:24.4289051+08:00"
+                             },
+                             {
+                                 "summary":  "Current full discovery found 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                 "at":  "2026-06-09T18:17:43.6620223+08:00"
+                             },
+                             {
+                                 "summary":  "Clean internal reference scan completed without script errors after rerun; true missing internal references: 0.",
+                                 "at":  "2026-06-09T18:17:43.6620223+08:00"
+                             },
+                             {
+                                 "summary":  "Current workflow regression suite counted 25 cases, score 125, dynamic pass line 110, and no failed cases.",
+                                 "at":  "2026-06-09T18:17:43.6620223+08:00"
+                             },
+                             {
+                                 "summary":  "Current normalized runtime hash comparison verified 24 drift entries across Trae, Codex, Claude, and active .agents runtime mirrors.",
+                                 "at":  "2026-06-09T18:17:43.6620223+08:00"
+                             },
+                             {
+                                 "summary":  "Current full discovery found 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                 "at":  "2026-06-09T19:14:00.7316408+08:00"
+                             },
+                             {
+                                 "summary":  "Current filtered internal reference scan completed without script errors; true missing internal references: 0.",
+                                 "at":  "2026-06-09T19:14:00.7316408+08:00"
+                             },
+                             {
+                                 "summary":  "Current workflow regression suite counted 25 cases, score 125, dynamic pass line 110, and no failed cases.",
+                                 "at":  "2026-06-09T19:14:00.7316408+08:00"
+                             },
+                             {
+                                 "summary":  "Current normalized runtime hash comparison checked 232 files and reconfirmed 24 drift entries across Trae, Codex, Claude, and active .agents runtime mirrors.",
+                                 "at":  "2026-06-09T19:14:00.7316408+08:00"
+                             },
+                             {
+                                 "summary":  "Current full discovery reconfirmed 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                 "at":  "2026-06-09T21:16:28.3013435+08:00"
+                             },
+                             {
+                                 "summary":  "Current filtered internal reference scan completed without script errors after correcting a PowerShell Trim argument issue; true missing internal references: 0.",
+                                 "at":  "2026-06-09T21:16:28.3013435+08:00"
+                             },
+                             {
+                                 "summary":  "Current workflow regression suite counted 25 cases, score 125, dynamic pass line 110, and no failed cases.",
+                                 "at":  "2026-06-09T21:16:28.3013435+08:00"
+                             },
+                             {
+                                 "summary":  "Current normalized runtime hash comparison checked 232 files and reconfirmed 24 drift entries across Trae, Codex, Claude, and active .agents runtime mirrors.",
+                                 "at":  "2026-06-09T21:16:28.3013435+08:00"
+                             },
+                             {
+                                 "summary":  "Current full discovery reconfirmed 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                 "at":  "2026-06-09T22:15:39.0818309+08:00"
+                             },
+                             {
+                                 "summary":  "Current filtered internal reference scan completed without script errors after excluding target-project example files; true missing internal references: 0.",
+                                 "at":  "2026-06-09T22:15:39.0818309+08:00"
+                             },
+                             {
+                                 "summary":  "Current workflow regression suite counted 25 cases, score 125, dynamic pass line 110, and no failed cases.",
+                                 "at":  "2026-06-09T22:15:39.0818309+08:00"
+                             },
+                             {
+                                 "summary":  "Current normalized runtime hash comparison checked 232 files and reconfirmed 24 drift entries across Trae, Codex, Claude, and active .agents runtime mirrors.",
+                                 "at":  "2026-06-09T22:15:39.0818309+08:00"
+                             },
+                             {
+                                 "summary":  "Current full discovery found 16 SKILL.md files, 29 reference markdown files, and 13 agents/openai.yaml files, including hidden .agents/skills helper skills.",
+                                 "at":  "2026-06-10T00:28:24.9443206+08:00"
+                             },
+                             {
+                                 "summary":  "Current filtered internal reference scan checked 58 key files and 106 repository candidates; after filtering leading-dot-trimmed codex/automations and agents/skills fragments, true missing internal references: 0.",
+                                 "at":  "2026-06-10T00:28:24.9443206+08:00"
+                             },
+                             {
+                                 "summary":  "Current workflow regression suite counted 25 cases, score 125, dynamic pass line 110, and no failed cases.",
+                                 "at":  "2026-06-10T00:28:24.9443206+08:00"
+                             },
+                             {
+                                 "summary":  "Current normalized runtime hash comparison checked 232 files and verified 24 drift entries across Trae, Codex, Claude, and active .agents runtime mirrors.",
+                                 "at":  "2026-06-10T00:28:24.9443206+08:00"
                              }
-                         ]
+                         ],
+    "last_completed_step":  "runtime_drift_2026-06-10T03_16_46_4203385+08_00",
+    "workflow_improvement_spec":  {
+                                      "objective":  "Recurring workflow full audit follow-up: verify source workflow rules, rerun discovery/reference/evaluation/validation/runtime drift checks, correct stale regression count state, and avoid duplicate source edits when no new high-value issue appears.",
+                                      "scope":  [
+                                                    "automation memory fallback read/write",
+                                                    "workflow source diff re-audit",
+                                                    "recursive skill discovery",
+                                                    "filtered internal reference scan",
+                                                    "workflow regression evaluation",
+                                                    "quick_validate for source and auxiliary skills",
+                                                    "runtime drift comparison including active .agents runtime"
+                                                ],
+                                      "success_criteria":  [
+                                                               "automation memory is read from the resolved fallback path",
+                                                               "recursive discovery covers SKILL.md, references/*.md, agents/openai.yaml, and hidden .agents/skills helper skills",
+                                                               "filtered token-level internal reference scan has no script errors and 0 true missing refs",
+                                                               "regression suite counts 25 cases only in the evaluation section and passes dynamic threshold",
+                                                               "all discovered local skill directories pass quick_validate.py",
+                                                               "runtime drift is verified or synced, with permission blockers recorded",
+                                                               "automation memory is written for the next run"
+                                                           ],
+                                      "boundaries":  [
+                                                         "do not revert existing uncommitted source changes",
+                                                         "do not write runtime directories outside writable roots",
+                                                         "do not repeat source edits for already-known runtime sync blocker"
+                                                     ],
+                                      "blocking_questions":  [
+
+                                                             ],
+                                      "optimization_level":  "全量巡检",
+                                      "updated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                                  },
+    "orchestration_audit":  {
+                                "workflow_boundary":  "front-workflow remains the orchestrator; workflow-self-improvement owns scene H audit closure; h5-testing-checklist owns validation wording.",
+                                "activity_boundary":  "This run corrected stale checkpoint regression counts and reran discovery, token-level reference scan, regression evaluation, validation, and drift comparison as independent audit activities.",
+                                "checkpoint_recovery":  "Automation memory and .workflow-checkpoint.json were read before scanning; stale eval count was refreshed from the current regression file instead of treated as a source rule gap.",
+                                "failure_recovery":  "Runtime mirror sync remains outside writable roots, so verified drift is recorded instead of repeatedly attempting blocked writes.",
+                                "idempotency":  "Repeated runs should keep 0 true missing internal refs, 25 passing regression cases, and the same verified runtime drift until runtime directories become writable or source/runtime files change.",
+                                "updated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+    "eval_results":  {
+                         "case_count":  25,
+                         "total_points":  125,
+                         "pass_line":  110,
+                         "score":  125,
+                         "failed_cases":  [
+
+                                          ],
+                         "evaluated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                     },
+    "runtime_drift":  {
+                          "blocked_runtime_dirs":  [
+                                                       "C:\\Users\\11731\\.agents\\skills",
+                                                       "C:\\Users\\11731\\.claude\\skills",
+                                                       "C:\\Users\\11731\\.codex\\skills",
+                                                       "C:\\Users\\11731\\.trae\\skills"
+                                                   ],
+                          "drift_files":  [
+                                              "admin-management-flow/agents/openai.yaml missing",
+                                              "admin-management-flow/SKILL.md missing",
+                                              "design-image-analysis/agents/openai.yaml missing",
+                                              "design-image-analysis/SKILL.md missing",
+                                              "design-image-restore/agents/openai.yaml missing",
+                                              "design-image-restore/SKILL.md missing",
+                                              "h5-feishu-alert/agents/openai.yaml hash-diff",
+                                              "h5-feishu-alert/SKILL.md hash-diff",
+                                              "h5-official-site/agents/openai.yaml hash-diff",
+                                              "h5-official-site/references/app-customer-service.md hash-diff",
+                                              "h5-official-site/references/official-site.md hash-diff",
+                                              "h5-official-site/SKILL.md hash-diff",
+                                              "workflow-self-improvement/agents/openai.yaml hash-diff",
+                                              "workflow-self-improvement/references/workflow-regression-evaluation.md hash-diff",
+                                              "workflow-self-improvement/SKILL.md hash-diff"
+                                          ],
+                          "verified_drifts":  [
+                                                  "C:\\Users\\11731\\.trae\\skills h5-feishu-alert/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.trae\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.trae\\skills h5-official-site/references/official-site.md hash-diff",
+                                                  "C:\\Users\\11731\\.codex\\skills h5-feishu-alert/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.codex\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.codex\\skills h5-official-site/references/official-site.md hash-diff",
+                                                  "C:\\Users\\11731\\.claude\\skills h5-feishu-alert/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.claude\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.claude\\skills h5-official-site/references/official-site.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills admin-management-flow/SKILL.md missing",
+                                                  "C:\\Users\\11731\\.agents\\skills admin-management-flow/agents/openai.yaml missing",
+                                                  "C:\\Users\\11731\\.agents\\skills design-image-analysis/SKILL.md missing",
+                                                  "C:\\Users\\11731\\.agents\\skills design-image-analysis/agents/openai.yaml missing",
+                                                  "C:\\Users\\11731\\.agents\\skills design-image-restore/SKILL.md missing",
+                                                  "C:\\Users\\11731\\.agents\\skills design-image-restore/agents/openai.yaml missing",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-feishu-alert/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-feishu-alert/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-official-site/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-official-site/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-official-site/references/app-customer-service.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills h5-official-site/references/official-site.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills workflow-self-improvement/SKILL.md hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills workflow-self-improvement/agents/openai.yaml hash-diff",
+                                                  "C:\\Users\\11731\\.agents\\skills workflow-self-improvement/references/workflow-regression-evaluation.md hash-diff"
+                                              ],
+                          "files_checked":  232,
+                          "verified_at":  "2026-06-10T03:16:46.4203385+08:00"
+                      },
+    "automation_memory":  {
+                              "path":  "C:\\Users\\11731\\.codex\\automations\\automation\\memory.md",
+                              "read_status":  "read_from_user_codex_fallback_path_after_CODEX_HOME_unavailable",
+                              "write_status":  "written",
+                              "note":  "Follow-up audit corrected stale checkpoint regression count to 25 cases; all local skills validated, reference scan clean, runtime drift remains external-blocked.",
+                              "last_write_at":  "2026-06-10T03:17:33.0669209+08:00"
+                          },
+    "updated_at":  "2026-06-10T03:16:46.4203385+08:00",
+    "external_blockers":  [
+                              {
+                                  "type":  "runtime_sync_outside_writable_roots",
+                                  "summary":  "Runtime mirrors under .agents, .trae, .codex, and .claude still have verified drift but are outside current writable roots.",
+                                  "status":  "blocked_external_sync_required",
+                                  "updated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                              }
+                          ]
 }
