@@ -1,11 +1,11 @@
 ---
 name: h5-release-tag
-description: 国家版本发布。用于读取 release-env，按 mx、co、ng 执行构建校验、智能 Commit、Release Tag 生成与推送；危地马拉进件发布必须走 mx，不允许 gt。
+description: H5 Release Tag 兼容入口。新 workflow 优先使用 release-tag；本 skill 保留给旧 H5 引用，用于读取 release-env，按 mx、co、ng 执行构建校验、智能 Commit、Release Tag 生成与推送；危地马拉进件发布必须走 mx，不允许 gt。
 ---
 
-# 国家发布
+# H5 Release Tag 兼容入口
 
-本 skill 只负责发版、提交、打 Tag 和推送。它不判断业务是否应该发布；仅在用户直接要求发布，或 `front-workflow` 交付出口确认进入场景 G 后执行。
+本 skill 是旧 H5 命名的兼容入口。新 workflow 应优先调度 `release-tag`；本 skill 只负责发版、提交、打 Tag 和推送，不判断业务是否应该发布，仅在用户直接要求发布，或 `front-workflow` 交付出口确认进入场景 G 后执行。
 
 ## 执行方式
 

@@ -7,6 +7,8 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - 页面层不要直接调用原生全局对象，必须统一走项目 bridge hook / utility，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`。
 - H5 调用原生时，默认传空对象 `{}`，除非方法明确要求参数。
 - 回调型能力请严格使用本文档中的 H5 全局回调名，大小写和字段结构必须保持一致。
+- 只要需求或代码涉及原生方法交互，就可以判定该页面会内嵌到 App WebView；后续验收必须考虑真实 WebView、低版本浏览器能力和键盘遮挡风险，未实测时列为人工待验。
+- 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter 交互；不要主动补 Android、iOS WKWebView 或普通 Web 分支。
 - Flutter App WebView bridge：
   - 有 `window.flutter.postMessage` 时，调用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`
   - 没有 `window.flutter.postMessage` 且有 `window.flutter_inappwebview.callHandler` 时，调用 `window.flutter_inappwebview.callHandler('flutter', JSON.stringify({ method: action, value: payload ?? {} }))`
@@ -22,7 +24,7 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - H5 调用原生前，对原始业务入参整体 `JSON.stringify` 后 AES 加密；H5 接收原生回调或 window 注入数据时，先 AES 解密再 `JSON.parse`。
 - AES key / iv、URL query 混淆 key、window 注入字段名等可变协议值应放在 `.env.*` 或等价配置层；若 key 已由联调方补齐到 16 位，代码不要再根据 appName 动态补零、截断或大小写转换。
 - URL query 传递 AES/Base64 类值时，`+` 必须由 App 侧编码为 `%2B`；若 App 侧存在裸 `+` 传参风险，H5 读取 `URLSearchParams` 后必须把值中的空格还原为 `+`，避免 Base64 被破坏。
-- 原生通道只实现用户明确要求的 WebView 能力。若用户只要求 Flutter，则只保留 `window.flutter.postMessage` 和 / 或 `window.flutter_inappwebview.callHandler('flutter', ...)`，不要主动添加 Android、iOS WKWebView 等兼容分支。
+- 原生通道只实现用户明确要求的 WebView 能力。用户未主动说明通道时按 Flutter 处理；若用户只要求 Flutter，则只保留 `window.flutter.postMessage` 和 / 或 `window.flutter_inappwebview.callHandler('flutter', ...)`，不要主动添加 Android、iOS WKWebView 等兼容分支。
 - Flutter InAppWebView 仍使用统一 handler `flutter`，消息体为 `JSON.stringify({ method: 混淆方法名, value: 加密payload })`。
 - 调试组件、临时联调文档或旧协议说明只有用户明确要求保留时才保留；用户要求删除时必须同步移除入口引用和样式文件。
 

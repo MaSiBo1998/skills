@@ -116,7 +116,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
 | 官网需求、协议文档解析、协议 HTML 输出、官网协议展示、官网域名小 H5 挂载 | `h5-official-site` |
 | 设计图读取、375 宽基准、布局尺寸、颜色文字规格、切图需求分析 | `design-image-analysis` |
 | 设计图复原、design 文件夹、切图复用、切图命名规范、设计稿视觉还原 | `design-image-restore` |
-| release-env、国家码、构建校验、Commit、Release Tag | `h5-release-tag` |
+| release-env、国家码、构建校验、Commit、Release Tag | `release-tag` |
 | 管理后台功能、Vue/Element UI 后台、角色权限展示、顶部全局组件、后台接口接入、状态轮询、后台 i18n 与构建验收 | `admin-management-flow` |
 | 通用验收、专项验收、人工验收项 | `h5-testing-checklist` |
 

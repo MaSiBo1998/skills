@@ -1,4 +1,4 @@
 interface:
-  display_name: "国家发布"
-  short_description: "发布国家版本并打 Tag"
-  default_prompt: "使用 h5-release-tag 在用户直接要求发布或 front-workflow 确认进入场景 G 后，执行构建校验、git 发布前检查、提交发布改动、生成 Release Tag 并推送；生成 tag 前先 git fetch --tags；不要判断普通业务交付是否应该发布，也不要用 reset、强推或覆盖远端标签处理冲突。"
+  display_name: "H5 Release Tag 兼容入口"
+  short_description: "旧 H5 发布入口；新 workflow 优先使用 release-tag"
+  default_prompt: "这是 h5-release-tag 兼容入口；新 workflow 优先使用 release-tag。若旧流程仍调度本 skill，则在用户直接要求发布或 front-workflow 确认进入场景 G 后，执行构建校验、git 发布前检查、提交发布改动、生成 Release Tag 并推送；生成 tag 前先 git fetch --tags；不要判断普通业务交付是否应该发布，也不要用 reset、强推或覆盖远端标签处理冲突。"

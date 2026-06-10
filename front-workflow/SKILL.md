@@ -123,7 +123,7 @@ description: 主编排骨架。用于用户要求“走工作流、按我的工�
 - `h5-official-site`
 - `design-image-analysis`
 - `design-image-restore`
-- `h5-release-tag`
+- `release-tag`
 - `admin-management-flow`
 - `h5-testing-checklist`
 - `skill-workflow-advisor`

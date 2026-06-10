@@ -123,8 +123,8 @@
 - 用户回复“是” → 执行 Step 3
 - 用户回复“否” → 跳过发布，仅结束本次交付
 
-### Step 3. 进入场景 G
+### Step 3. 进入 release-tag 场景
 
-- 调用 `h5-release-tag` 执行发布。
+- 调用 `release-tag` 执行发布；旧 H5 引用可继续兼容 `h5-release-tag`，但新 workflow 不再把发布能力限定为 H5。
 - 发布 skill 负责构建校验、发布提交、Release Tag 生成与推送。
-- 当前交付模块不重复维护 Tag 命名、重试、推送等发布细节，避免与 `h5-release-tag` 规则分叉。
+- 当前交付模块不重复维护 Tag 命名、重试、推送等发布细节，避免与 `release-tag` 规则分叉。

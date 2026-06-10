@@ -88,7 +88,7 @@
   - 是否还有残留的旧接口地址
   - 请求方法（GET/POST）是否与接口文档一致
   - service 层接口 path 是否统一来自 API 配置文件；除配置文件外不得硬编码接口 URL
-  - 请求头中会随产品/国家变化的业务值（如业务线/事业线）是否来自 `.env.*` 或项目配置层，并有兼容默认值
+  - API base URL、后端接口地址、固定请求头值、随产品/国家变化的业务值（如业务线/事业线）是否来自 `.env.*` 或项目配置层，并有兼容默认值
 - **失败判定**: 存在未替换的旧接口地址
 
 ---
@@ -149,10 +149,11 @@
   - 全局样式是否统一处理移动端默认点击高亮与 focus 线框：`button`、`a`、`[role='button']`、`[tabindex]` 至少应覆盖 `outline: none` 和 `-webkit-tap-highlight-color: transparent`
   - 局部按钮如相机拍摄按钮是否有 `:focus`、`:focus-visible`、`:active` 兜底，点击后不出现额外系统线框
   - 若本次涉及原生交互，native bridge 必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议；不得分散直连原生全局对象
+  - 只要有原生方法交互，就判定为 App 内嵌 H5；必须执行真实 WebView/低版本浏览器风险检查，并考虑键盘遮挡风险
   - 若本次涉及原生入参 / 出参 AES 加密，必须检查加解密是否沉到独立工具函数，调用原生前只做 payload 加密，接收原生回调或 window 注入数据后先解密再解析
   - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须来自 `.env.*` 或项目配置层，不应硬编码在业务 hook 中
   - URL query 承载 AES/Base64 值时，必须检查 `+` 不会被 `URLSearchParams` 解析为空格：App 侧应传 `%2B`，或 H5 侧读取后对指定字段执行空格还原 `+`
-  - 原生通信通道只保留用户明确要求的 WebView 能力；例如只要求 Flutter 时，不得额外添加 Android / iOS WKWebView 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
+  - 原生通信通道只保留用户明确要求的 WebView 能力；用户或联调文档未主动说明通道时默认只考虑 Flutter，不得额外添加 Android / iOS WKWebView / 普通 Web 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
   - vConsole、监控 SDK、埋点、音频、复制、权限探测等调试/辅助能力必须在页面首屏渲染后初始化，并有能力检测、try/catch 或降级路径；辅助能力失败不能阻塞 React/Vue 页面渲染、路由初始化或主业务请求
   - 用户要求删除临时联调组件或协议文档时，必须确认组件文件、样式文件、入口引用和文档引用均已移除
 - **失败判定**: 违反任一 H5 内嵌约束
@@ -173,6 +174,7 @@
   - `safe-area-inset-*` 不得直接写进 `padding` 简写；安全区 padding 应先有普通固定值，再按需追加 `constant(safe-area-inset-*)` 和 `env(safe-area-inset-*)`，使用 `max()` 时也必须提供固定值或 `calc()` 兜底
   - 渲染首屏、路由、query 解析、请求初始化不得无兜底依赖旧内核常缺 API；重点搜索 `URLSearchParams`、`AbortController`、`fetch`、`Promise.finally`、`Promise.allSettled`、`Array.from`、`Object.assign`、`Symbol`、`Map`、`Set`、可选链等是否已转译、polyfill 或降级
   - vConsole、监控、埋点、音频等调试/辅助库如果必须线上默认启用，应确认其初始化在页面渲染后执行，并被 try/catch 保护；第三方库不兼容时页面仍可展示
+  - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole；`test` 相关分支中用户要求加 vConsole 时，本地运行和线上打包都必须启用 vConsole
   - 图片格式是否包含 JPEG 回退（使用 `<picture>` 或 CSS fallback）
 - **失败判定**: 存在低版本浏览器不兼容的语法或特性
 - **注意**: `quick` 只检查本次 diff 是否新增 WebView/CSS 兼容风险；未触及相关内容时跳过全量兼容清单并说明原因
@@ -238,8 +240,10 @@
   - H5 页面默认按 375px 宽设计图作为尺寸基准；CSS/SCSS 源码应保留设计稿 `px`，入口使用统一 `setRem` 设置根字号，构建阶段使用 postcss-px-to-rem 或项目既有等价方案输出 `rem`
   - 运行时通过 JS 注入的动态尺寸、内联样式或 CSS 变量不会经过构建转换时，必须使用同一基准工具从设计稿 `px` 转成 `rem`
   - 主布局不得依赖零散 `@media (max-width/min-width/max-height)` 屏幕查询做适配；如必须保留，需说明项目既有规范、特殊横屏/超宽屏原因或真实兼容证据
-  - CSS/SCSS 应按 `base/layout/components/pages` 或项目既有分层拆分；新增或大改样式不得继续堆进单个巨型样式文件
+  - 样式拆分是前端通用可维护性要求；CSS/SCSS 应按 `base/layout/components/pages` 或项目既有分层拆分；新增或大改样式不得继续堆进单个巨型样式文件
   - 样式入口 import 清晰，组件样式归属明确，无重复覆盖、废弃样式文件或不可追踪的全局覆盖
+  - 页面、接口、路由、工具和资源按项目目录职责归位；页面放页面目录，接口放 `services` 或等价 API 层，路由放 `router` 或等价路由层
+  - 新增图片、图标、背景和插画必须使用业务语义命名，避免 `image1`、`tmp`、`copy`、`final` 等不可维护名称
   - 首屏关键内容、首屏请求和首屏样式优先加载；非关键图片、音频、vConsole、监控、埋点、复杂动画或重型依赖应延后、懒加载或有失败降级
   - 构建后检查 JS/CSS chunk、图片资源、legacy/polyfill 体积和大包提醒；若大包为既有问题，需在交付中说明，不得默默忽略
   - 从设计图复原 H5 页面时，输出规格、切图和布局还原均以 375px 宽为基准；若设计稿不是 375 宽，需要先换算到 375 基准或说明缩放规则
@@ -278,12 +282,17 @@
 - **检查项**:
   - 新增页面、hook、组件、样式和 API 调用沿用目标项目已有路由、目录、状态管理、组件库、样式入口和请求封装，未新建并行架构
   - API path、header、环境值、国家/产品差异来自集中配置层；除配置文件外没有硬编码接口 URL、业务线、国家码或 host
+  - API base URL、后端接口地址和固定请求头值来自 `.env.*` 或项目配置层
   - loading、empty、error、retry 或项目等价状态完整；接口失败不伪造成成功，后端 toast/systemToast 按现有规则展示
   - token、登录过期、退出登录、用户信息刷新复用现有拦截器、storage、native bridge 或 auth 工具；页面内没有第二套登录判断或重复跳转
-  - App 内嵌页面若新增返回、弹窗拦截、外链、支付跳转或表单离开逻辑，已复用统一 bridge/返回入口，且全局回调在卸载时清理
+  - 只要有原生方法交互，就判定为 App 内嵌 H5；App 内嵌页面若新增返回、弹窗拦截、外链、支付跳转或表单离开逻辑，已复用统一 bridge/返回入口，且全局回调在卸载时清理
+  - 原生通信未主动说明 Android、iOS WKWebView 或普通 Web 通道时，默认只考虑 Flutter 交互
   - 既有页面停留、按钮点击、接口结果和业务节点埋点未被误删；新增埋点使用项目事件模型，不硬编码临时事件结构
   - 多语言项目新增文案已补齐当前启用语言；金额、日期、手机号、证件号、银行卡和币种展示使用项目格式化/脱敏工具
+  - 用户已提供准确数据结构和类型、接口文档或现有类型已明确结构时，代码按固定结构直接取值或解析，未新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底
   - 国家码、产品名、业务线、host、资源前缀、功能开关等来自 `.env.*` 或项目配置层；缺失但不阻塞的配置已列为待确认
+  - 页面、接口、路由、工具和资源按项目目录职责归位；新增图片、图标、背景和插画使用业务语义命名
+  - `master`、`master-co`、`master-ng` 等主分支产物不包含 vConsole；`test` 相关分支中用户要求加 vConsole 时，本地运行和线上打包都启用 vConsole
   - 调试日志、告警、query、埋点和错误信息不明文输出 token、authorization、cookie、手机号、证件号、银行卡号、联系人号码、完整请求体或完整响应体
   - 页面会被 App 打开时，已按当前验收等级执行 App WebView 兼容专项；真实原生返回、键盘、复制、音频、外链、资源协议和低版本兼容未实测时列为人工待验
 - **失败判定**: 本次适用检查项任一不满足即失败；`focused` 小改可只检查 diff 涉及项，但必须说明跳过完整专项的原因

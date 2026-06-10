@@ -24,7 +24,8 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 
 - 只改 Apply 相关页面、Apply API、路由、类型、原生桥接和必要配置。
 - 页面层不要直接调用原生全局对象，统一走 bridge hook / utility。
-- 涉及原生交互时必须遵守 `references/native-methods.md` 的统一桥接协议。
+- 涉及原生交互时必须遵守 `references/native-methods.md` 的统一桥接协议；只要有原生方法交互，就判定为 App 内嵌 H5，必须考虑真实 WebView、低版本浏览器和键盘遮挡风险。
+- 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter，不主动添加 Android、iOS WKWebView 或普通 Web 分支。
 - 国家差异只能覆盖明确差异点，不复制整套进件流程；默认复用通用 Apply 流程。
 - 新国家或新差异先沉淀为 country profile，再由通用进件流程调用。
 - 未明确国家差异时，不得套用危地马拉 profile；墨西哥、哥伦比亚和新国家默认先走通用 Apply 流程，再按用户或项目事实补差异。

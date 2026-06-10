@@ -12,7 +12,7 @@
 | D | Apply / Entry / 进件步骤 / 国家差异 / 原生交互 | `h5-apply-flow` | `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 / App 内嵌协议或客服 | `h5-official-site` | 设计图能力、`h5-testing-checklist` |
 | F | 设计图复原 / 视觉还原 / 切图规范化 | `design-image-restore` | `design-image-analysis`、主业务场景、`h5-testing-checklist` |
-| G | 发版 / tag / 国家发布 | `h5-release-tag` | 发布前校验 |
+| G | release-tag / 发版 / tag / 国家发布 | `release-tag` | 发布前校验 |
 | I | 管理后台 / Vue2 / Element UI / 角色权限 / 菜单入口 | `admin-management-flow` | `h5-api-mapping`、设计图能力、`h5-testing-checklist` |
 | J | 飞书前端告警 / 白屏监控 / 前端预警 | `h5-feishu-alert` | `h5-testing-checklist` |
 | K | 未知/复合需求分析 | 最小探索后回落到 A-J | 相关 supporting capabilities |
