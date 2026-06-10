@@ -1,6 +1,6 @@
 # 工作流回归评估
 
-场景 H 巡检或工作流规则变更后，使用 `llm-evaluation` 的思路执行本文件。若没有自动评测 runner，则按 LLM-as-judge/规则化审查输出通过/失败表。
+workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思路执行本文件。优先运行 `scripts/evaluate-routing-regression.ps1` 统计样例数、总分和动态通过线；若没有自动评测 runner，则按 LLM-as-judge/规则化审查输出通过/失败表。
 
 ## 评估样例
 
@@ -9,14 +9,18 @@
 | 明确场景 | 改进件联系人页 | 直接进入 D，读取项目证据，不要求补完整需求 |
 | 复合场景 | 根据设计图改后台配置页并接接口 | 主场景 I，设计图作为辅助，接口映射作为输入，最后验收 |
 | 弱触发词不抢场景 | 后台配置页里有个监控开关样式要按设计图改一下 | 主场景 I；设计图只作为视觉输入，监控只作为上下文，不因“监控/设计图”直接误进 J 或 F |
-| 新方向扩展 | 后面这个 workflow 还要支持 backend 和 flutter，把主 skill 一起补上 | 进入 H；优先抽成方向注册和方向内 scene map，不把 backend/flutter 细节继续堆进主 skill。Flutter 方向预留时要保留中文友好说明和 React/Vue 类比心智模型 |
+| 新方向扩展 | 后面这个 workflow 还要支持 backend 和 flutter，把主 skill 一起补上 | 进入 workflow/meta；优先抽成方向注册和方向内 scene map，不把 backend/flutter 细节继续堆进主 skill。Flutter 方向预留时要保留中文友好说明和 React/Vue 类比心智模型 |
 | 信息不全 | 这个页面有问题帮我修 | 先探索路由、最近改动、页面结构；找不到目标才问最小阻塞问题 |
 | 新需求 | 做一个新的 H5 小工具挂到现有项目里 | 进入 K，列候选归属，默认回落到 B 或 E，不直接失效 |
 | 高风险 | 改还款状态判断，线上发版 | 识别 C/G 风险，先确认资金/还款/发布结论 |
-| 规则沉淀 | 这个规则下次记住 | 进入 H，判断归属；明确可复用时直接沉淀并校验同步 |
+| 规则沉淀 | 这个规则下次记住 | 进入 workflow/meta 的 M2，判断归属；明确可复用时直接沉淀并校验同步 |
+| 自动沉淀失效 | 现在都没有触发自动沉淀，帮我检查一下 | 进入 workflow/meta 并判定为 `流程调优`；优先检查触发语义、主工作流收口 activity 和当前会话实际加载的运行时目录漂移，修复后同步运行时并补回归 |
+| Skill 工作流顾问 | 我需要一个能对我的 skill 工作流提出指导意见、能自我成长、并且能准确识别归类的 | 进入 workflow/meta 的 M1；先由 `skill-workflow-advisor` 判断为工作流指导/分类审查需求，设计或调用顾问 skill；若形成明确可复用规则，再交给 `workflow-self-improvement` 沉淀、校验并同步运行时 |
+| 快捷触发主工作流 | 走工作流，帮我判断这个需求该归哪个 skill | 先触发 `front-workflow` 作为总入口；读取方向 registry 和对应 scene map，保留候选方向/场景，不直接凭“skill”一词进入沉淀 |
+| 快捷触发沉淀 | 这个规则记一下，下次自动按这个来 | 进入 workflow/meta 的 M2；由 `workflow-self-improvement` 判断归属，明确可复用时直接沉淀、补回归并同步运行时 |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有新接口文档也没启用 vendor | 主场景 B，直接在目标项目实现并按风险验收；不强行串 `h5-api-mapping` 或 `h5-vendor-architecture` |
-| 流程调优分级 | front-workflow 的 K 兜底太重，帮我收敛一下 | 进入 H，并判定为 `流程调优`；先写轻量 spec，再只扫描相关 workflow/验收文件并跑定向回归，而不是直接全量巡检所有 skill |
-| 全量巡检 | 帮我巡检优化工作流 | 进入 H，自驱动执行轻量规格、全量扫描、编排审查、运行时 hash 比对和回归评估；运行时不可写时记录漂移与权限阻塞，不重复失败 |
+| 流程调优分级 | front-workflow 的 K 兜底太重，帮我收敛一下 | 进入 workflow/meta，并判定为 `流程调优`；先写轻量 spec，再只扫描相关 workflow/验收文件并跑定向回归，而不是直接全量巡检所有 skill |
+| 全量巡检 | 帮我巡检优化工作流 | 进入 workflow/meta 的 M3，自驱动执行轻量规格、全量扫描、编排审查、运行时 hash 比对和回归评估；运行时不可写时记录漂移与权限阻塞，不重复失败 |
 | 运行时漂移检测 | 巡检时 PowerShell 不支持 `[System.IO.Path]::GetRelativePath`，hash 比对命令报错并输出异常漂移清单 | 判定本次漂移结果无效，改用兼容当前 shell 的相对路径计算重新比对；只把无脚本错误的 verified drift 写入 checkpoint、automation memory 和交付说明 |
 | 引用扫描容错 | 内部引用扫描把 `.codex/automations/<id>/memory.md`、正则裁剪 `$` 或前导点后剩余的 `CODEX_HOME/automations/automation/memory.md`、`codex/automations/automation/memory.md`、`agents/skills/spec-driven-development/SKILL.md`、`npx tsc --noEmit`、`swaggerApi.json` 示例、`A/B`、`Vue/Element`、`mx/co/ng`、`GET/POST` 等斜杠分隔概念标签、`references/*.md`/`**/SKILL.md` 发现 glob，或辅助 skill 文档中的 `skills/<skill>/SKILL.md`、`spec-driven-development/SKILL.md` 说明性导航误当成本仓库缺失路径，并伴随 `Test-Path` 非法字符错误或误报缺失 | 判定本次引用扫描结果无效，同时按当前文件目录、所属 skill 根目录和仓库根目录解析内部相对路径，过滤占位符、命令片段、斜杠分隔概念标签/枚举/比例/尺寸、模板路径、正则裁剪后的 `CODEX_HOME/...`、`codex/automations/...`、`agents/skills/...` 片段、文件发现 glob、跨 skill 导航引用和目标项目示例文件；对已发现辅助 skill 先按 skill 名归一化到实际源目录后重跑；只把无脚本错误的真实缺失引用写入 checkpoint 和交付说明 |
 | 文件发现范围 | 巡检时用仓库根目录窄 glob、默认忽略隐藏/ignore 目录的发现命令，或只写 `rg --hidden -g 'references/*.md'` 这类缺少 `--no-ignore` 与 `**/` 的命令，只发现 `SKILL.md` 或只覆盖根级 skill，漏掉各 skill 子目录下的 `references/*.md`、`agents/openai.yaml` 或 `.agents/skills` 辅助 skill | 判定本次全量扫描范围无效，改用能覆盖 skill 子目录、隐藏目录和 ignore 目录的递归发现或等价枚举；若使用 `rg`，需要 hidden、ignore 覆盖和 `**/` 递归 glob；记录 `SKILL.md`、reference 和 openai 配置数量后重跑引用扫描、触发语义检查和运行时漂移比对 |

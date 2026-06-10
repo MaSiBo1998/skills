@@ -13,7 +13,6 @@
 | E | 官网/协议/挂载 H5 / App 内嵌协议或客服 | `h5-official-site` | 设计图能力、`h5-testing-checklist` |
 | F | 设计图复原 / 视觉还原 / 切图规范化 | `design-image-restore` | `design-image-analysis`、主业务场景、`h5-testing-checklist` |
 | G | 发版 / tag / 国家发布 | `h5-release-tag` | 发布前校验 |
-| H | workflow 规则沉淀 / 流程调优 / 全量巡检 | `workflow-self-improvement` | `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` |
 | I | 管理后台 / Vue2 / Element UI / 角色权限 / 菜单入口 | `admin-management-flow` | `h5-api-mapping`、设计图能力、`h5-testing-checklist` |
 | J | 飞书前端告警 / 白屏监控 / 前端预警 | `h5-feishu-alert` | `h5-testing-checklist` |
 | K | 未知/复合需求分析 | 最小探索后回落到 A-J | 相关 supporting capabilities |
@@ -39,13 +38,8 @@
 - “贴一段现有 hook/初始化代码，要求把无依赖 async 改成并行并在全部完成后再收口状态”：
   主场景是 B；先判断两个异步步骤是否存在数据依赖，无依赖时直接在目标项目实现并行化，并把最终 `loading/initializing` 状态更新放到全部任务完成之后。
 
-## Scene H Levels
+## Workflow/Meta Migration
 
-- `规则补丁`：
-  单条规则、提示词、验收文案修正。
-- `流程调优`：
-  某一段判断、调度、恢复、交付链路太重或太死。
-- `全量巡检`：
-  用户明确要优化整个 workflow、所有 skill 或系统性规则。
+历史上的 `Scene H` 已迁移为独立方向 `workflow/meta`，不再作为 frontend 方向内场景维护。
 
-scene H 的详细执行闭环由 `workflow-self-improvement` 维护，不在本文件重复。
+指导意见、分类准确性、触发归属、skill 体系设计、规则沉淀、流程调优和全量巡检见 `workflow-meta-scene-map.md`。

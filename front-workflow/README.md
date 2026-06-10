@@ -9,9 +9,11 @@
 - `references/orchestrator-contract.md`
   维护主 skill 固定输出字段、执行顺序、最小执行链和扩展约束。
 - `references/direction-registry.md`
-  维护方向层。当前 `frontend` active，`backend` / `flutter` 预留扩展位。
+  维护方向层。当前 `frontend` 和 `workflow/meta` active，`backend` / `flutter` 预留扩展位。
 - `references/frontend-scene-map.md`
-  维护前端方向内的 A-K 场景映射、组合规则和 scene H 分级。
+  维护前端方向内的业务场景映射和组合规则。
+- `references/workflow-meta-scene-map.md`
+  维护工作流指导、分类审查、规则沉淀、全量巡检和运行时漂移等元工作流场景。
 
 ## 当前子 skill
 
@@ -26,6 +28,7 @@
 - `h5-release-tag`
 - `admin-management-flow`
 - `h5-testing-checklist`
+- `skill-workflow-advisor`
 - `workflow-self-improvement`
 - `spec-driven-development`
 - `workflow-orchestration-patterns`
@@ -37,4 +40,4 @@
 - 新增 backend/flutter 方向时，优先扩 direction registry 和该方向的 scene map，而不是继续把主 skill 堆长。
 - 设计图、接口文档、告警、vendor、发布配置默认是辅助能力，不抢主方向和主场景。
 - 执行链按最小可行原则拼装，没有证据时不机械串上所有可选 skill。
-- workflow 优化按 `规则补丁 / 流程调优 / 全量巡检` 分级，避免小改动走整套重流程。
+- workflow/meta 独立成方向；指导审查先走 `skill-workflow-advisor`，明确沉淀和修改闭环再走 `workflow-self-improvement`。

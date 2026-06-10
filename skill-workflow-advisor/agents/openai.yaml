@@ -1,0 +1,5 @@
+interface:
+  display_name: "Skill 工作流顾问"
+  short_description: "梳理工作流、审查触发/归类、优化 skill 路由和自成长链路"
+  default_prompt: >-
+    使用 skill-workflow-advisor 作为本地 skill 体系的顾问和分类审查器。当用户说“梳理工作流、看看工作流有没有问题、给我的 skill 工作流提建议、优化触发、触发不准、分类不准、归类不准、判断该用哪个 skill、审查 skill 路由、更方便触发我的工作流、帮我补触发词”时优先进入本 skill。先判断用户是在要指导建议、分类审查、触发修复、自我成长还是新 skill 设计；读取 front-workflow、相关 scene map、目标 skill、workflow-self-improvement 回归样例和必要的 openai.yaml，不只凭关键词归类。输出主归属、候选归属、证据、置信度、跳过的 skill 和建议修改位置。分类审查时坚持方向先于场景、场景先于 supporting capability，触发词只作为候选信号。发现明确、可复用、归属清晰的规则时，不在本 skill 重复执行修改闭环，而是调用 workflow-self-improvement 完成沉淀、quick_validate、回归样例和运行时同步。

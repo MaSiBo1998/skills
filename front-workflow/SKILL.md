@@ -1,6 +1,6 @@
 ---
 name: front-workflow
-description: 主编排骨架。先判方向，再判场景，当前覆盖前端 H5/管理后台 workflow，预留 backend/flutter 扩展位，并协调子 skill、验收和规则沉淀。
+description: 主编排骨架。用于用户要求“走工作流、按我的工作流、按流程来、用主工作流、帮我归类、判断走哪个 skill、这个需求该归哪、按你的 workflow 处理”时；先判方向，再判场景，当前覆盖 frontend 和 workflow/meta，预留 backend/flutter 扩展位，并协调子 skill、验收、工作流顾问、规则沉淀和自动沉淀收口。
 ---
 
 # 马嗣博主编排工作流
@@ -14,6 +14,17 @@ description: 主编排骨架。先判方向，再判场景，当前覆盖前端 
 
 主 skill 不是总章程。方向内细节、场景细节、专项验收和未来扩展位都应下沉到 reference 或子 skill。
 
+## 快捷触发
+
+用户出现以下表达时，优先使用本 skill 作为总入口：
+
+- “走工作流”“按我的工作流”“按流程来”“用主工作流”“用你的 workflow”
+- “帮我归类”“判断走哪个 skill”“这个需求该归哪”“先判一下场景”
+- “按工作流处理这个需求”“别直接写，先走流程”
+- “触发不准”“工作流没触发”“自动沉淀没触发”
+
+这些表达只是入口信号；进入后仍必须按证据判断方向和场景。
+
 ## 优先读取
 
 执行本 skill 时，优先按以下顺序读取：
@@ -22,6 +33,7 @@ description: 主编排骨架。先判方向，再判场景，当前覆盖前端 
 2. `references/direction-registry.md`
 3. 当前方向对应的 scene map
    - frontend：`references/frontend-scene-map.md`
+   - workflow/meta：`references/workflow-meta-scene-map.md`
 4. 相关子 skill / 验收 reference / checkpoint / automation memory
 
 ## 核心流程
@@ -33,7 +45,7 @@ description: 主编排骨架。先判方向，再判场景，当前覆盖前端 
 3. 再判 `primary_scene`，并保留 `candidate_scenes` 与 `supporting_capabilities`。
 4. 按“输入补齐 -> 前置约束 -> 核心实现 -> 风险附加 -> 验收收口”拼出 `execution_chain`。
 5. 只有缺少当前无法继续的最小信息时才问用户。
-6. 交付前后检查是否需要把新判断标准沉淀到 `workflow-self-improvement`。
+6. 交付前后检查是否需要把新判断标准沉淀到 `workflow-self-improvement`；普通业务任务中出现明确、可复用、归属清晰的经验时，将它作为收口 activity 自动执行。
 
 ## 当前支持范围
 
@@ -44,7 +56,7 @@ description: 主编排骨架。先判方向，再判场景，当前覆盖前端 
 - `flutter`：
   当前 planned。若命中 flutter 方向，先记录方向候选，做最小探索和轻量 spec；未落地 dedicated flutter workflow 前，不把 Flutter 细节继续堆回主 skill。
 - `workflow/meta`：
-  当前 active。直接回落到 frontend scene H，由 `workflow-self-improvement` 处理。
+  当前 active。使用 `references/workflow-meta-scene-map.md`；指导建议和分类审查先由 `skill-workflow-advisor` 处理，明确规则沉淀和修改闭环由 `workflow-self-improvement` 处理。
 
 ## 判定规则
 
@@ -69,15 +81,24 @@ description: 主编排骨架。先判方向，再判场景，当前覆盖前端 
 - 每次只问一个最小阻塞问题。
 - 只有项目路径、目标模块、业务目标、高风险业务结论、关键外部依赖缺失时才问。
 
-## Scene H
+## Workflow/Meta
 
 当任务是优化 workflow、记住规则、修 skill、补回归或检查流程质量时：
 
-- 进入 frontend scene H。
-- 先区分 `规则补丁 / 流程调优 / 全量巡检`。
-- 再交给 `workflow-self-improvement` 执行闭环。
+- 进入 `workflow/meta`，读取 `references/workflow-meta-scene-map.md`。
+- 若用户要“指导意见、分类归属、触发准确性、skill 体系设计、工作流体检”，先交给 `skill-workflow-advisor` 做诊断和建议。
+- 若用户明确要“记住、沉淀、修 skill、补回归、同步运行时”，或 advisor 发现明确可复用且归属清晰的规则，再交给 `workflow-self-improvement` 执行闭环。
+- 进入修改闭环前区分 `规则补丁 / 流程调优 / 全量巡检`。
 
-scene H 的具体扫描范围、编排审查和回归评估规则由 `workflow-self-improvement` 维护，不在主 skill 重复展开。
+`Scene H` 是历史兼容叫法；新的指导审查规则由 `skill-workflow-advisor` 维护，具体修改、扫描范围、编排审查和回归评估闭环由 `workflow-self-improvement` 维护，不在主 skill 重复展开。
+
+## 自动沉淀收口
+
+普通业务任务不应因为发现沉淀候选就改判成 `workflow/meta`；主场景仍按业务目标执行，`workflow-self-improvement` 只作为验收后的收口 activity 加入执行链。
+
+以下信号应触发自动沉淀判断：重复人工修正、遗漏验收、新国家差异、新接口模式、发布规则变化、未知/复合需求兜底后形成稳定判断标准，或用户反馈“自动沉淀/自动学习没有触发”。
+
+若候选项明确、可复用且归属清晰，默认直接沉淀并同步运行时；若候选项只是一事一例、归属不清或涉及高风险业务结论，交付时列为待确认沉淀项，不把一次性事实写成通用规则。
 
 ## 未来扩展
 
@@ -103,6 +124,7 @@ scene H 的具体扫描范围、编排审查和回归评估规则由 `workflow-s
 - `h5-release-tag`
 - `admin-management-flow`
 - `h5-testing-checklist`
+- `skill-workflow-advisor`
 - `workflow-self-improvement`
 - `spec-driven-development`
 - `workflow-orchestration-patterns`
@@ -113,4 +135,5 @@ scene H 的具体扫描范围、编排审查和回归评估规则由 `workflow-s
 - 输入和 checkpoint：`h5-testing-checklist/references/input-collection.md`
 - 验收：`h5-testing-checklist/references/testing-workflow.md`
 - 交付：`h5-testing-checklist/references/delivery.md`
+- 工作流指导：`skill-workflow-advisor`
 - 规则沉淀：`workflow-self-improvement`

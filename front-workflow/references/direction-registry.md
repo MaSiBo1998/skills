@@ -9,7 +9,7 @@
 | `frontend` | active | `package.json`、`vite.config.*`、`src/pages`、`src/views`、H5/App WebView、管理后台、设计图、release-env | 进入 `frontend-scene-map.md`，再调度现有前端子 skill |
 | `backend` | planned | service、controller、router、ORM、DB migration、OpenAPI server、队列、cron、鉴权中间件、部署脚本 | 当前先记录为 `candidate_directions`，进入 K 或 H 做轻量规格与扩展设计；未落地 dedicated backend workflow 前，不伪装成已支持 |
 | `flutter` | planned | `pubspec.yaml`、`lib/`、`Widget`、`StatefulWidget`、`BuildContext`、`Dio`、Android/iOS 工程、Flutter 路由或原生桥接 | 当前先记录为 `candidate_directions`，进入 K 或 H 做轻量规格与扩展设计；未落地 dedicated flutter workflow 前，不把 Flutter 细节直接塞回主 front skill |
-| `workflow/meta` | active | 优化 workflow、更新 skill、巡检规则、补回归样例、调整 checkpoint/交付出口 | 直接进入前端 scene H，由 `workflow-self-improvement` 处理 |
+| `workflow/meta` | active | 优化 workflow、更新 skill、巡检规则、补回归样例、调整 checkpoint/交付出口、skill 工作流指导、分类准确性审查 | 进入 `workflow-meta-scene-map.md`，再调度 `skill-workflow-advisor` 或 `workflow-self-improvement` |
 
 ## 判定规则
 
