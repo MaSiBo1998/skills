@@ -34,6 +34,7 @@ description: 主编排骨架。用于用户要求“走工作流、按我的工�
 3. 当前方向对应的 scene map
    - frontend：`references/frontend-scene-map.md`
    - workflow/meta：`references/workflow-meta-scene-map.md`
+   - Scene B 普通 H5 功能/API 开发：按需读取 `references/h5-common-feature-flow.md`
 4. 相关子 skill / 验收 reference / checkpoint / automation memory
 
 ## 核心流程
@@ -69,6 +70,7 @@ description: 主编排骨架。用于用户要求“走工作流、按我的工�
 ## 执行链规则
 
 - 没有专属 skill 的普通功能/API 开发，默认直接在目标项目实现。
+- Scene B 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
 - 用户直接贴出目标文件里的少量现有代码，并明确要求调整局部调用顺序、并行化互不依赖的 async，或修正 `loading/initializing` 一类状态收口条件时，按高置信度普通功能小改直接定位实现，不先停在方案描述。
 - 只有证据表明确实需要时，才追加 `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、设计图能力或发布能力。
 - 不要因为命中关键词，就机械把所有可选 skill 串上。
@@ -134,6 +136,7 @@ description: 主编排骨架。用于用户要求“走工作流、按我的工�
 
 - 输入和 checkpoint：`h5-testing-checklist/references/input-collection.md`
 - 验收：`h5-testing-checklist/references/testing-workflow.md`
+- Scene B 普通 H5 功能基线：`references/h5-common-feature-flow.md`
 - 交付：`h5-testing-checklist/references/delivery.md`
 - 工作流指导：`skill-workflow-advisor`
 - 规则沉淀：`workflow-self-improvement`
