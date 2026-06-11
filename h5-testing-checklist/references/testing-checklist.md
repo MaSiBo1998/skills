@@ -88,7 +88,7 @@
   - 是否还有残留的旧接口地址
   - 请求方法（GET/POST）是否与接口文档一致
   - service 层接口 path 是否统一来自 API 配置文件；除配置文件外不得硬编码接口 URL
-  - API base URL、后端接口地址、固定请求头值、随产品/国家变化的业务值（如业务线/事业线）是否来自 `.env.*` 或项目配置层，并有兼容默认值
+  - API base URL、后端接口地址、固定请求头值、随产品/国家变化的业务值（如业务线/事业线）是否优先来自 `.env*` 并有兼容默认值；已有 `.env*` 或 Vite `import.meta.env` 时，未新增只 re-export env 的 `src/config/app.js` 薄封装
 - **失败判定**: 存在未替换的旧接口地址
 
 ---
@@ -151,7 +151,7 @@
   - 若本次涉及原生交互，native bridge 必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议；不得分散直连原生全局对象
   - 只要有原生方法交互，就判定为 App 内嵌 H5；必须执行真实 WebView/低版本浏览器风险检查，并考虑键盘遮挡风险
   - 若本次涉及原生入参 / 出参 AES 加密，必须检查加解密是否沉到独立工具函数，调用原生前只做 payload 加密，接收原生回调或 window 注入数据后先解密再解析
-  - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须来自 `.env.*` 或项目配置层，不应硬编码在业务 hook 中
+  - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须优先来自 `.env*`，已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装，不应硬编码在业务 hook 中
   - URL query 承载 AES/Base64 值时，必须检查 `+` 不会被 `URLSearchParams` 解析为空格：App 侧应传 `%2B`，或 H5 侧读取后对指定字段执行空格还原 `+`
   - 原生通信通道只保留用户明确要求的 WebView 能力；用户或联调文档未主动说明通道时默认只考虑 Flutter，不得额外添加 Android / iOS WKWebView / 普通 Web 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
   - vConsole、监控 SDK、埋点、音频、复制、权限探测等调试/辅助能力必须在页面首屏渲染后初始化，并有能力检测、try/catch 或降级路径；辅助能力失败不能阻塞 React/Vue 页面渲染、路由初始化或主业务请求
@@ -281,8 +281,8 @@
 - **适用范围**: 场景 B（普通 H5 功能/API 开发、单页交互调整、通用 hook/组件改造、新接口字段展示、非首复贷/非进件/非官网的 App 内嵌 H5 页面开发）
 - **检查项**:
   - 新增页面、hook、组件、样式和 API 调用沿用目标项目已有路由、目录、状态管理、组件库、样式入口和请求封装，未新建并行架构
-  - API path、header、环境值、国家/产品差异来自集中配置层；除配置文件外没有硬编码接口 URL、业务线、国家码或 host
-  - API base URL、后端接口地址和固定请求头值来自 `.env.*` 或项目配置层
+  - API path 来自项目 API 配置层，header、环境值、国家/产品差异优先来自 `.env*`；除配置文件外没有硬编码接口 URL、业务线、国家码或 host
+  - API base URL、后端接口地址和固定请求头值优先来自 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装
   - loading、empty、error、retry 或项目等价状态完整；接口失败不伪造成成功，后端 toast/systemToast 按现有规则展示
   - token、登录过期、退出登录、用户信息刷新复用现有拦截器、storage、native bridge 或 auth 工具；页面内没有第二套登录判断或重复跳转
   - 只要有原生方法交互，就判定为 App 内嵌 H5；App 内嵌页面若新增返回、弹窗拦截、外链、支付跳转或表单离开逻辑，已复用统一 bridge/返回入口，且全局回调在卸载时清理
@@ -290,7 +290,7 @@
   - 既有页面停留、按钮点击、接口结果和业务节点埋点未被误删；新增埋点使用项目事件模型，不硬编码临时事件结构
   - 多语言项目新增文案已补齐当前启用语言；金额、日期、手机号、证件号、银行卡和币种展示使用项目格式化/脱敏工具
   - 用户已提供准确数据结构和类型、接口文档或现有类型已明确结构时，代码按固定结构直接取值或解析，未新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底
-  - 国家码、产品名、业务线、host、资源前缀、功能开关等来自 `.env.*` 或项目配置层；缺失但不阻塞的配置已列为待确认
+  - 国家码、产品名、业务线、host、资源前缀、功能开关等优先来自 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装；缺失但不阻塞的配置已列为待确认
   - 页面、接口、路由、工具和资源按项目目录职责归位；新增图片、图标、背景和插画使用业务语义命名
   - `master`、`master-co`、`master-ng` 等主分支产物不包含 vConsole；`test` 相关分支中用户要求加 vConsole 时，本地运行和线上打包都启用 vConsole
   - 调试日志、告警、query、埋点和错误信息不明文输出 token、authorization、cookie、手机号、证件号、银行卡号、联系人号码、完整请求体或完整响应体

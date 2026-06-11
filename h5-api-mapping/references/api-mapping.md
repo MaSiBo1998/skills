@@ -20,7 +20,7 @@
 接口路径和可变运行配置必须集中收敛：
 
 - 所有 service 层接口路径必须进入项目 API 配置层，例如 `src/services/api/config.ts` 的 `API` 常量；页面、hook、service 调用点不得散落硬编码接口 URL。
-- `VITE_API_BASE_URL`、`VITE_APP_NAME`、线上 H5 域名、业务线/事业线、成功码、token 过期码等可随国家或产品变化的配置，优先放入 `.env.*` 或项目既有配置层。
+- `VITE_API_BASE_URL`、`VITE_APP_NAME`、线上 H5 域名、业务线/事业线、成功码、token 过期码等可随国家或产品变化的配置，优先放入 `.env*`。已有 `.env*` 或 Vite `import.meta.env` 时，消费处可直接读取 `import.meta.env.VITE_*`；不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层。
 - 请求头中的固定业务值如果来自产品/国家配置，例如业务线、事业线、渠道线，不得硬编码在 HTTP 封装中；应通过 `import.meta.env` 读取并提供兼容默认值。
 - 接口路径迁移完成后，必须 grep service/API 目录，确认除 API 配置文件外无残留硬编码接口 path。
 
@@ -55,7 +55,7 @@
 | endpoint | 示例：获取首页状态 | 接口路径/base URL | 旧 path/baseURL | 新 path/baseURL | `src/services/api/urls.ts` | 待处理/已完成/需确认 |  |
 | request | 示例：提交贷款申请 | 请求 body/query 参数 | 旧请求字段 | 新请求字段 | `src/services/api/order.ts` | 待处理/已完成/需确认 |  |
 | response | 示例：产品详情 | 响应字段 | 旧响应字段 | 新响应字段 | `src/types/*.ts`、消费组件 | 待处理/已完成/需确认 |  |
-| global_config | 示例：app 名称/成功码 | 全局配置字段 | 旧配置值/字段 | 新配置值/字段 | `.env*`、`src/config/*` | 待处理/已完成/需确认 |  |
+| global_config | 示例：app 名称/成功码 | 全局配置字段 | 旧配置值/字段 | 新配置值/字段 | `.env*`（或已有非薄封装配置层） | 待处理/已完成/需确认 |  |
 
 类别含义：
 
