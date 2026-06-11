@@ -37,6 +37,8 @@
   主场景是 B；没有新文档和 vendor 证据时，不强拉 `h5-api-mapping` 或 `h5-vendor-architecture`。
 - “普通 App 内嵌 H5 页面加登录态判断、返回拦截、埋点或多语言文案”：
   主场景仍是 B；读取 `references/h5-common-feature-flow.md`，复用项目已有 auth、bridge、tracking、i18n/formatting 和 WebView 兼容模式，不误进 C/D/J/F。
+- “App 内嵌 H5 加载慢、首屏慢、低版本机型不支持新语法、只想问题机型再加载兼容包”：
+  主场景仍是 B；先按普通 H5 性能/兼容改造处理，读取 `references/h5-common-feature-flow.md` 和 `h5-testing-checklist` 的 App WebView 兼容专项。只有出现本地 depend/vendor、external globals、build:static 或自定义资源协议证据时，才追加 `h5-vendor-architecture`。
 - “贴一段现有 hook/初始化代码，要求把无依赖 async 改成并行并在全部完成后再收口状态”：
   主场景是 B；先判断两个异步步骤是否存在数据依赖，无依赖时直接在目标项目实现并行化，并把最终 `loading/initializing` 状态更新放到全部任务完成之后。
 
