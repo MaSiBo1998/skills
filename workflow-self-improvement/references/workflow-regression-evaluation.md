@@ -22,6 +22,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景 B；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |
 | 业务场景不等于内嵌 | 首复贷或进件页面没有任何原生方法、bridge、window 回调证据，只是普通 H5 页面 | 不能仅凭“首复贷/进件”判定为 App 内嵌；按对应业务场景执行，只有出现原生交互证据时才追加 App WebView、键盘遮挡和 Flutter 通道规则 |
+| 参考项目缺失 fallback | 按进件旧流程处理，但 `D:\code\H5\Crediapoyo\crediapoyo-step-app` 不存在 | 不阻断；读取目标项目路由、steps、API、types、配置和 checkpoint，按进件旧流程抽象合同执行；缺少旧/新流程判断时只问一个最小阻塞问题 |
 | 精确结构少兜底 | 我已经给了接口返回类型和字段结构，页面直接展示接口文案 | 按明确类型和结构直接取值或解析；不得新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底；只有真实崩溃风险才做最小错误隔离 |
 | release-tag 泛化 | 后续发布/tag 能力不要叫 H5 发布，因为 backend/flutter 以后也可能用 | 发布能力命名和调度使用 `release-tag`；旧 `h5-release-tag` 只作为兼容入口，不把 release tag 能力限定为 H5 |
 | 流程调优分级 | front-workflow 的 K 兜底太重，帮我收敛一下 | 进入 workflow/meta，并判定为 `流程调优`；先写轻量 spec，再只扫描相关 workflow/验收文件并跑定向回归，而不是直接全量巡检所有 skill |

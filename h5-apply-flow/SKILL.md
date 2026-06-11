@@ -10,19 +10,21 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 ## 执行方式
 
 1. 确认产品、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构；vendor 默认为不执行，只有用户明确要求、checkpoint 已启用或项目现有约束需要时才启用。
-2. 加载 `references/apply-flow.md`，按其中原流程执行。
-3. 加载 `references/country-profile-index.md`，根据国家选择差异 profile：
+2. 加载 `references/flow-variants.md`，先判断旧流程还是新流程；参考项目不可用时按抽象合同和目标项目证据执行，不阻断。
+3. 加载 `references/apply-flow.md`，按其中原流程执行。
+4. 加载 `references/country-profile-index.md`，根据国家选择差异 profile：
    - 墨西哥：`references/country-mexico.md`
    - 哥伦比亚：`references/country-colombia.md`
    - 危地马拉：`references/country-guatemala.md`
-4. 只有本次涉及接口文档、新字段、新接口地址、新项目迁移或字段替换时，接口字段迁移才交给 `h5-api-mapping`；普通进件页面/交互补充复用现有 API。
-5. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
-6. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
-7. 验收交给 `h5-testing-checklist`。
+5. 只有本次涉及接口文档、新字段、新接口地址、新项目迁移或字段替换时，接口字段迁移才交给 `h5-api-mapping`；普通进件页面/交互补充复用现有 API。
+6. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
+7. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
+8. 验收交给 `h5-testing-checklist`。
 
 ## 约束
 
 - 只改 Apply 相关页面、Apply API、路由、类型、原生桥接和必要配置。
+- 进件旧/新流程的具体字段、接口、路由和组件名必须以目标项目证据为准；参考项目路径不可用时不阻断，不凭记忆硬套参考项目细节。
 - 页面层不要直接调用原生全局对象，统一走 bridge hook / utility。
 - 涉及原生交互时必须遵守 `references/native-methods.md` 的统一桥接协议；只要有原生方法交互，就判定为 App 内嵌 H5，必须考虑真实 WebView、低版本浏览器和键盘遮挡风险。
 - 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter，不主动添加 Android、iOS WKWebView 或普通 Web 分支。
