@@ -13,11 +13,18 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 信息不全 | 这个页面有问题帮我修 | 先探索路由、最近改动、页面结构；找不到目标才问最小阻塞问题 |
 | 新需求 | 做一个新的 H5 小工具挂到现有项目里 | 进入 K，列候选归属，默认回落到 B 或 E，不直接失效 |
 | 高风险 | 改还款状态判断，线上发版 | 识别 C/G 风险，先确认资金/还款/发布结论 |
-| 规则沉淀 | 这个规则下次记住 | 进入 workflow/meta 的 M2，判断归属；明确可复用时直接沉淀并校验同步 |
+| 规则沉淀 | 这个规则下次记住 | 进入 workflow/meta 的 M2，判断归属；明确可复用时先输出沉淀提案卡，说明沉淀方向、目标文件、规则摘要和风险，等待用户确认后再写入、校验并同步 |
 | 自动沉淀失效 | 现在都没有触发自动沉淀，帮我检查一下 | 进入 workflow/meta 并判定为 `流程调优`；优先检查触发语义、主工作流收口 activity 和当前会话实际加载的运行时目录漂移，修复后同步运行时并补回归 |
 | Skill 工作流顾问 | 我需要一个能对我的 skill 工作流提出指导意见、能自我成长、并且能准确识别归类的 | 进入 workflow/meta 的 M1；先由 `skill-workflow-advisor` 判断为工作流指导/分类审查需求，设计或调用顾问 skill；若形成明确可复用规则，再交给 `workflow-self-improvement` 沉淀、校验并同步运行时 |
 | 快捷触发主工作流 | 走工作流，帮我判断这个需求该归哪个 skill | 先触发 `front-workflow` 作为总入口；读取方向 registry 和对应 scene map，保留候选方向/场景，不直接凭“skill”一词进入沉淀 |
-| 快捷触发沉淀 | 这个规则记一下，下次自动按这个来 | 进入 workflow/meta 的 M2；由 `workflow-self-improvement` 判断归属，明确可复用时直接沉淀、补回归并同步运行时 |
+| 快捷触发沉淀 | 这个规则记一下，下次自动按这个来 | 进入 workflow/meta 的 M2；由 `workflow-self-improvement` 判断归属，明确可复用时输出沉淀提案并等待确认，确认前只记录 learning_candidates |
+| 小需求自动入口 | 改一下按钮文案 | 自动触发 `front-workflow`，开头输出工作流状态条；判定为工作类小需求并按 quick 或 focused 验收，不因小改跳过工作流 |
+| 工作流状态条 | 帮我修一下这个页面样式 | 开始处理时输出 `工作流已接管｜触发=自动/显式｜方向=...｜场景=...｜验收=...｜沉淀=待判断`，场景未定时允许写判定中，完成探索后更新 |
+| 确认后沉淀 | 上一条沉淀提案确认写入 | 只有用户明确确认后才执行 `workflow-self-improvement` 修改文件、quick_validate、补回归和运行时同步；确认前不得修改 workflow 文件 |
+| Flutter 知识层读取 | 帮我解释 flutter_demo 里的 Dio 请求封装 | 自动进入 `front-workflow`，状态条包含知识库状态；读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `12-Flutter学习/MOC.md`，必要时再读取 Dio 相关笔记 |
+| Java 知识层读取 | 看一下这个 Java Controller 接口链路 | 自动进入 `front-workflow`，读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `15-Java学习/MOC.md`，再结合目标项目代码分析 |
+| KB 与 Workflow 双提案 | 这次解释里有个 Flutter 概念可以记一下，同时工作流触发规则也要补 | 交付时分开展示 KB 沉淀提案和 Workflow 沉淀提案；确认写入知识库只改 `personal-ai-kb`，确认沉淀工作流只改 `Desktop\\skills` |
+| KB 写入确认 | 确认写入知识库：把 Dio 请求封装这段沉淀到 Flutter 笔记 | 只写入 `personal-ai-kb` 对应方向笔记并同步 MOC；不得修改 workflow skill 文件，除非用户另行确认 Workflow 沉淀 |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有新接口文档也没启用 vendor | 主场景 B，直接在目标项目实现并按风险验收；不强行串 `h5-api-mapping` 或 `h5-vendor-architecture` |
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景 B；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |
@@ -32,6 +39,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 文件发现范围 | 巡检时用仓库根目录窄 glob、默认忽略隐藏/ignore 目录的发现命令，或只写 `rg --hidden -g 'references/*.md'` 这类缺少 `--no-ignore` 与 `**/` 的命令，只发现 `SKILL.md` 或只覆盖根级 skill，漏掉各 skill 子目录下的 `references/*.md`、`agents/openai.yaml` 或 `.agents/skills` 辅助 skill | 判定本次全量扫描范围无效，改用能覆盖 skill 子目录、隐藏目录和 ignore 目录的递归发现或等价枚举；若使用 `rg`，需要 hidden、ignore 覆盖和 `**/` 递归 glob；记录 `SKILL.md`、reference 和 openai 配置数量后重跑引用扫描、触发语义检查和运行时漂移比对 |
 | 运行时路径归一化 | 巡检已发现 `.agents/skills/spec-driven-development/SKILL.md`，但 Trae/Codex/Claude runtime 中真实路径是根级 `spec-driven-development/SKILL.md`；hash 比对脚本按 `.agents/skills/...` 字面路径映射后误报缺失 | 判定漂移结果无效；先把隐藏辅助 skill 源路径按 skill 目录名归一化为 `<runtime>/<skill>`，确认根级 runtime 是否存在，再进行 hash 比对；只报告归一化后仍缺失或 hash 不一致的 verified drift |
 | 活动运行时同步 | 当前会话实际从 `C:\Users\11731\.agents\skills\workflow-self-improvement\SKILL.md` 加载 skill，但源目录 `C:\Users\11731\Desktop\skills\workflow-self-improvement` 更新后只比对 Trae/Codex/Claude | 将 `.agents\skills` 识别为当前活动运行时镜像，纳入 hash 漂移比对、同步目标、权限阻塞记录和 automation memory；不得只把它当成源仓库里的隐藏辅助 skill 发现目录 |
+| 新增 skill 多端链接 | 新建 `Desktop\skills\foo-skill` 后交付 | 以 `Desktop\skills` 为唯一源目录，运行 `sync-runtime-skills.ps1 -All -RepairLinks`，确保 Codex、Trae、Claude 以及已存在的 `.agents` 运行时都有指向源目录的 junction；外部/system skill 不被替换 |
 | 设计图业务保留 | 根据设计图改首复贷放款失败页，设计图截图里没有底部 banner，但当前代码有 `BannerRail`、轮询、bridge 按钮和多个状态分支 | 主场景 C，设计图作为视觉输入；必须先对照修改前代码保留既有 banner、轮询、bridge、按钮回调、刷新和埋点，只改目标状态分支；只有用户明确要求删除时才移除业务模块，并在验收中检查其他分支未被连带改坏 |
 | 原生 Base64 加号 | App 通过 URL query 给 H5 传 AES/Base64 参数，线上发现参数里的 `+` 被 `URLSearchParams` 读成空格 | 识别为原生交互验收缺口，归属到 `h5-apply-flow/references/native-methods.md` 和 `h5-testing-checklist`；要求 App 侧用 `%2B` 编码，或 H5 侧只对指定字段做空格还原 `+`，不得扩大为重写 bridge 协议或新增无关 WebView 通道 |
 | 首复贷明确接口结构 | 用户给出审核倒计时接口字段和固定 JSON 字符串结构，希望页面展示接口文案 | 主场景 C；接口结构、用户示例或现有类型已明确时按固定结构直接取值或解析，避免复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案；只有真实返回格式会崩溃时才做最小格式修正 |

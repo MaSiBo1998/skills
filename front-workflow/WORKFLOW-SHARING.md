@@ -317,7 +317,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 工作流判断：
 
 - 命中工作流自我更新场景 H。
-- 如果只是单条明确规则，可以轻量记录目标后直接沉淀。
+- 如果只是单条明确规则，也要先输出沉淀提案卡，说明沉淀方向和目标文件；用户确认后再轻量写入、校验并同步运行时。
 - 如果是巡检、优化或较大改造，先用 `spec-driven-development` 固化目标和成功标准。
 - 再用 `workflow-self-improvement` 判断规则归属，修改对应 skill。
 - 必要时用 `workflow-orchestration-patterns` 检查编排边界，用 `llm-evaluation` 做回归样例评估。

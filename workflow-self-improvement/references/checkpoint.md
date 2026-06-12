@@ -4,7 +4,7 @@
 
 - `completed_steps`：追加式步骤完成历史，每完成一步 append 一条记录，不能只记录最后一步。
 - `last_completed_step`：最新完成步骤编号，仅作快速恢复索引，不能替代 `completed_steps`。
-- `learning_candidates`：运行中发现但尚未沉淀的经验。
+- `learning_candidates`：运行中发现但尚未确认沉淀的经验；应记录沉淀类型、沉淀方向、目标文件、规则摘要、触发证据、风险等级和建议动作。
 - `skill_updates`：已修改的 skill、修改摘要、校验结果。
 - `discovered_facts`、`assumptions`、`blocking_questions`、`candidate_scenes`、`supporting_capabilities`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`：用于复盘场景判断、默认选择和跳过原因。
 - `primary_direction`、`candidate_directions`：用于复盘方向层判断和未来方向扩展决策。
@@ -15,6 +15,6 @@
 
 运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化、未知需求兜底判断时，先写入 `learning_candidates`。
 
-若候选项明确、可复用且归属清晰，应在本轮继续完成 skill 修改和校验，不把“是否沉淀”交回用户重复确认。
+若候选项明确、可复用且归属清晰，应在本轮输出沉淀提案卡并写入 `learning_candidates`；只有用户确认后才继续完成 skill 修改和校验。未确认前不得把候选写入 workflow 文件。
 
-每完成发现、归属、修改、校验、交付中的任一步，都要向 `completed_steps` 追加记录并同步更新 `last_completed_step`。实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。
+每完成发现、归属、提案、确认、修改、校验、交付中的任一步，都要向 `completed_steps` 追加记录并同步更新 `last_completed_step`。实际修改 skill 文件后，将变更目标和校验结果写入 `skill_updates`。

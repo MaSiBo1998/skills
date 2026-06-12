@@ -36,6 +36,7 @@
 - 样式要按项目既有 `base/layout/components/pages` 或等价层级拆分；关键布局严禁依赖 `gap/row-gap/column-gap`、无 fallback 的 `aspect-ratio`、`100dvh` 等低版本不稳定能力。
 - 首屏要优先加载关键内容；路由按需分包，非关键图片、音频、vConsole、监控、埋点、复杂动画和重型依赖延后、懒加载或失败降级，避免阻塞首屏。
 - 以内嵌 H5 加载提速为目标时，应检查首屏大图、弹窗背景、sprite 和关键插画体积；需要压缩图片时，优先从未压缩源图或当前 Git 基准重新生成候选，按多档质量比较体积和视觉效果。不得为了体积把图片压到明显失真；出现文字发糊、渐变色带、透明边污染、边缘锯齿、主体细节丢失或品牌/设计稿观感明显下降时，必须回退到更高质量档或放弃继续压缩。
+- 以内嵌 H5 加载提速为目标时，图片资源治理是必查项：先盘点 `public`、`src/assets` 和代码引用关系；代码内使用的业务图片优先迁入 `src/assets` 由构建处理并获得 hash，保留在 `public` 的只应是确实需要稳定公开 URL 的文件；删除无引用且无外部入口证据的旧图片；再对大图生成压缩候选并记录体积收益。Vite 项目还需检查 `assetsInlineLimit`，避免大量小图被内联进 JS chunk 反而拖慢解析。
 - App 内嵌加载慢或低版本机型不支持新语法时，默认先做能力检测和条件加载：现代 WebView 走现代包，旧 WebView 才加载 legacy/polyfill；不要为了少数问题机型让所有机型默认加载兼容包或调试面板。Vite 项目优先检查 `@vitejs/plugin-legacy`、`modernPolyfills: false`、`nomodule` 产物、首屏 chunk、图片体积和按需动态 import。
 - 调试、监控、音频、复制、权限探测、vConsole 等辅助能力应在首屏后初始化，并有 try/catch 或能力检测，失败不能阻塞页面渲染和主业务请求。
 - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole；`test` 相关分支中如果用户要求加 vConsole，表示本地运行和线上打包都要启用 vConsole，不再区分 dev/prod。
