@@ -32,6 +32,7 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 
 当用户或 App 联调材料只补充某个原生方法入参字段的混淆值，例如 `orderId -> dbecb709a21f`，按以下规则处理：
 
+- 混淆 key 必须来自当前 App 联调材料、协议文档或目标项目已有字段映射；文档中的 `9ac914938c59` 等值只是示例或某项目的对应混淆结果，不是新 App 固定字段。
 - 若项目已有统一原生字段映射层，例如 `NATIVE_FIELD_CODES`、`encodeNativePayload`、`decodeNativePayload`，业务层继续传语义字段，优先在统一映射表补充“语义字段 -> 混淆字段”。
 - 不要在页面组件、状态组件或业务调用处直接写混淆 key，也不要把 hook / utility 的业务参数名改成混淆名；避免同一字段在多个调用点重复手动转换。
 - 修改前先搜索目标原生方法的调用链，确认 payload 会经过统一编码；修改后搜索语义字段和混淆字段，确认混淆值只存在于统一映射层或协议文档中。
@@ -57,6 +58,7 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 | `getAllPermissions` | H5 获取权限授权状态 | `{}` | `getAllPermissionsCallBack` |
 | `openAlbum` | 打开相册选择图片 | `{ type: 0 \| 1 \| 2 }` | `openAlbumCallBack` |
 | `openContact` | 打开通讯录选择联系人 | `{ index: number }` | `openContactCallBack` |
+| `uploadAllRiskData` | 上传原生风控数据 | `{ uploadType: 2 \| 3 }`，实际 App 字段使用当前联调材料对应的混淆 key，例如 `{ "9ac914938c59": 2 \| 3 }` | 无 |
 
 ## H5 全局回调 / 全局方法
 
@@ -262,7 +264,33 @@ window.openContactCallBack({
 })
 ```
 
-### 10. `window.onNativeBack`
+### 10. `uploadAllRiskData`
+
+- 说明：通知原生上传当前节点的风控数据。
+- 页面层调用：必须统一走项目 bridge hook / utility；业务代码传语义字段 `uploadType`，不要在页面组件中直接写混淆 key。
+- 字段映射：
+  - `uploadType -> 当前 App 对应混淆字段`（示例：`9ac914938c59`）
+- 当前已确认取值：
+  - 新流程进件完件：`uploadType: 2`
+  - 首复贷复贷提交成功：`uploadType: 2`
+  - 首复贷还款点击：`uploadType: 3`
+- H5 业务层示例：
+
+```json
+{
+  "uploadType": 2
+}
+```
+
+- 某 App 实际接收字段示例（非通用固定字段）：
+
+```json
+{
+  "9ac914938c59": 2
+}
+```
+
+### 11. `window.onNativeBack`
 
 - 说明：原生通知 H5 当前发生了返回 / 关闭意图，由 H5 自己判断如何处理。
 - 调用方式：

@@ -201,7 +201,7 @@ HomeData.visor                       AppList
 | 放款中 | 金额、期限、银行卡等数据源在首贷/复贷下正确切换 |
 | 放款失败 | 编辑银行卡或重试入口按 App bridge 规则触发 |
 | 首复贷 Banner | 接口 URL 收敛到 API 配置层，多个 banner 3 秒轮播展示，空数组不占位，点击按内跳/外链/不跳转分发，App 内跳统一走 bridge，内跳参数按接口原值透传 |
-| 多产品/App 列表 | 启用/未启用、还款期/逾期、权限、风控上传、详情跳转正确 |
+| 多产品/App 列表 | 启用/未启用、还款期/逾期、权限、风控上传、详情跳转正确；还款点击上传 `uploadType: 3`，字段映射使用当前 App 对应混淆字段（例如某项目为 `9ac914938c59`） |
 | 还款 | 还款金额、还款计划、支付方式、支付接口和埋点来自金融订单数据 |
 
 ## 八、风控 Store 与原生 Bridge
@@ -220,4 +220,4 @@ HomeData.visor                       AppList
 | 风控 store | `src/store/features/risk/riskSlice.ts` |
 | bridge hook | `useAppBridge` |
 | 首贷成功回调 | `firstLoanApplySuc` |
-| 风控上传 | `uploadAllRiskData` |
+| 风控上传 | `uploadAllRiskData`，复贷提交成功传 `uploadType: 2`，还款点击传 `uploadType: 3`；业务字段 `uploadType` 由统一原生字段映射编码为当前 App 对应混淆字段，`9ac914938c59` 只作为示例，不可当作新 App 固定字段 |
