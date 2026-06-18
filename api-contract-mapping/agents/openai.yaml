@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Contract Mapping"
+  short_description: "跨端按 appName 读取接口 contract 并输出映射"
+  default_prompt: "Use $api-contract-mapping to consume archived API contracts from D:\\code\\my-project\\personal-ai-kb\\API\\apps\\<appName>. First read the app README and _indexes/contracts.jsonl, by-path.json, or by-symbol.json, then open only the matched contracts/<Chinese purpose>.md files. Read 全局配置.md for baseURL/header/response codes and 原生交互.md for WebView/Native fields. Do not archive or generate API docs here; use api-doc-kb-archiver for KB ingestion."

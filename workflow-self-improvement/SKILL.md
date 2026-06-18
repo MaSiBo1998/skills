@@ -140,7 +140,9 @@ Workflow 沉淀提案
 | 场景识别、未知/复合需求兜底、调度顺序、checkpoint、交付汇总 | `front-workflow` |
 | 跨功能/首复贷/进件的公共原生桥接协议 | `h5-apply-flow/references/native-methods.md` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
-| API 文档解析、字段映射、请求响应类型、混淆字段 | `h5-api-mapping` |
+| 接口文档入库、记录接口到知识库、生成中文 contract、生成 API/apps/<appName> 索引 | `api-doc-kb-archiver` |
+| 跨端接口契约消费、used API manifest、H5/Flutter 共用接口 contract 检索 | `api-contract-mapping` |
+| H5 API 文档解析、字段映射、请求响应类型、混淆字段落地 | `h5-api-mapping` |
 | 飞书前端告警、白屏监控、线上异常预警 | `h5-feishu-alert` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |
 | 首贷、复贷、状态流、订单详情、App 列表、未确认、放款、还款 | `h5-first-reloan-flow` |

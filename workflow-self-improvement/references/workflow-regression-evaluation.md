@@ -21,12 +21,19 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 小需求自动入口 | 改一下按钮文案 | 自动触发 `front-workflow`，开头输出工作流状态条；判定为工作类小需求并按 quick 或 focused 验收，不因小改跳过工作流 |
 | 工作流状态条 | 帮我修一下这个页面样式 | 开始处理时输出 `工作流已接管｜触发=自动/显式｜方向=...｜场景=...｜验收=...｜沉淀=待判断`，场景未定时允许写判定中，完成探索后更新 |
 | 确认后沉淀 | 上一条沉淀提案确认写入 | 只有用户明确确认后才执行 `workflow-self-improvement` 修改文件、quick_validate、补回归和运行时同步；确认前不得修改 workflow 文件 |
-| Flutter 知识层读取 | 帮我解释 flutter_demo 里的 Dio 请求封装 | 自动进入 `front-workflow`，状态条包含知识库状态；读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `12-Flutter学习/MOC.md`，必要时再读取 Dio 相关笔记 |
-| Java 知识层读取 | 看一下这个 Java Controller 接口链路 | 自动进入 `front-workflow`，读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `15-Java学习/MOC.md`，再结合目标项目代码分析 |
+| Flutter 知识层读取 | 帮我解释 flutter_demo 里的 Dio 请求封装 | 自动进入 `front-workflow`，状态条包含知识库状态；读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `Flutter/MOC.md`，必要时再读取 Dio 相关笔记 |
+| Java 知识层读取 | 看一下这个 Java Controller 接口链路 | 自动进入 `front-workflow`，读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `Java/MOC.md`，再结合目标项目代码分析 |
 | KB 与 Workflow 双提案 | 这次解释里有个 Flutter 概念可以记一下，同时工作流触发规则也要补 | 交付时分开展示 KB 沉淀提案和 Workflow 沉淀提案；确认写入知识库只改 `personal-ai-kb`，确认沉淀工作流只改 `Desktop\\skills` |
 | KB 写入确认 | 确认写入知识库：把 Dio 请求封装这段沉淀到 Flutter 笔记 | 只写入 `personal-ai-kb` 对应方向笔记并同步 MOC；不得修改 workflow skill 文件，除非用户另行确认 Workflow 沉淀 |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有新接口文档也没启用 vendor | 主场景 B，直接在目标项目实现并按风险验收；不强行串 `h5-api-mapping` 或 `h5-vendor-architecture` |
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景 B；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
+| 项目接口文档即准绳 | 不保留 mx-api/co-api 源文档，直接按每个 appName 的接口文档开发 | 入库调度 `api-doc-kb-archiver`；使用调度 `api-contract-mapping`；项目真实 path/header/request/response 字段必须来自该 appName 接口文档，不维护全局源文档基准 |
+| API 入库按 appName | 用户要求“把接口文档记录到知识库、整理项目所有接口 contract” | 调度 `api-doc-kb-archiver`，写入 `personal-ai-kb/API/apps/<appName>`，生成 `全局配置.md`、`原生交互.md`、中文 contract 和 `_indexes`；不按新/旧系统或国家拆分 |
+| API 环境地址语义 | 生成 app 全局配置时记录环境地址 | 环境地址只指后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支读取 |
+| 只读项目用到接口 | 用 Confiq 这类 H5 项目做接口替换，swaggerApi.json 是项目接口全集 | 先从 `src/services/api/config.ts`、`src/services/api/*.ts` 和 types 提取 used API manifest，只读取命中的项目接口小节，不默认加载全量接口文档 |
+| 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；除 endpoint index 和 used API manifest 外，还要生成/读取 endpoint contracts，并按 `contracts/by-endpoint/index.jsonl` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
+| appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |
+| Flutter 共用接口契约 | Flutter App 也用每个 appName 的接口文档和混淆字段 | 调度 `api-contract-mapping` 提取 Dio/request wrapper、endpoint constants、repository/service/model 中实际接口；接口契约层共用，Flutter 实现不走 `h5-api-mapping` 的 H5 落地规则 |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |
 | 业务场景不等于内嵌 | 首复贷或进件页面没有任何原生方法、bridge、window 回调证据，只是普通 H5 页面 | 不能仅凭“首复贷/进件”判定为 App 内嵌；按对应业务场景执行，只有出现原生交互证据时才追加 App WebView、键盘遮挡和 Flutter 通道规则 |
 | 参考项目缺失 fallback | 按进件旧流程处理，但 `D:\code\H5\Crediapoyo\crediapoyo-step-app` 不存在 | 不阻断；读取目标项目路由、steps、API、types、配置和 checkpoint，按进件旧流程抽象合同执行；缺少旧/新流程判断时只问一个最小阻塞问题 |

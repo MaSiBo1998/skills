@@ -7,7 +7,7 @@
 | scene | 意图 | 核心执行 | 常见 supporting capabilities |
 | --- | --- | --- | --- |
 | A | vendor / depend / static-app / 本地资源架构 | `h5-vendor-architecture` | `h5-testing-checklist` |
-| B | 普通功能/API 开发、同结构字段替换、新接口适配 | 直接在目标项目实现；普通 H5 横切点按 `h5-common-feature-flow.md` 兜底 | `h5-api-mapping`、`h5-vendor-architecture`、`h5-testing-checklist` |
+| B | 普通功能/API 开发、同结构字段替换、新接口适配 | 直接在目标项目实现；普通 H5 横切点按 `h5-common-feature-flow.md` 兜底 | `api-contract-mapping`、`h5-api-mapping`、`h5-vendor-architecture`、`h5-testing-checklist` |
 | C | 首贷/复贷/状态流/订单/还款/额度 | `h5-first-reloan-flow` | `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
 | D | Apply / Entry / 进件步骤 / 国家差异 / 原生交互 | `h5-apply-flow` | `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 / App 内嵌协议或客服 | `h5-official-site` | 设计图能力、`h5-testing-checklist` |
@@ -35,6 +35,10 @@
   主场景是 C，J 只是风险附加。
 - “普通页面补一个接口字段展示”：
   主场景是 B；没有新文档和 vendor 证据时，不强拉 `h5-api-mapping` 或 `h5-vendor-architecture`。
+- “项目/appName 接口文档做字段替换”：
+  主场景是 B；先调度 `api-contract-mapping` 提取项目实际使用接口，通过 `API/apps/<appName>/_indexes` 只读取命中的接口 contract，再由 `h5-api-mapping` 做 H5 落地。项目真实字段必须来自该 appName 接口文档。
+- “接口文档入库 / 记录接口到知识库 / 整理项目所有接口 contract”：
+  主场景是 B，supporting capability 是 `api-doc-kb-archiver`；把接口写入 `personal-ai-kb/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和快速索引，不进入 H5 代码实现。
 - “普通 App 内嵌 H5 页面加登录态判断、返回拦截、埋点或多语言文案”：
   主场景仍是 B；读取 `references/h5-common-feature-flow.md`，复用项目已有 auth、bridge、tracking、i18n/formatting 和 WebView 兼容模式，不误进 C/D/J/F。
 - “App 内嵌 H5 加载慢、首屏慢、低版本机型不支持新语法、只想问题机型再加载兼容包”：

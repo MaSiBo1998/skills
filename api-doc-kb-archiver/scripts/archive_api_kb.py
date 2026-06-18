@@ -1,0 +1,1570 @@
+#!/usr/bin/env python3
+"""Archive project API contracts into personal-ai-kb/API/apps/<appName>."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import shutil
+import subprocess
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+
+IGNORED_DIRS = {"node_modules", "dist", "build", ".git", ".dart_tool"}
+HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+TERMINAL_TYPES = {
+    "any",
+    "bigint",
+    "boolean",
+    "false",
+    "null",
+    "number",
+    "object",
+    "string",
+    "symbol",
+    "true",
+    "undefined",
+    "unknown",
+    "void",
+    "never",
+}
+TERMINAL_GENERIC_PREFIXES = (
+    "Record<",
+    "Partial<",
+    "Required<",
+    "Readonly<",
+    "Pick<",
+    "Omit<",
+    "Extract<",
+    "Exclude<",
+)
+
+PURPOSE_BY_SYMBOL = {
+    "getHomeData": "首页信息",
+    "getHomeInfo": "首页信息",
+    "toUniversalPoint": "首复贷风控埋点",
+    "getProductDetail": "产品订单详情",
+    "getRepaymentBankList": "还款银行列表",
+    "toSubmitOrder": "提交申贷",
+    "toPayMoney": "还款支付",
+    "bannerVagary": "首复贷 Banner 配置",
+    "getUserDetail": "用户详情与步骤完成状态",
+    "getStepConfig": "步骤配置",
+    "getCommonConfig": "通用配置",
+    "saveWorkInfo": "保存工作信息",
+    "saveContactInfo": "保存联系人信息",
+    "savePersonalInfo": "保存个人信息",
+    "idcardOcr": "身份证 OCR 识别",
+    "saveIdInfo": "保存身份信息",
+    "saveRejectIdInfo": "被拒后保存身份信息",
+    "saveFaceInfo": "保存人脸信息",
+    "saveRejectFaceInfo": "被拒后保存人脸信息",
+    "getBankList": "银行列表",
+    "saveBankInfo": "保存银行卡信息",
+    "updateBankInfo": "修改银行卡信息",
+    "switchPayoutBank": "切换打款银行卡",
+    "removeBankInfo": "移除银行卡",
+    "getBankInfo": "查询银行卡信息",
+    "getBankCardInfo": "查询银行卡回填信息",
+    "sendEmailCode": "邮箱验证码",
+    "sendFeishuAlert": "飞书前端监控告警",
+    "getProblemTypes": "客服问题分类",
+    "submitComplaint": "提交投诉建议",
+}
+
+MODULE_BY_FILE = {
+    "home.ts": "首复贷/首页",
+    "product.ts": "产品/订单详情",
+    "order.ts": "订单/还款",
+    "banner.ts": "Banner",
+    "user.ts": "用户/首页",
+    "apply.ts": "进件",
+    "monitor.ts": "飞书告警",
+    "feedback.ts": "客服反馈",
+}
+
+HEADER_SEMANTICS = {
+    "a0835d": ("businessLine", "业务线", "import.meta.env.VITE_APP_BUSINESS_LINE"),
+    "v7028c": ("appName", "App 名称", "import.meta.env.VITE_APP_NAME"),
+    "y0566y": ("appVersion", "版本号", "Native device.appVersion，缺省 1.0.0"),
+    "x0665g": ("platformType", "平台类型", "固定值 1"),
+    "r1408o": ("afid", "AF ID", "当前项目为空字符串"),
+    "t0849o": ("gaid", "Google Advertising ID", "Native appInfo.gaid"),
+    "h8306j": ("drmid", "DRM ID", "Native device.smds.tarlatan"),
+    "u7495s": ("adid", "广告 ID", "当前项目为空字符串"),
+    "p1063k": ("ip", "IP 地址", "Native device.yapese.returned"),
+    "b8637r": ("token", "登录 token", "本地缓存 token，withAuth=true 时发送"),
+    "f1378d": ("loginId", "登录用户 ID", "本地缓存 loginId，withAuth=true 时发送"),
+}
+
+
+def read_text(path: Path) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "gb18030"):
+        try:
+            return path.read_text(encoding=encoding)
+        except UnicodeDecodeError:
+            continue
+    return path.read_text(errors="replace")
+
+
+def write_text(path: Path, value: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(value, encoding="utf-8", newline="\n")
+
+
+def clean(value: Any) -> str:
+    return str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+
+
+def clean_inline(value: Any) -> str:
+    return clean(value).replace("\n", " ").replace("|", "\\|")
+
+
+def iter_source_files(root: Path) -> list[Path]:
+    src = root / "src"
+    if not src.exists():
+        return []
+    files: list[Path] = []
+    for pattern in ("**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"):
+        for path in src.glob(pattern):
+            if path.is_file() and not any(part in IGNORED_DIRS for part in path.parts):
+                files.append(path)
+    return sorted(set(files))
+
+
+def short_file(path_value: str) -> str:
+    return path_value.replace("\\", "/").split("/")[-1]
+
+
+def relative_to_project(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root)).replace("\\", "/")
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
+def parse_env_files(root: Path) -> dict[str, dict[str, str]]:
+    envs: dict[str, dict[str, str]] = {}
+    for name in (".env", ".env.development", ".env.production"):
+        path = root / name
+        if not path.exists():
+            continue
+        values: dict[str, str] = {}
+        for line in read_text(path).splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip()
+        envs[name] = values
+    return envs
+
+
+def parse_env_text(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
+
+
+def git_output(root: Path, args: list[str]) -> str:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return result.stdout.strip()
+    except Exception:
+        return ""
+
+
+def current_git_branch(root: Path) -> str:
+    return git_output(root, ["branch", "--show-current"]) or "unknown"
+
+
+def git_show_env(root: Path, branch: str, file_name: str) -> dict[str, str]:
+    text = git_output(root, ["show", f"{branch}:{file_name}"])
+    return parse_env_text(text) if text else {}
+
+
+def collect_backend_api_envs(root: Path, envs: dict[str, dict[str, str]]) -> list[dict[str, str]]:
+    current_branch = current_git_branch(root)
+    test_urls = []
+    for file_name in (".env", ".env.development", ".env.production"):
+        url = envs.get(file_name, {}).get("VITE_API_BASE_URL", "")
+        if url and url not in test_urls:
+            test_urls.append(url)
+
+    formal_rows: list[dict[str, str]] = []
+    seen_formal_urls = set()
+    for branch in ("master", "master-co", "master-ng", "origin/master", "origin/master-co", "origin/master-ng"):
+        file_name = ".env.production"
+        values = git_show_env(root, branch, file_name)
+        url = values.get("VITE_API_BASE_URL", "")
+        if not url or url in seen_formal_urls:
+            continue
+        seen_formal_urls.add(url)
+        formal_rows.append({"env": "正式", "url": url, "source": f"{branch}:{file_name}"})
+
+    rows = []
+    if test_urls:
+        rows.append(
+            {
+                "env": "测试",
+                "url": " / ".join(test_urls),
+                "source": f"当前分支 {current_branch} 的 .env/.env.development/.env.production；测试分支里的 production 也按测试地址处理",
+            }
+        )
+    rows.extend(formal_rows)
+    return rows
+
+
+def find_matching_brace(text: str, start: int) -> int:
+    depth = 0
+    in_string = ""
+    escaped = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == in_string:
+                in_string = ""
+            continue
+        if char in {"'", '"', "`"}:
+            in_string = char
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+    return -1
+
+
+def clean_comment(comment: str) -> str:
+    lines = []
+    for line in comment.splitlines():
+        line = re.sub(r"^/\*\*|\*/$", "", line.strip()).strip()
+        line = re.sub(r"^\*\s?", "", line).strip()
+        if line and not line.startswith("@"):
+            lines.append(line)
+    return " ".join(lines)
+
+
+def parse_api_config(root: Path) -> dict[str, dict[str, Any]]:
+    config = root / "src" / "services" / "api" / "config.ts"
+    if not config.exists():
+        return {}
+    records: dict[str, dict[str, Any]] = {}
+    section = ""
+    previous_comment = ""
+    api_re = re.compile(r"^\s*([A-Za-z_$][\w$]*)\s*:\s*['\"]([^'\"]+)['\"]")
+    for line in read_text(config).splitlines():
+        stripped = line.strip()
+        if stripped.startswith("//"):
+            comment = stripped.lstrip("/").strip()
+            if comment.strip("= "):
+                if "====" in comment:
+                    section = comment.strip("= ").strip()
+                else:
+                    previous_comment = comment
+            continue
+        match = api_re.match(line)
+        if match:
+            symbol, path_value = match.groups()
+            records[symbol] = {
+                "symbol": symbol,
+                "path": path_value,
+                "method": "POST",
+                "semantic_hint": previous_comment,
+                "module_hint": section,
+                "files": [relative_to_project(config, root)],
+            }
+            previous_comment = ""
+    return records
+
+
+def collect_api_usage(root: Path, records: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    usage_re = re.compile(r"\bAPI\.([A-Za-z_$][\w$]*)\b")
+    for path in iter_source_files(root):
+        text = read_text(path)
+        for symbol in sorted(set(usage_re.findall(text))):
+            record = records.setdefault(
+                symbol,
+                {
+                    "symbol": symbol,
+                    "path": "",
+                    "method": "POST",
+                    "semantic_hint": "",
+                    "module_hint": "",
+                    "files": [],
+                },
+            )
+            rel = relative_to_project(path, root)
+            if rel not in record["files"]:
+                record["files"].append(rel)
+    return records
+
+
+def parse_exported_types(root: Path) -> dict[str, dict[str, Any]]:
+    type_map: dict[str, dict[str, Any]] = {
+        "EmptyRequest": {"kind": "alias", "target": "Record<string, never>", "fields": []},
+        "unknown": {"kind": "alias", "target": "unknown", "fields": []},
+    }
+    for path in iter_source_files(root):
+        text = read_text(path)
+        for match in re.finditer(r"export\s+interface\s+(\w+)(?:\s+extends\s+(\w+))?\s*{", text):
+            name = match.group(1)
+            parent = match.group(2) or ""
+            end = find_matching_brace(text, match.end() - 1)
+            if end == -1:
+                continue
+            body = text[match.end() : end]
+            type_map[name] = {
+                "kind": "interface",
+                "parent": parent,
+                "fields": parse_interface_fields(body),
+                "source_file": relative_to_project(path, root),
+            }
+        for match in re.finditer(r"export\s+type\s+(\w+)\s*=\s*([^;\n]+);", text):
+            type_map[match.group(1)] = {
+                "kind": "alias",
+                "target": match.group(2).strip(),
+                "fields": [],
+                "source_file": relative_to_project(path, root),
+            }
+    return type_map
+
+
+def parse_interface_fields(body: str) -> list[dict[str, Any]]:
+    fields: list[dict[str, Any]] = []
+    pending_comment = ""
+    lines = body.splitlines()
+    index = 0
+    while index < len(lines):
+        line = lines[index].strip()
+        if line.startswith("/**"):
+            comment_parts = []
+            while index < len(lines):
+                part = lines[index].strip()
+                comment_parts.append(part)
+                if "*/" in part:
+                    break
+                index += 1
+            pending_comment = clean_comment("\n".join(comment_parts))
+            index += 1
+            continue
+        match = re.match(r"([A-Za-z_$][\w$]*)\??\s*:\s*([^;/]+)(?:[;,])?\s*(?://\s*(.*))?$", line)
+        if match:
+            fields.append(
+                {
+                    "field": match.group(1),
+                    "type": match.group(2).strip(),
+                    "required": "?" not in line.split(":", 1)[0],
+                    "description": clean(match.group(3) or pending_comment),
+                    "enum": [],
+                    "enumDesc": "",
+                }
+            )
+            pending_comment = ""
+        index += 1
+    return fields
+
+
+def normalize_type(type_name: str) -> str:
+    return re.sub(r"\s+", " ", clean(type_name))
+
+
+def strip_array(type_name: str) -> tuple[str, bool]:
+    value = normalize_type(type_name)
+    if value.endswith("[]"):
+        return value[:-2], True
+    array_match = re.match(r"Array<(.+)>", value)
+    if array_match:
+        return array_match.group(1).strip(), True
+    return value, False
+
+
+def is_terminal_type(type_name: str) -> bool:
+    value = normalize_type(type_name)
+    if not value or value in TERMINAL_TYPES:
+        return True
+    if value.startswith("{") or value.startswith("("):
+        return True
+    if value.startswith("keyof ") or value.startswith("typeof "):
+        return True
+    if any(value.startswith(prefix) for prefix in TERMINAL_GENERIC_PREFIXES):
+        return True
+    if re.fullmatch(r"['\"].*['\"]|\d+(?:\.\d+)?", value):
+        return True
+    return False
+
+
+def terminal_field(prefix: str, type_name: str, description: str = "") -> list[dict[str, Any]]:
+    if not prefix:
+        return []
+    return [
+        {
+            "field": prefix,
+            "type": normalize_type(type_name) or "unknown",
+            "required": True,
+            "description": description,
+            "enum": [],
+            "enumDesc": "",
+        }
+    ]
+
+
+def flatten_type(type_name: str, type_map: dict[str, dict[str, Any]], prefix: str = "", seen: set[str] | None = None) -> list[dict[str, Any]]:
+    seen = seen or set()
+    type_name = normalize_type(type_name)
+    if is_terminal_type(type_name):
+        return []
+    base, is_array = strip_array(type_name)
+    array_prefix = f"{prefix}[]" if is_array and prefix else prefix
+    if is_array:
+        fields = [
+            {
+                "field": array_prefix or "[]",
+                "type": f"array<{base}>",
+                "required": bool(prefix),
+                "description": "",
+                "enum": [],
+                "enumDesc": "",
+            }
+        ]
+        if base in seen or is_terminal_type(base):
+            return fields if prefix else []
+        fields.extend(flatten_type(base, type_map, array_prefix or "[]", seen))
+        return fields
+    if base in seen:
+        return terminal_field(prefix, base, "递归类型引用，保留为终止字段")
+    if "|" in base and not base.startswith("{"):
+        return [
+            {
+                "field": prefix or "value",
+                "type": base,
+                "required": bool(prefix),
+                "description": "",
+                "enum": [],
+                "enumDesc": "",
+            }
+        ]
+    item = type_map.get(base)
+    if not item:
+        return terminal_field(prefix, base)
+    if item["kind"] == "alias":
+        target = normalize_type(item.get("target", ""))
+        if not target or target == base or base in seen:
+            return terminal_field(prefix, target or base, "递归类型别名，保留为终止字段")
+        if target in {"Record<string, never>", "{}"}:
+            return []
+        if is_terminal_type(target):
+            return [
+                {
+                    "field": prefix or "body",
+                    "type": target,
+                    "required": False,
+                    "description": "项目代码约束为通用或终止类型，需正式接口文档校准字段",
+                    "enum": [],
+                    "enumDesc": "",
+                }
+            ]
+        return flatten_type(target, type_map, prefix, seen | {base})
+    fields: list[dict[str, Any]] = []
+    parent = item.get("parent")
+    if parent:
+        fields.extend(flatten_type(parent, type_map, prefix, seen | {base}))
+    for field in item.get("fields", []):
+        field_path = f"{prefix}.{field['field']}" if prefix else field["field"]
+        field_type = normalize_type(field.get("type", "unknown"))
+        output = {**field, "field": field_path, "type": field_type}
+        fields.append(output)
+        child_base, child_is_array = strip_array(field_type)
+        if child_base in type_map and child_base not in seen:
+            fields.extend(flatten_type(field_type, type_map, field_path, seen | {base}))
+        elif child_is_array:
+            fields.append(
+                {
+                    "field": f"{field_path}[]",
+                    "type": field_type,
+                    "required": field.get("required", False),
+                    "description": field.get("description", ""),
+                    "enum": [],
+                    "enumDesc": "",
+                }
+            )
+    return fields
+
+
+def surrounding_export_block(text: str, position: int) -> str:
+    starts = [m.start() for m in re.finditer(r"export\s+(?:async\s+function|function\s+|const\s+)", text) if m.start() <= position]
+    start = starts[-1] if starts else max(0, text.rfind("\n", 0, position - 1))
+    comment_start = text.rfind("/**", 0, start)
+    comment_end = text.rfind("*/", 0, start)
+    if comment_start != -1 and comment_end != -1 and comment_end > comment_start and start - comment_end < 12:
+        start = comment_start
+    next_match = re.search(r"\n(?:/\*\*[\s\S]*?\*/\s*)?export\s+(?:async\s+function|function\s+|const\s+)", text[position:])
+    end = position + next_match.start() if next_match else len(text)
+    return text[start:end]
+
+
+def infer_export_name(block: str) -> str:
+    match = re.search(r"export\s+async\s+function\s+(\w+)", block) or re.search(r"export\s+function\s+(\w+)", block) or re.search(r"export\s+const\s+(\w+)", block)
+    return match.group(1) if match else ""
+
+
+def infer_description(block: str) -> str:
+    comment_match = re.search(r"/\*\*([\s\S]*?)\*/", block)
+    if comment_match:
+        text = clean_comment(comment_match.group(0))
+        text = re.sub(r"POST\s+/[^\s]+\s*", "", text).strip()
+        text = re.sub(r"swaggerApi\.json\s*当前未提供该接口定义[，,]?", "", text)
+        text = re.sub(r"当前接口返回内容与地址列表一致[，,]?", "", text)
+        text = re.sub(r"先按同结构缓存[。；;]?", "", text)
+        text = re.sub(r"因此入参按空对象约束[。；;]?", "", text)
+        return text.strip(" ，,。")
+    line_comment = re.search(r"//\s*([^\n]+)\n\s*export", block)
+    return clean(line_comment.group(1)) if line_comment else ""
+
+
+def first_generic_argument(block: str, callee_pattern: str) -> str:
+    match = re.search(callee_pattern + r"\s*<", block)
+    if not match:
+        return ""
+    start = block.find("<", match.end() - 1)
+    depth = 0
+    in_string = ""
+    escaped = False
+    for index in range(start, len(block)):
+        char = block[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == in_string:
+                in_string = ""
+            continue
+        if char in {"'", '"', "`"}:
+            in_string = char
+            continue
+        if char == "<":
+            depth += 1
+        elif char == ">":
+            depth -= 1
+            if depth == 0:
+                return block[start + 1 : index].strip()
+    return ""
+
+
+def infer_request_type(block: str) -> str:
+    function_match = re.search(r"\(([^)]*)\)\s*:\s*Promise", block)
+    if function_match:
+        params = function_match.group(1)
+        data_match = re.search(r"(?:data|_data|p)\s*:\s*([A-Za-z_$][\w$]*)", params)
+        if data_match:
+            return data_match.group(1)
+    const_match = re.search(r"=\s*(?:<[^>]+>\s*)?(?:async\s*)?\(([^)]*)\)", block)
+    if const_match:
+        params = const_match.group(1)
+        data_match = re.search(r"(?:data|_data|p)\s*:\s*([A-Za-z_$][\w$]*)", params)
+        if data_match:
+            return data_match.group(1)
+    return ""
+
+
+def infer_response_type(block: str) -> str:
+    promise_type = first_generic_argument(block, r"Promise")
+    if promise_type:
+        return promise_type
+    request_type = first_generic_argument(block, r"(?:request|http\.post)")
+    if request_type:
+        return request_type
+    return "unknown"
+
+
+def infer_method(block: str) -> str:
+    if "http.post" in block or "method: 'POST'" in block or 'method: "POST"' in block:
+        return "POST"
+    for method in ("GET", "PUT", "PATCH", "DELETE"):
+        if f"method: '{method}'" in block or f'method: "{method}"' in block:
+            return method
+    return "POST"
+
+
+def parse_body_literal(block: str) -> list[dict[str, Any]]:
+    body_match = re.search(r"body\s*:\s*{", block)
+    if not body_match:
+        body_match = re.search(r"\b(?:const|let)\s+body\s*=\s*{", block)
+    if not body_match:
+        return []
+    start = block.find("{", body_match.start())
+    end = find_matching_brace(block, start)
+    if end == -1:
+        return []
+    body = block[start + 1 : end]
+    fields: list[dict[str, Any]] = []
+    depth = 0
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        match = re.match(r"([A-Za-z_$][\w$]*)\s*:\s*([^,]+),?\s*(?://\s*(.*))?$", line) if depth == 0 else None
+        if match and not line.startswith("..."):
+            fields.append(
+                {
+                    "field": match.group(1),
+                    "type": "unknown",
+                    "required": True,
+                    "description": clean(match.group(3)),
+                    "enum": [],
+                    "enumDesc": "",
+                }
+            )
+        depth += line.count("{") - line.count("}")
+        depth = max(depth, 0)
+    return fields
+
+
+def extract_service_context(root: Path) -> dict[str, dict[str, Any]]:
+    context: dict[str, dict[str, Any]] = {}
+    usage_re = re.compile(r"\bAPI\.([A-Za-z_$][\w$]*)\b")
+    for path in iter_source_files(root):
+        text = read_text(path)
+        for match in re.finditer(usage_re, text):
+            symbol = match.group(1)
+            block = surrounding_export_block(text, match.start())
+            context.setdefault(symbol, {})
+            context[symbol].update(
+                {
+                    "block": block,
+                    "body_fields": parse_body_literal(block),
+                    "request_type": infer_request_type(block),
+                    "response_type": infer_response_type(block),
+                    "method": infer_method(block),
+                    "service_file": relative_to_project(path, root),
+                    "service_name": infer_export_name(block),
+                    "description": infer_description(block),
+                }
+            )
+    return context
+
+
+def resolve_ref(data: dict[str, Any], ref: str) -> dict[str, Any]:
+    if not ref.startswith("#/"):
+        return {}
+    node: Any = data
+    for part in ref[2:].split("/"):
+        if not isinstance(node, dict):
+            return {}
+        node = node.get(part)
+    return node if isinstance(node, dict) else {}
+
+
+def schema_type(schema: dict[str, Any]) -> str:
+    if "$ref" in schema:
+        return str(schema["$ref"]).split("/")[-1]
+    value = schema.get("type")
+    if value == "array":
+        item_type = schema_type(schema.get("items", {}) if isinstance(schema.get("items"), dict) else {})
+        return f"array<{item_type or 'unknown'}>"
+    if value:
+        return str(value)
+    if "properties" in schema:
+        return "object"
+    return "unknown"
+
+
+def flatten_schema(schema: dict[str, Any], data: dict[str, Any], prefix: str = "", required: set[str] | None = None, seen_refs: set[str] | None = None) -> list[dict[str, Any]]:
+    required = required or set()
+    seen_refs = seen_refs or set()
+    if "$ref" in schema:
+        ref = str(schema["$ref"])
+        if ref in seen_refs:
+            return []
+        return flatten_schema(resolve_ref(data, ref), data, prefix, required, seen_refs | {ref})
+    if schema.get("type") == "array":
+        items = schema.get("items") if isinstance(schema.get("items"), dict) else {}
+        array_path = f"{prefix}[]" if prefix else "[]"
+        fields = [
+            {
+                "field": array_path,
+                "type": schema_type(schema),
+                "required": prefix in required,
+                "description": clean(schema.get("description", "")),
+                "enum": schema.get("enum", []),
+                "enumDesc": clean(schema.get("enumDesc", "")),
+            }
+        ]
+        fields.extend(flatten_schema(items, data, array_path, set(items.get("required", [])) if isinstance(items, dict) else set(), seen_refs))
+        return fields
+    properties = schema.get("properties")
+    if not isinstance(properties, dict):
+        if prefix:
+            return [
+                {
+                    "field": prefix,
+                    "type": schema_type(schema),
+                    "required": prefix.split(".")[-1].replace("[]", "") in required,
+                    "description": clean(schema.get("description", "")),
+                    "enum": schema.get("enum", []),
+                    "enumDesc": clean(schema.get("enumDesc", "")),
+                }
+            ]
+        return []
+    local_required = set(schema.get("required", [])) if isinstance(schema.get("required"), list) else set()
+    fields: list[dict[str, Any]] = []
+    for name, child in properties.items():
+        if not isinstance(child, dict):
+            continue
+        field_path = f"{prefix}.{name}" if prefix else str(name)
+        field = {
+            "field": field_path,
+            "type": schema_type(child),
+            "required": name in local_required or name in required,
+            "description": clean(child.get("description", "")),
+            "enum": child.get("enum", []),
+            "enumDesc": clean(child.get("enumDesc", "")),
+        }
+        fields.append(field)
+        if "$ref" in child or child.get("type") == "array" or isinstance(child.get("properties"), dict):
+            fields.extend(flatten_schema(child, data, field_path, local_required, seen_refs))
+    return fields
+
+
+def swagger_request_fields(operation: dict[str, Any], data: dict[str, Any]) -> list[dict[str, Any]]:
+    fields: list[dict[str, Any]] = []
+    parameters = operation.get("parameters", [])
+    if not isinstance(parameters, list):
+        return fields
+    for parameter in parameters:
+        if not isinstance(parameter, dict):
+            continue
+        location = clean(parameter.get("in", "")) or "body"
+        name = clean(parameter.get("name", "")) or "body"
+        schema = parameter.get("schema")
+        if isinstance(schema, dict):
+            body_fields = flatten_schema(schema, data)
+            if body_fields:
+                for field in body_fields:
+                    field["location"] = location
+                fields.extend(body_fields)
+            else:
+                fields.append(
+                    {
+                        "location": location,
+                        "field": name,
+                        "type": schema_type(schema),
+                        "required": bool(parameter.get("required", False)),
+                        "description": clean(parameter.get("description", "")),
+                        "enum": [],
+                        "enumDesc": "",
+                    }
+                )
+        else:
+            fields.append(
+                {
+                    "location": location,
+                    "field": name,
+                    "type": clean(parameter.get("type", "unknown")),
+                    "required": bool(parameter.get("required", False)),
+                    "description": clean(parameter.get("description", "")),
+                    "enum": parameter.get("enum", []),
+                    "enumDesc": clean(parameter.get("enumDesc", "")),
+                }
+            )
+    return fields
+
+
+def swagger_response_fields(operation: dict[str, Any], data: dict[str, Any]) -> list[dict[str, Any]]:
+    responses = operation.get("responses")
+    if not isinstance(responses, dict):
+        return []
+    response = responses.get("200") or responses.get(200) or next(iter(responses.values()), {})
+    if not isinstance(response, dict):
+        return []
+    schema = response.get("schema")
+    if not isinstance(schema, dict):
+        return []
+    return flatten_schema(schema, data)
+
+
+def extract_swagger_contracts(path: Path, app_name: str) -> dict[str, dict[str, Any]]:
+    if not path.exists():
+        return {}
+    data = json.loads(read_text(path))
+    contracts: dict[str, dict[str, Any]] = {}
+    paths = data.get("paths", {})
+    if not isinstance(paths, dict):
+        return contracts
+    for path_value, methods in paths.items():
+        if not isinstance(methods, dict):
+            continue
+        for method, operation in methods.items():
+            if method.lower() not in HTTP_METHODS:
+                continue
+            operation = operation if isinstance(operation, dict) else {}
+            tags = operation.get("tags") if isinstance(operation.get("tags"), list) else []
+            contracts[str(path_value)] = {
+                "appName": app_name,
+                "module": str(tags[0]) if tags else "",
+                "title": clean(operation.get("summary") or operation.get("operationId") or path_value),
+                "path": str(path_value),
+                "method": method.upper(),
+                "source_type": "swagger",
+                "request_fields": swagger_request_fields(operation, data),
+                "response_fields": swagger_response_fields(operation, data),
+            }
+    return contracts
+
+
+def module_for(record: dict[str, Any], context: dict[str, Any]) -> str:
+    files = [short_file(str(item)) for item in record.get("files", [])]
+    if context.get("service_file"):
+        files.append(short_file(str(context["service_file"])))
+    for name in files:
+        if name in MODULE_BY_FILE:
+            return MODULE_BY_FILE[name]
+    return clean(record.get("module_hint")) or clean(record.get("semantic_hint")) or "未归类"
+
+
+def choose_title(symbols: list[str], records: list[dict[str, Any]], contexts: list[dict[str, Any]], swagger: dict[str, Any] | None) -> str:
+    if swagger and swagger.get("title"):
+        return clean(swagger["title"])
+    for symbol in symbols:
+        if symbol in PURPOSE_BY_SYMBOL:
+            return PURPOSE_BY_SYMBOL[symbol]
+    for context in contexts:
+        if context.get("description"):
+            return clean(context["description"])
+    for record in records:
+        if record.get("semantic_hint"):
+            return clean(record["semantic_hint"])
+    return symbols[0] if symbols else "未命名接口"
+
+
+def sanitize_filename(title: str) -> str:
+    value = re.sub(r"[\\/:*?\"<>|]", "", clean(title))
+    value = re.sub(r"\s+", "", value)
+    value = value.strip(". ")
+    return value or "未命名接口"
+
+
+def unique_fields(fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen = set()
+    result = []
+    for field in fields:
+        key = (field.get("field", ""), field.get("type", ""), field.get("description", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(field)
+    return result
+
+
+def ensure_request_fields(fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if fields:
+        return fields
+    return [
+        {
+            "field": "body",
+            "type": "Record<string, never>",
+            "required": False,
+            "description": "无请求字段或项目当前按空对象提交",
+            "enum": [],
+            "enumDesc": "",
+        }
+    ]
+
+
+def ensure_response_fields(fields: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if fields:
+        return fields
+    return [
+        {
+            "field": "data",
+            "type": "unknown",
+            "required": False,
+            "description": "项目当前未声明具体响应结构，需正式接口文档校准",
+            "enum": [],
+            "enumDesc": "",
+        }
+    ]
+
+
+def build_contracts(root: Path, app_name: str, swagger_path: Path | None) -> list[dict[str, Any]]:
+    records_by_symbol = collect_api_usage(root, parse_api_config(root))
+    type_map = parse_exported_types(root)
+    contexts_by_symbol = extract_service_context(root)
+    swagger_by_path = extract_swagger_contracts(swagger_path, app_name) if swagger_path else {}
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for record in records_by_symbol.values():
+        if not record.get("path"):
+            continue
+        grouped.setdefault(record["path"], []).append(record)
+    contracts: list[dict[str, Any]] = []
+    for path_value, records in grouped.items():
+        symbols = sorted(record["symbol"] for record in records)
+        contexts = [contexts_by_symbol.get(symbol, {}) for symbol in symbols]
+        swagger = swagger_by_path.get(path_value)
+        method = swagger.get("method") if swagger else next((ctx.get("method") for ctx in contexts if ctx.get("method")), "POST")
+        title = choose_title(symbols, records, contexts, swagger)
+        module = swagger.get("module") if swagger and swagger.get("module") else module_for(records[0], contexts[0] if contexts else {})
+        source_type = "swagger" if swagger else "project-extracted"
+        request_fields: list[dict[str, Any]] = []
+        response_fields: list[dict[str, Any]] = []
+        if swagger:
+            request_fields = swagger.get("request_fields", [])
+            response_fields = swagger.get("response_fields", [])
+        else:
+            for symbol in symbols:
+                context = contexts_by_symbol.get(symbol, {})
+                request_fields.extend(context.get("body_fields") or flatten_type(context.get("request_type", ""), type_map))
+                response_fields.extend(flatten_type(context.get("response_type", "unknown"), type_map))
+        contracts.append(
+            {
+                "appName": app_name,
+                "module": module,
+                "title": title,
+                "path": path_value,
+                "method": method or "POST",
+                "source_type": source_type,
+                "symbols": symbols,
+                "request_fields": ensure_request_fields(unique_fields(request_fields)),
+                "response_fields": ensure_response_fields(unique_fields(response_fields)),
+                "keywords": unique_keywords([title, module, path_value, *symbols]),
+            }
+        )
+    return sorted(contracts, key=lambda item: (item["module"], item["title"], item["path"]))
+
+
+def unique_keywords(values: list[str]) -> list[str]:
+    keywords: list[str] = []
+    for value in values:
+        for part in re.split(r"[\s,，/]+", clean(value)):
+            if part and part not in keywords:
+                keywords.append(part)
+    return keywords
+
+
+def field_row(field: dict[str, Any]) -> str:
+    enum_value = field.get("enum", [])
+    enum_text = ", ".join(str(item) for item in enum_value) if isinstance(enum_value, list) else clean(enum_value)
+    return "| `{field}` | {type} | {required} | {desc} | {enum_text} | {enum_desc} |".format(
+        field=clean_inline(field.get("field", "")),
+        type=clean_inline(field.get("type", "unknown")),
+        required="yes" if field.get("required") else "no",
+        desc=clean_inline(field.get("description", "")),
+        enum_text=clean_inline(enum_text),
+        enum_desc=clean_inline(field.get("enumDesc", "")),
+    )
+
+
+def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
+    doc_status = "正式接口文档" if contract["source_type"] == "swagger" else "项目已用，待正式文档校准"
+    today = date.today().isoformat()
+    lines = [
+        "---",
+        f"title: {contract['title']}",
+        "type: api-contract",
+        "status: active",
+        "tags:",
+        "  - api",
+        "  - api-contract",
+        f"  - {app_name}",
+        f"appName: {app_name}",
+        f"path: {contract['path']}",
+        f"method: {contract['method']}",
+        f"source_type: {contract['source_type']}",
+        f"created: {today}",
+        f"updated: {today}",
+        f"summary: {app_name} 的{contract['title']}接口契约。",
+        "next_action: 使用时先通过 _indexes 命中本文件，再按入参/出参落地代码。",
+        "---",
+        "",
+        f"# {contract['title']}",
+        "",
+        "## 定位",
+        "",
+        f"- appName：[[API/apps/{app_name}/{app_name}|{app_name}]]",
+        f"- 模块：{contract['module']}",
+        f"- API symbol：{', '.join(f'`{symbol}`' for symbol in contract['symbols'])}",
+        f"- Method / Path：`{contract['method']} {contract['path']}`",
+        "- 鉴权：默认走全局请求头；具体是否带 token 以调用处 `withAuth` 为准。",
+        f"- 文档状态：{doc_status}",
+        "",
+        "## 用途",
+        "",
+        f"{contract['title']}。如需确认 baseURL、响应码、header 或原生交互字段，先从 app 节点进入对应全局文档。",
+        "",
+        "## Request Fields",
+        "",
+        "| Field | Type | Required | Description | Enum | Enum Desc |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    lines.extend(field_row(field) for field in contract["request_fields"])
+    lines.extend(
+        [
+            "",
+            "## Response Fields",
+            "",
+            "| Field | Type | Required | Description | Enum | Enum Desc |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    lines.extend(field_row(field) for field in contract["response_fields"])
+    lines.extend(
+        [
+            "",
+            "## 状态码和业务判断",
+            "",
+            "- `S1566C`：请求成功，业务层读取响应 `data`。",
+            "- `Q3394V`：token 过期，触发退出登录/原生退出。",
+            "- 其他 code：按接口错误信息提示并中断当前流程。",
+            "",
+            "## 关键词",
+            "",
+            ", ".join(f"`{keyword}`" for keyword in contract["keywords"]),
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_global_config(root: Path, app_name: str) -> str:
+    envs = parse_env_files(root)
+    http = root / "src" / "services" / "http.ts"
+    text = read_text(http) if http.exists() else ""
+    header_keys = sorted(set(re.findall(r"headers\[['\"]([^'\"]+)['\"]\]", text)))
+    today = date.today().isoformat()
+    lines = [
+        "---",
+        f"title: {app_name} 全局配置",
+        "type: api-app-config",
+        "status: active",
+        "tags:",
+        "  - api",
+        "  - app-config",
+        f"  - {app_name}",
+        f"created: {today}",
+        f"updated: {today}",
+        f"summary: {app_name} 的 API baseURL、响应码、请求头和全局取值来源。",
+        "next_action: 接接口时先读取本文件确认 baseURL、header key 和响应码。",
+        "---",
+        "",
+        f"# {app_name} 全局配置",
+        "",
+        "## App 信息",
+        "",
+        "| 字段 | 取值 | 来源 |",
+        "| --- | --- | --- |",
+    ]
+    merged = {}
+    for values in envs.values():
+        merged.update(values)
+    app_fields = [
+        ("appName", merged.get("VITE_APP_NAME", "ConfiQ"), "VITE_APP_NAME"),
+        ("appVersion", merged.get("VITE_APP_VERSION", "1.0.0"), "VITE_APP_VERSION"),
+        ("businessLine", merged.get("VITE_APP_BUSINESS_LINE", "5"), "VITE_APP_BUSINESS_LINE"),
+        ("platformType", "1", "请求头固定值 x0665g"),
+        ("token", merged.get("VITE_NATIVE_TOKEN_QUERY_KEY", ""), "VITE_NATIVE_TOKEN_QUERY_KEY / 本地缓存"),
+        ("loginId", merged.get("VITE_NATIVE_LOGIN_ID_QUERY_KEY", ""), "VITE_NATIVE_LOGIN_ID_QUERY_KEY / 本地缓存"),
+        ("device", merged.get("VITE_NATIVE_DEVICE_QUERY_KEY", ""), "VITE_NATIVE_DEVICE_QUERY_KEY"),
+        ("ip", "device.yapese.returned", "Native 设备信息，本机 IP"),
+        ("deviceId", "device.yapese.toughy", "Native 设备信息，设备 deviceId"),
+        ("drmid", "device.smds.tarlatan", "Native 设备信息，DRM ID"),
+        ("afid", "", "当前项目 header r1408o 为空字符串"),
+        ("adid", "", "当前项目 header u7495s 为空字符串"),
+        ("gaid", "appInfo.gaid", "Native appInfo.gaid"),
+    ]
+    lines.extend(f"| `{key}` | `{value}` | {source} |" for key, value, source in app_fields)
+    lines.extend(
+        [
+            "",
+            "## 环境地址",
+            "",
+            "环境地址只记录后端接口访问地址，不记录 H5 页面地址。测试分支里的 `.env.production` 仍视为测试地址；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支读取。",
+            "",
+            "| 环境 | 后端 API baseURL | 来源 |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for row in collect_backend_api_envs(root, envs):
+        lines.append(f"| {row['env']} | `{row['url']}` | {row['source']} |")
+    lines.extend(
+        [
+            "",
+            "## 响应码",
+            "",
+            "| code | 含义 | 处理方式 |",
+            "| --- | --- | --- |",
+            "| `S1566C` | 成功 | 返回 `record.data` 给业务层 |",
+            "| `Q3394V` | token 过期 | 调用原生退出登录并抛出 401 |",
+            "| 其他 code | 业务失败 | Toast 提示 `msg` 并抛出错误 |",
+            "",
+            "## 请求头",
+            "",
+            "| Header key | 语义字段 | 说明 | 取值来源 |",
+            "| --- | --- | --- | --- |",
+            "| `Accept` | accept | JSON 响应 | 固定 `application/json` |",
+            "| `Content-Type` | contentType | JSON 请求体，FormData 时删除 | 固定 `application/json;` |",
+        ]
+    )
+    for key in header_keys:
+        if key in {"Accept", "Content-Type"}:
+            continue
+        semantic, desc, source = HEADER_SEMANTICS.get(key, ("unknown", "待确认", "项目代码"))
+        lines.append(f"| `{key}` | `{semantic}` | {desc} | {source} |")
+    lines.extend(
+        [
+            "",
+            "## 读取原则",
+            "",
+            "- 接口实现时不要猜 header key，先读本文件。",
+            "- 具体接口入参/出参只读命中的 contract，不遍历全部接口文档。",
+            "- token、loginId、device 信息还要结合 [[API/apps/{}/原生交互]] 判断混淆字段。".format(app_name),
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def extract_ts_object(text: str, name: str) -> dict[str, str]:
+    match = re.search(rf"export\s+const\s+{re.escape(name)}\s*=\s*{{", text)
+    if not match:
+        return {}
+    start = text.find("{", match.start())
+    end = find_matching_brace(text, start)
+    if end == -1:
+        return {}
+    body = text[start + 1 : end]
+    values: dict[str, str] = {}
+    for item in re.finditer(r"([A-Za-z_$][\w$]*)\s*:\s*['\"]([^'\"]+)['\"]", body):
+        values[item.group(1)] = item.group(2)
+    return values
+
+
+def build_native_bridge(root: Path, app_name: str, extra_mapping: dict[str, str] | None = None) -> str:
+    path = root / "src" / "utils" / "nativeFieldMap.ts"
+    text = read_text(path) if path.exists() else ""
+    methods = extract_ts_object(text, "NATIVE_METHOD_CODES")
+    callbacks = extract_ts_object(text, "NATIVE_CALLBACK_CODES")
+    fields = extract_ts_object(text, "NATIVE_FIELD_CODES")
+    extra_mapping = extra_mapping or {}
+    method_names = set(methods)
+    callback_names = set(callbacks)
+    for key, value in extra_mapping.items():
+        if key in callback_names or key.endswith("CallBack") or key == "onNativeBack":
+            callbacks.setdefault(key, value)
+        elif key in method_names or key in {
+            "goBack",
+            "logOut",
+            "getToken",
+            "getDeviceInfo",
+            "getAllPermissions",
+            "openAlbum",
+            "openContact",
+            "updateUserInfo",
+            "reload",
+            "toEditStepInfo",
+            "controlTab",
+            "firstLoanApplySuc",
+            "openBrowser",
+            "toLoanAgreement",
+            "openWebView",
+            "bannerJump",
+            "uploadAllRiskData",
+        }:
+            methods.setdefault(key, value)
+        else:
+            fields.setdefault(key, value)
+    today = date.today().isoformat()
+    lines = [
+        "---",
+        f"title: {app_name} 原生交互",
+        "type: api-native-bridge",
+        "status: active",
+        "tags:",
+        "  - api",
+        "  - native-bridge",
+        f"  - {app_name}",
+        f"created: {today}",
+        f"updated: {today}",
+        f"summary: {app_name} 的原生方法、callback、字段和混淆名。",
+        "next_action: 涉及 WebView/Native 交互时先读本文件确认方法名和字段名。",
+        "---",
+        "",
+        f"# {app_name} 原生交互",
+        "",
+        "## 方法",
+        "",
+        "| 语义方法 | 混淆名 | 方向 | 来源 |",
+        "| --- | --- | --- | --- |",
+    ]
+    for key, value in sorted(methods.items()):
+        source = "用户提供" if extra_mapping.get(key) == value else "项目代码"
+        lines.append(f"| `{key}` | `{value}` | H5 -> Native | {source} |")
+    lines.extend(["", "## Callback", "", "| 语义 callback | 混淆名 | 方向 | 来源 |", "| --- | --- | --- | --- |"])
+    for key, value in sorted(callbacks.items()):
+        source = "用户提供" if extra_mapping.get(key) == value else "项目代码"
+        lines.append(f"| `{key}` | `{value}` | Native -> H5 | {source} |")
+    lines.extend(["", "## 字段", "", "| 语义字段 | 混淆名 | 用途/状态 | 来源 |", "| --- | --- | --- | --- |"])
+    pending = {"status", "adid", "deviceId"}
+    for key, value in sorted(fields.items()):
+        source = "用户提供" if extra_mapping.get(key) == value else "项目代码"
+        status = "使用点待确认" if key in pending and source == "用户提供" else "原生交互字段"
+        lines.append(f"| `{key}` | `{value}` | {status} | {source} |")
+    lines.extend(
+        [
+            "",
+            "## 使用原则",
+            "",
+            "- 服务端接口字段和原生 bridge 字段分开处理，不把原生字段当作服务端 response key 替换。",
+            "- H5 发送给 Native 前可按混淆字段编码，Native 回调进入业务前再还原为语义字段。",
+            "- URL query 中的 token、loginId、device key 以本文件和 [[API/apps/{}/全局配置]] 为准。".format(app_name),
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def write_indexes(app_dir: Path, app_name: str, contracts: list[dict[str, Any]], file_by_path: dict[str, str]) -> None:
+    index_dir = app_dir / "_indexes"
+    index_dir.mkdir(parents=True, exist_ok=True)
+    rows = []
+    by_path = {}
+    by_symbol = {}
+    for contract in contracts:
+        rel_file = f"contracts/{file_by_path[contract['path']]}"
+        row = {
+            "appName": app_name,
+            "module": contract["module"],
+            "title": contract["title"],
+            "symbols": contract["symbols"],
+            "path": contract["path"],
+            "method": contract["method"],
+            "contract_file": rel_file,
+            "keywords": contract["keywords"],
+            "request_field_count": len(contract["request_fields"]),
+            "response_field_count": len(contract["response_fields"]),
+            "doc_status": "正式接口文档" if contract["source_type"] == "swagger" else "项目已用，待正式文档校准",
+            "source_type": contract["source_type"],
+        }
+        rows.append(row)
+        by_path[contract["path"]] = row
+        for symbol in contract["symbols"]:
+            by_symbol[symbol] = row
+    write_text(index_dir / "contracts.jsonl", "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows))
+    write_text(index_dir / "by-path.json", json.dumps(by_path, ensure_ascii=False, indent=2) + "\n")
+    write_text(index_dir / "by-symbol.json", json.dumps(by_symbol, ensure_ascii=False, indent=2) + "\n")
+
+
+def write_human_index(app_dir: Path, app_name: str, contracts: list[dict[str, Any]], file_by_path: dict[str, str]) -> None:
+    today = date.today().isoformat()
+    lines = [
+        "---",
+        f"title: {app_name} 接口索引",
+        "type: api-contract-index",
+        "status: active",
+        "tags:",
+        "  - api",
+        "  - api-contract-index",
+        f"  - {app_name}",
+        f"created: {today}",
+        f"updated: {today}",
+        f"summary: {app_name} 的接口快速定位入口。",
+        "next_action: 按接口作用、API symbol 或 path 定位 contract。",
+        "---",
+        "",
+        f"# {app_name} 接口索引",
+        "",
+        f"- appName：`{app_name}`",
+        f"- 接口数：{len(contracts)}",
+        f"- 正式 Swagger 覆盖：{len([item for item in contracts if item['source_type'] == 'swagger'])}",
+        f"- 项目已用待校准：{len([item for item in contracts if item['source_type'] != 'swagger'])}",
+        "",
+        "## 使用方式",
+        "",
+        "- 人看：先在本页按中文用途、API symbol 或 path 找接口，再打开 contract。",
+        "- 工作流看：先读 `_indexes/contracts.jsonl`，命中后只打开对应 contract。",
+        "",
+    ]
+    modules = sorted({contract["module"] for contract in contracts})
+    for module in modules:
+        lines.extend([f"## {module}", "", "| 用途 | API symbol | Method / Path | 入参 | 出参 | 文档状态 |", "| --- | --- | --- | --- | --- | --- |"])
+        for contract in [item for item in contracts if item["module"] == module]:
+            link = f"[[API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
+            status = "正式接口文档" if contract["source_type"] == "swagger" else "项目已用，待正式文档校准"
+            lines.append(
+                "| {link} | {symbols} | `{method} {path}` | {req} | {resp} | {status} |".format(
+                    link=link,
+                    symbols=", ".join(f"`{symbol}`" for symbol in contract["symbols"]),
+                    method=contract["method"],
+                    path=contract["path"],
+                    req=len(contract["request_fields"]),
+                    resp=len(contract["response_fields"]),
+                    status=status,
+                )
+            )
+        lines.append("")
+    write_text(app_dir / "contracts" / "索引.md", "\n".join(lines))
+
+
+def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]], project_root: Path, extra_mapping: dict[str, str] | None, swagger_path: Path | None, clean_legacy: bool) -> dict[str, Any]:
+    api_root = kb_root / "API"
+    app_root = api_root / "apps"
+    app_dir = app_root / app_name
+    if app_dir.exists():
+        shutil.rmtree(app_dir)
+    (app_dir / "contracts").mkdir(parents=True, exist_ok=True)
+    (app_dir / "raw").mkdir(parents=True, exist_ok=True)
+    file_by_path: dict[str, str] = {}
+    used_names: dict[str, int] = {}
+    for contract in contracts:
+        base = sanitize_filename(contract["title"])
+        count = used_names.get(base, 0) + 1
+        used_names[base] = count
+        filename = f"{base}.md" if count == 1 else f"{base}{count}.md"
+        file_by_path[contract["path"]] = filename
+        write_text(app_dir / "contracts" / filename, contract_markdown(contract, app_name))
+    write_human_index(app_dir, app_name, contracts, file_by_path)
+    write_indexes(app_dir, app_name, contracts, file_by_path)
+    write_text(app_dir / "全局配置.md", build_global_config(project_root, app_name))
+    write_text(app_dir / "原生交互.md", build_native_bridge(project_root, app_name, extra_mapping))
+    if swagger_path and swagger_path.exists():
+        shutil.copyfile(swagger_path, app_dir / "raw" / swagger_path.name)
+    today = date.today().isoformat()
+    contract_links = [
+        f"- [[API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
+        for contract in contracts
+    ]
+    write_text(
+        app_dir / f"{app_name}.md",
+        "\n".join(
+            [
+                "---",
+                f"title: {app_name}",
+                "type: api-app",
+                "status: active",
+                "tags:",
+                "  - api",
+                "  - app",
+                f"  - {app_name}",
+                f"appName: {app_name}",
+                f"created: {today}",
+                f"updated: {today}",
+                f"summary: {app_name} 的接口、全局配置和原生交互中心节点。",
+                "next_action: 从这里进入接口索引、全局配置或原生交互。",
+                "---",
+                "",
+                f"# {app_name}",
+                "",
+                "## 入口",
+                "",
+                f"- 工作流入口：[[API/apps/{app_name}/README|README]]",
+                f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+                f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
+                f"- 原生交互：[[API/apps/{app_name}/原生交互]]",
+                "",
+                "## 接口",
+                "",
+                *contract_links,
+                "",
+            ]
+        ),
+    )
+    write_text(
+        app_dir / "README.md",
+        "\n".join(
+            [
+                "---",
+                f"title: {app_name} API 入口",
+                "type: api-app-index",
+                "status: active",
+                "tags:",
+                "  - api",
+                f"  - {app_name}",
+                f"created: {today}",
+                f"updated: {today}",
+                f"summary: {app_name} 的接口契约、全局配置、原生交互和快速索引入口。",
+                "next_action: 工作流使用时先读 _indexes，再打开命中的 contract。",
+                "---",
+                "",
+                f"# {app_name} API 入口",
+                "",
+                "## 入口",
+                "",
+                f"- App 节点：[[API/apps/{app_name}/{app_name}|{app_name}]]",
+                f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
+                f"- 原生交互：[[API/apps/{app_name}/原生交互]]",
+                f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+                "",
+                "## 工作流读取顺序",
+                "",
+                "1. 读取本文件确认 appName。",
+                "2. 读取 `_indexes/contracts.jsonl` 按 path、symbol 或关键词命中接口。",
+                "3. 只打开命中的 `contracts/<中文接口作用>.md`。",
+                "4. 涉及 baseURL/header/响应码时读取 `全局配置.md`。",
+                "5. 涉及 WebView/Native 字段时读取 `原生交互.md`。",
+                "",
+            ]
+        ),
+    )
+    write_text(
+        api_root / "MOC.md",
+        "\n".join(
+            [
+                "---",
+                "title: API 接口契约知识地图",
+                "type: index",
+                "status: active",
+                "tags:",
+                "  - api",
+                "  - contract",
+                "  - moc",
+                f"created: {today}",
+                f"updated: {today}",
+                "summary: 按 appName 维护 H5 和 Flutter 共用的接口契约、全局配置、原生交互和快速索引。",
+                "next_action: 新增或更新 app 接口时，进入 API/apps/<appName> 并更新索引。",
+                "---",
+                "",
+                "# API 接口契约知识地图",
+                "",
+                "## 入口",
+                "",
+                "- App 接口归档：[[API/apps/MOC]]",
+                "",
+                "## 使用原则",
+                "",
+                "- 只按 appName 划分，不按新/旧系统或国家划分。",
+                "- 每个 app 的真实接口文档就是该 app 的实现依据。",
+                "- 工作流先读 app 索引，再打开命中的接口 contract，不遍历全量内容。",
+                "- 服务端接口、全局 header、原生 bridge 字段分开记录，使用时按需读取。",
+                "",
+            ]
+        ),
+    )
+    app_index_row = {
+        "appName": app_name,
+        "app_dir": f"API/apps/{app_name}",
+        "app_node": f"API/apps/{app_name}/{app_name}.md",
+        "readme": f"API/apps/{app_name}/README.md",
+        "global_config": f"API/apps/{app_name}/全局配置.md",
+        "native_bridge": f"API/apps/{app_name}/原生交互.md",
+        "contract_index": f"API/apps/{app_name}/_indexes/contracts.jsonl",
+        "contract_count": len(contracts),
+        "updated": today,
+    }
+    app_index_path = app_root / "_app-index.jsonl"
+    app_index_rows: dict[str, dict[str, Any]] = {}
+    if app_index_path.exists():
+        for line in read_text(app_index_path).splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row.get("appName"):
+                app_index_rows[str(row["appName"])] = row
+    app_index_rows[app_name] = app_index_row
+    sorted_app_rows = [app_index_rows[key] for key in sorted(app_index_rows)]
+    write_text(app_index_path, "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in sorted_app_rows))
+    app_links = [f"- [[API/apps/{row['appName']}/README|{row['appName']}]]" for row in sorted_app_rows]
+    write_text(
+        app_root / "MOC.md",
+        "\n".join(
+            [
+                "---",
+                "title: API App 索引",
+                "type: index",
+                "status: active",
+                "tags:",
+                "  - api",
+                "  - app-index",
+                f"created: {today}",
+                f"updated: {today}",
+                "summary: 所有按 appName 归档的接口知识入口。",
+                "next_action: 使用 _app-index.jsonl 快速定位 app 目录。",
+                "---",
+                "",
+                "# API App 索引",
+                "",
+                *app_links,
+                "",
+                "## 工作流读取",
+                "",
+                "- 先读 `_app-index.jsonl` 定位 appName。",
+                "- 再读对应 app 的 `_indexes/contracts.jsonl` 定位接口。",
+                "",
+            ]
+        ),
+    )
+    legacy = api_root / "新系统接口"
+    if clean_legacy and legacy.exists():
+        shutil.rmtree(legacy)
+    return {"app_dir": str(app_dir), "contract_count": len(contracts), "file_by_path": file_by_path}
+
+
+def parse_extra_mapping(value: str) -> dict[str, str]:
+    if not value:
+        return {}
+    raw = value
+    path = Path(value)
+    if path.exists():
+        raw = read_text(path)
+    raw = raw.lstrip("\ufeff").strip()
+    data = json.loads(raw)
+    return {str(key): str(item) for key, item in data.items()}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project-root", required=True, type=Path)
+    parser.add_argument("--kb-root", required=True, type=Path)
+    parser.add_argument("--app-name", required=True)
+    parser.add_argument("--swagger", type=Path)
+    parser.add_argument("--extra-native-mapping-json", default="")
+    parser.add_argument("--clean-legacy", action="store_true")
+    args = parser.parse_args()
+
+    swagger_path = args.swagger or (args.project_root / "swaggerApi.json")
+    contracts = build_contracts(args.project_root, args.app_name, swagger_path if swagger_path.exists() else None)
+    result = write_app_docs(
+        args.kb_root,
+        args.app_name,
+        contracts,
+        args.project_root,
+        parse_extra_mapping(args.extra_native_mapping_json),
+        swagger_path if swagger_path.exists() else None,
+        args.clean_legacy,
+    )
+    print(
+        json.dumps(
+            {
+                "appName": args.app_name,
+                "app_dir": result["app_dir"],
+                "contracts": result["contract_count"],
+                "swagger": len([item for item in contracts if item["source_type"] == "swagger"]),
+                "project_extracted": len([item for item in contracts if item["source_type"] != "swagger"]),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

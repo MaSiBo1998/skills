@@ -1,0 +1,4 @@
+interface:
+  display_name: "API 文档入库"
+  short_description: "把项目接口整理进个人知识库并生成快速索引"
+  default_prompt: "使用 api-doc-kb-archiver 将项目接口文档归档到 D:\\code\\my-project\\personal-ai-kb\\API\\apps\\<appName>。按 appName 生成 <appName>.md 作为 Obsidian app 中心节点、README.md、全局配置.md、原生交互.md、contracts/索引.md、中文命名的独立接口 contract，以及 _indexes/contracts.jsonl、by-path.json、by-symbol.json。全局配置里的环境地址只记录后端 API 测试/正式地址；测试分支里的 .env.production 仍按测试地址处理，正式地址只从 master、master-co、master-ng 等正式分支读取。接口 contract 只双链到 <appName>.md，不直接双链到全局配置或原生交互，避免图谱被公共配置节点刷屏。用户可见文档不要展示代码文件路径、hash 文件名或生成过程；工作流使用接口时必须先读索引再打开命中的 contract，不遍历全部内容。"

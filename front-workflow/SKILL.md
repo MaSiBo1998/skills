@@ -52,11 +52,12 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 | 方向/场景 | 默认读取 |
 | --- | --- |
-| frontend / H5 / 管理后台 / 设计图 / 接口联调 | `README.md`、`Home.md`、`10-前端工程/MOC.md` |
-| flutter | `README.md`、`Home.md`、`12-Flutter学习/MOC.md` |
-| backend / Java | `README.md`、`Home.md`、`15-Java学习/MOC.md` |
-| AI / LLM / Agent / RAG | `README.md`、`Home.md`、`20-AI应用工程/MOC.md` |
-| workflow/meta | `README.md`、`Home.md`，必要时读取 `20-AI应用工程/MOC.md` 中的工作流说明 |
+| frontend / H5 / 管理后台 / 设计图 / 接口联调 | `README.md`、`Home.md`、`Web/MOC.md` |
+| API / 接口契约 / H5 + Flutter appName 接口映射 | `README.md`、`Home.md`、`API/MOC.md` |
+| flutter | `README.md`、`Home.md`、`Flutter/MOC.md` |
+| backend / Java | `README.md`、`Home.md`、`Java/MOC.md` |
+| AI / LLM / Agent / RAG | `README.md`、`Home.md`、`AI/MOC.md` |
+| workflow/meta | `README.md`、`Home.md`，必要时读取 `AI/MOC.md` 中的工作流说明 |
 
 知识库只承接学习笔记、项目理解、踩坑复盘和可复用知识点；workflow 触发、验收和 skill 调度规则仍沉淀到 `Desktop\skills`。两类沉淀必须分开展示、分开确认、分开写入。
 
@@ -109,6 +110,8 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 - Scene B 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
 - 用户直接贴出目标文件里的少量现有代码，并明确要求调整局部调用顺序、并行化互不依赖的 async，或修正 `loading/initializing` 一类状态收口条件时，按高置信度普通功能小改直接定位实现，不先停在方案描述。
 - 只有证据表明确实需要时，才追加 `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、设计图能力或发布能力。
+- 用户要求“接口文档入库、记录接口到知识库、整理项目接口、从项目提取接口、归档 app 接口、生成接口 contract”时，先调度 `api-doc-kb-archiver` 写入 `personal-ai-kb/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和 `_indexes`。
+- H5 或 Flutter 命中项目/appName 接口文档、只读取项目用到接口、混淆字段落地或接口契约使用时，先追加 `api-contract-mapping` 做跨端接口契约定位，再交给对应方向实现。
 - 不要因为命中关键词，就机械把所有可选 skill 串上。
 - 验收总是收口，但等级按风险控制，不让小改自动升级成全量重流程。
 
@@ -152,6 +155,8 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 ## 当前前端子 skill
 
 - `h5-vendor-architecture`
+- `api-doc-kb-archiver`
+- `api-contract-mapping`
 - `h5-api-mapping`
 - `h5-apply-flow`
 - `h5-first-reloan-flow`

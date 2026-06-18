@@ -1,6 +1,6 @@
 ---
 name: h5-api-mapping
-description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json、api.json、api.md、api.html，生成字段映射表，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
+description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json、api.json、api.md、api.html，生成字段映射表，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；按项目/appName 接口 contract 落地时，先调用 api-contract-mapping 从 API/apps/<appName> 按索引读取命中接口；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
 ---
 
 # H5 接口映射
@@ -12,10 +12,11 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 - 普通接口适配：新增接口、接口字段变化、请求/响应结构调整。
 - 同结构、不同混淆字段替换：复制旧 H5 项目作为新项目时，业务流程、接口语义、请求入参和返回数据结构保持一致，只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段。
 - 项目类型基准替换：`src/types/home.ts` 是首页信息接口结构规范，`src/types/device.ts` 是原生交互传入的设备信息结构规范，`src/types/bankList.ts` 是银行列表结构规范；新接口文档替换时以这三份 types 为结构基准，只替换 key 值。
+- appName 接口契约定位：项目/appName 的接口 contract 就是实现依据；只按 appName 归档，不按国家、新旧系统拆分。先调用 `api-contract-mapping`，读取 `API/apps/<appName>/README.md` 和 `_indexes/contracts.jsonl`，再按需读取对应 `contracts/*.md`。
 
 ## 执行方式
 
-1. 按 `swaggerApi.json -> api.json -> api.md -> api.html` 顺序查找接口文档。
+1. 按 `swaggerApi.json -> api.json -> api.md -> api.html` 顺序查找项目内接口文档；若需要从 KB 读取项目/appName 接口文档，先调用 `api-contract-mapping`，并读取命中接口的 endpoint contracts。
 2. 加载 `references/api-mapping.md`，按其中原流程执行。
 3. 先按标准字段映射表模板输出字段映射表，再改代码。
 4. 若用户或接口文档说明“接口返回参数结构一样，只是参数名变化”，必须先做路径级字段映射：以旧字段的对象/数组层级、父子关系、同级关系为锚点，只替换字段名，不移动字段位置；不能因为字段语义或备注相近，把同级字段挪进另一个对象，或把对象内字段提升到外层。
@@ -27,6 +28,9 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 ## 约束
 
 - 接口字段名必须严格按文档。
+- H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应接口文档；缺文档或缺字段时标记需确认。
+- 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
+- 参考项目中真实调用但接口文档未覆盖的接口，必须沉淀为待补项目接口文档清单，不得忽略。
 - 不做无差别全局字符串替换。
 - API base URL、后端接口地址、固定请求头值、国家/产品差异等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。

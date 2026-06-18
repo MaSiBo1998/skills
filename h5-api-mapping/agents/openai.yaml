@@ -1,4 +1,4 @@
 interface:
   display_name: "H5 接口映射"
   short_description: "解析接口文档并迁移 H5/API 字段"
-  default_prompt: "使用 h5-api-mapping 解析接口文档，输出字段映射表，并迁移 H5 项目的 API 字段；支持同结构混淆字段替换，以项目 types 作为结构基准，只替换接口地址、请求头、请求入参、响应字段 key 和全局配置字段，不改业务流程、不改结构；API base URL、后端接口地址、固定请求头值、国家/产品差异必须优先收敛到 .env*，已有 .env* 或 Vite import.meta.env 时不要新增只 re-export env 的 src/config/app.js 薄封装，不散落硬编码；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。"
+  default_prompt: "使用 h5-api-mapping 解析接口文档，输出字段映射表，并迁移 H5 项目的 API 字段；按项目/appName 接口 contract 落地时，先调用 api-contract-mapping，按 appName 读取 API/apps/<appName>/README.md 和 _indexes/contracts.jsonl、by-path.json 或 by-symbol.json，再打开命中的 contracts/<中文接口作用>.md 获取 request/response fields；baseURL、header、响应码读取 全局配置.md，WebView/Native 字段读取 原生交互.md；字段、path、header、request key、response key 均以该 app 的接口 contract 为准；支持同结构混淆字段替换，以项目 types 作为结构基准，只替换接口地址、请求头、请求入参、响应字段 key 和全局配置字段，不改业务流程、不改结构；API base URL、后端接口地址、固定请求头值、国家/产品差异必须优先收敛到 .env*，已有 .env* 或 Vite import.meta.env 时不要新增只 re-export env 的 src/config/app.js 薄封装，不散落硬编码；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。"

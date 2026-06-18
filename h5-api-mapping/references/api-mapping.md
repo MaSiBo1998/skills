@@ -6,6 +6,25 @@
 
 如以上文件均不存在或用户未提供接口文档，跳过本模块。
 
+## appName 接口文档
+
+接口资料由 `api-contract-mapping` 先处理契约定位，本 skill 只负责 H5 项目落地。当前不维护全局未混淆源文档基准；每个 appName 的真实接口文档独立归档到个人知识库，并作为该 app 的唯一接口准绳，不按新/旧系统、国家拆分。
+
+| 文档 | 用途 | 约束 |
+| --- | --- | --- |
+| 项目/appName 接口文档 | 项目真实 path、header、request key、response key | 实现必须以它为准 |
+| 目标 H5 项目 | 提取实际使用接口和落地修改 | 只读取用到的接口小节 |
+
+执行顺序：
+
+1. 调用 `api-contract-mapping` 从目标项目提取 `used_api_manifest`。H5 项目优先读取 `src/services/api/config.ts`、`src/services/api/*.ts` 和 `src/types/**/*.ts`；`D:\code\H5\Confiq\confiq-h5` 是该结构的参考项目。
+2. 根据项目名或 appName 定位个人知识库中的 `API/apps/<appName>/` 接口文档索引；当前只按 appName 归档，不按国家、新旧系统维度拆分。
+3. 读取 `API/apps/<appName>/README.md` 和 `_indexes/contracts.jsonl`，按 API symbol、path 或中文用途定位接口；必要时用 `by-path.json` / `by-symbol.json` 精确命中。
+4. 只读取 `used_api_manifest` 命中的 contract，不默认读取全量项目接口文档。
+5. 读取对应 `contracts/*.md` 的 request fields 和 response fields；涉及 TypeScript 类型、响应解析、状态枚举或业务判断时必须以 response fields 为依据。
+6. 输出字段映射表。字段名、接口 path、header、request key、response key 均以该项目/appName 接口文档为准。
+7. 若项目代码与项目接口文档字段层级、数组结构、类型或状态枚举不一致，标记“结构不一致，需确认”，暂停自动替换。
+
 ## 通用模式：同结构、不同混淆字段替换
 
 本模式适用于“复制旧 H5 项目作为新项目，业务流程不变，只替换字段名和接口地址”的需求。执行时只允许替换：
@@ -41,7 +60,7 @@
 - 不改变枚举业务含义
 - 不把原生 bridge 方法名或 H5 全局回调字段当作服务端混淆字段替换
 
-字段映射表必须拆分为 `header`、`endpoint`、`request`、`response`、`global_config` 五类。每条记录包含接口/配置项、语义、旧混淆名或旧路径、新混淆名或新路径、涉及文件、状态。
+字段映射表必须拆分为 `header`、`endpoint`、`request`、`response`、`global_config` 五类。每条记录包含接口/配置项、语义、旧混淆名或旧路径、新混淆名或新路径、涉及文件、状态。按 appName 文档落地时，必须标明项目接口文档路径、命中的接口 contract 路径，最终项目代码只使用该 app 文档中的真实字段。
 
 如果文档显示结构不一致，或 `home.ts`、`device.ts`、`bankList.ts` 对应数据出现新增字段、缺字段、层级变化、类型变化，立即暂停并标记为“结构不一致，需确认”，不继续套用同结构替换模式。
 
@@ -65,6 +84,14 @@
 - `response`：响应字段。
 - `global_config`：`appName`、`baseURL`、成功码、token 过期码等配置。
 - `global_config` 还应覆盖线上 H5 域名、业务线/事业线等请求头业务值，避免写死在 HTTP 封装中。
+
+appName 项目文档补充列建议：
+
+| 补充列 | 说明 |
+| --- | --- |
+| 项目接口文档字段/路径 | 项目真实实现字段/路径 |
+| appName | 项目接口文档归档目录名 |
+| 结构同构 | `通过 / 不一致 / 需确认` |
 
 ## 解析流程
 
@@ -98,7 +125,7 @@
 
 ## 强约束：字段名必须严格按接口文档
 
-无论 swagger 文档中的字段名是否混淆（obfuscated），**必须严格按文档中的字段名发送请求和解析响应**，不可自己发明或沿用旧版本字段名：
+无论 swagger 文档中的字段名是否混淆（obfuscated），**必须严格按真实实现文档中的字段名发送请求和解析响应**，不可自己发明或沿用旧版本字段名。新系统场景下，真实实现文档就是项目/appName 对应接口文档：
 
 - **接口地址**：文档中的 `path` 即实际请求地址，不可自行修改
 - **请求头参数**：全局配置备注中定义的请求头字段名（如 `x-app-id`、`x-token`），必须替换 HTTP 封装层中的对应 header key
@@ -106,7 +133,7 @@
 - **响应字段**：`types` / `interface` 中的字段名必须与文档 `responses` 中的字段名完全一致
 - **类型定义**：若文档响应字段与现有类型定义不匹配，必须更新类型定义以匹配文档
 
-示例：如文档定义请求参数为 `bigamist`（appName），则代码发送时必须用 `bigamist` 作为 key，不得用 `abnormal`、`fatuous` 或其他同义名称。
+示例：如项目接口文档定义请求参数为 `bigamist`，则代码发送时必须用 `bigamist` 作为 key，不得用 `appName`、`abnormal`、`fatuous` 或其他同义名称。
 
 ## 危地马拉进件项目补充约束
 
