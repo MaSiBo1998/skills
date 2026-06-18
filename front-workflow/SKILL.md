@@ -5,16 +5,16 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 # 马嗣博主编排工作流
 
-本 skill 只做编排，不做方向内的大段业务实现说明。它的职责只有四件事：
+本 skill 只做入口编排，不承载方向内的大段业务细节。它的职责只有四件事：
 
 - 读取证据
 - 判定方向和场景
 - 拼装最小可行执行链
 - 识别阻塞问题并决定何时沉淀规则
 
-主 skill 不是总章程。方向内细节、场景细节、专项验收和未来扩展位都应下沉到 reference 或子 skill。
+方向内细节、专项验收和未来扩展位都必须下沉到 reference 或子 skill。
 
-## 快捷触发
+## 入口
 
 工作类请求默认先进入本 skill，并且要在开始实现或给出详细技术建议前完成入口判定。这里的工作类请求包括代码修改、项目开发、skill 调整、workflow 优化、H5/后台/Flutter、发布、发版检查、发布前检查、设计图、接口、字段、样式、文案和“帮我修一下/改一下/小需求”等普通改动。纯闲聊、翻译、查时间等明显非工作请求可以跳过本 skill。
 
@@ -29,7 +29,7 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 这些表达只是入口信号；进入后仍必须按证据判断方向和场景。
 
-## 工作流状态条
+## 状态条
 
 进入本 skill 后，在开始处理工作类请求时输出一行简短状态条，让用户知道当前确实由工作流处理：
 
@@ -41,141 +41,42 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 - 小需求也显示状态条，但验收按风险降为 `quick` 或 `focused`，不自动升级成重流程。
 - 状态条应作为工作类请求最早的用户可见输出之一；若必须先读取本 skill 或极少量元信息，也要在确认启用后尽快输出，避免用户无法判断当前是否已由工作流接管。
 
-## Knowledge Layer
-
-`D:\code\my-project\personal-ai-kb` 是用户的长期个人知识库。工作流开始后先判断本轮是否需要读取知识库：
-
-- 学习、解释、项目理解、踩坑复盘、概念类问题默认读取知识库。
-- 纯机械小改、明确不需要背景知识且风险很低的任务可标记 `知识库=跳过`，但交付时仍可给 KB 沉淀提案。
-- 不确定方向时，先读 `README.md` 和 `Home.md`，再搜索相关关键词定位笔记。
-- 使用知识库内容、引用既有笔记、或给出 KB 写入提案前，必须先读取 `README.md`、`Home.md` 和对应方向 `MOC.md`；若对应 MOC 缺失或方向无法判断，先读取 `README.md`、`Home.md` 并记录本轮定位依据，不凭空指定目标笔记。
-- KB 沉淀只承接学习笔记、项目理解、踩坑复盘和可复用知识点；workflow 触发、验收、skill 调度和工作流判断标准必须回到 `Desktop\skills` 的对应 skill。
-
-方向到知识库入口的默认映射：
-
-| 方向/场景 | 默认读取 |
-| --- | --- |
-| frontend / H5 / 管理后台 / 设计图 / 接口联调 | `README.md`、`Home.md`、`Web/MOC.md` |
-| API / 接口契约 / H5 + Flutter appName 接口映射 | `README.md`、`Home.md`、`API/MOC.md` |
-| flutter | `README.md`、`Home.md`、`Flutter/MOC.md` |
-| backend / Java | `README.md`、`Home.md`、`Java/MOC.md` |
-| AI / LLM / Agent / RAG | `README.md`、`Home.md`、`AI/MOC.md` |
-| workflow/meta | `README.md`、`Home.md`，必要时读取 `AI/MOC.md` 中的工作流说明 |
-
-两类沉淀必须分开展示、分开确认、分开写入。确认写入知识库只修改 `D:\code\my-project\personal-ai-kb`；确认沉淀 workflow 只修改 `Desktop\skills` 对应 skill、reference、回归样例或运行时同步配置。
-
 ## 优先读取
 
 执行本 skill 时，优先按以下顺序读取：
 
 1. `references/orchestrator-contract.md`
 2. `references/direction-registry.md`
-3. 当前方向对应的 scene map
+3. `references/knowledge-layer.md`
+4. 当前方向对应的 scene map
    - frontend：`references/frontend-scene-map.md`
    - workflow/meta：`references/workflow-meta-scene-map.md`
    - 普通 H5 功能/API 开发：按需读取 `references/h5-common-feature-flow.md`
-4. 相关子 skill / 验收 reference / checkpoint / automation memory
+5. `references/execution-chain.md`
+6. `references/learning-gate.md`
+7. 相关子 skill / 验收 reference / checkpoint / automation memory
 
-## 核心流程
+## 编排流程
 
-任何任务都按下面的稳定骨架推进：
-
-1. 读取用户输入、当前目录、项目结构、材料、checkpoint、automation memory，并按 `knowledge_layer` 判断是否读取个人知识库入口。
+1. 读取用户输入、当前目录、项目结构、材料、checkpoint、automation memory，并按 `knowledge-layer.md` 判断是否读取个人知识库入口。
 2. 先判 `primary_direction`，并保留 `candidate_directions`。
 3. 再判 `primary_scene`，并保留 `candidate_scenes` 与 `supporting_capabilities`。
-4. 按“输入补齐 -> 前置约束 -> 核心实现 -> 风险附加 -> 验收收口”拼出 `execution_chain`。
+4. 按 `execution-chain.md` 拼出最小可行 `execution_chain`。
 5. 只有缺少当前无法继续的最小信息时才问用户。
-6. 交付前执行 `learning_gate`，检查是否出现 KB 沉淀候选或 workflow 沉淀候选；若有候选，分别输出提案卡并等待用户确认，不直接改知识库或 workflow 文件。
+6. 交付前按 `learning-gate.md` 判断 KB / workflow 沉淀候选；用户确认前不写知识库或 workflow 文件。
 
-## 当前支持范围
+## 不变量
 
-- `frontend`：
-  当前 active。使用 `references/frontend-scene-map.md` 和现有前端子 skill。
-- `backend`：
-  当前 planned。若命中 backend 方向，先记录方向候选，做最小探索和轻量 spec；未落地 dedicated backend workflow 前，不伪装成已支持。
-- `flutter`：
-  当前 planned。若命中 flutter 方向，先记录方向候选，做最小探索和轻量 spec；未落地 dedicated flutter workflow 前，不把 Flutter 细节继续堆回主 skill。
-- `workflow/meta`：
-  当前 active。使用 `references/workflow-meta-scene-map.md`；指导建议和分类审查先由 `skill-workflow-advisor` 处理，明确规则沉淀和修改闭环由 `workflow-self-improvement` 处理。
-
-## 判定规则
-
-- 方向优先于场景；不要在方向未定时直接套 scene。
-- 触发词只是信号，不是最终路由。弱触发词只能形成候选。
-- 设计图、接口文档、告警、vendor、发布配置默认先视为 `supporting_capabilities`，不抢主方向和主场景。
-- 高置信度时直接执行；中置信度时写入 `assumptions` 后继续；低置信度时进入 K 做最小探索。
-- 如果方向尚未 active，只做扩展设计或最小分析，不伪装成“已经有完整 workflow”。
-
-## 执行链规则
-
-- 修改任何需求时默认先走最小改动：优先沿已有数据流、调用点、接口层和配置层就地接入，减少修改文件和跨模块耦合；只有复用价值、风险隔离或项目既有模式明确要求时，才新增 helper、中间层或抽象。
-- 没有专属 skill 的普通功能/API 开发，默认直接在目标项目实现。
-- 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
-- 用户直接贴出目标文件里的少量现有代码，并明确要求调整局部调用顺序、并行化互不依赖的 async，或修正 `loading/initializing` 一类状态收口条件时，按高置信度普通功能小改直接定位实现，不先停在方案描述。
-- 只有证据表明确实需要时，才追加 `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、设计图能力或发布能力。
-- 用户要求“接口文档入库、记录接口到知识库、整理项目接口、从项目提取接口、归档 app 接口、生成接口 contract”时，先调度 `api-doc-kb-archiver` 写入 `personal-ai-kb/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和 `_indexes`。
-- H5、Flutter、管理后台或其他客户端涉及接口 path、header、request/response 字段、状态枚举、类型/model 或业务判断时，先追加 `api-kb-contract-reader` 从 `personal-ai-kb/API/apps/<appName>` 读取命中 contract，再交给对应方向实现；若 KB 缺少 appName、contract 或字段结构，先调度 `api-doc-kb-archiver` 入库或输出需确认，不直接用本地 swagger/api 文档实现。
-- 不要因为命中关键词，就机械把所有可选 skill 串上。
-- 验收总是收口，但等级按风险控制，不让小改自动升级成全量重流程。
-
-## 少问用户
-
-- 先查再问，能从代码、目录、文档、checkpoint 推断的信息不问。
-- 不泛问“请提供完整信息”。
-- 每次只问一个最小阻塞问题。
-- 只有项目路径、目标模块、业务目标、高风险业务结论、关键外部依赖缺失时才问。
+- 方向先于场景，场景先于 supporting capability；触发词只是候选信号。
+- 普通 H5 横切规则只读 `h5-common-feature-flow.md`，不新增独立业务 skill。
+- 接口实现以 `personal-ai-kb/API/apps/<appName>` 的 KB contract 为准；本地 swagger/api 文档只能先入库。
+- 发版检查只调度 `release-precheck`；用户确认正式发布后才进入 `release-tag`。
+- workflow/meta 诊断先交给 `skill-workflow-advisor`；明确修改、沉淀、补回归、同步运行时交给 `workflow-self-improvement`。
+- backend/flutter 当前按 `direction-registry.md` 的 planned 规则处理，不把方向内细节塞回主 skill。
 
 ## Workflow/Meta
 
-当任务是优化 workflow、记住规则、修 skill、补回归或检查流程质量时：
-
-- 进入 `workflow/meta`，读取 `references/workflow-meta-scene-map.md`。
-- 若用户要“指导意见、分类归属、触发准确性、skill 体系设计、工作流体检”，先交给 `skill-workflow-advisor` 做诊断和建议。
-- 若用户明确要“记住、沉淀、修 skill、补回归、同步运行时”，或 advisor 发现明确可复用且归属清晰的规则，再交给 `workflow-self-improvement` 执行闭环。
-- 进入修改闭环前区分 `规则补丁 / 流程调优 / 全量巡检`。
-
-`Scene H` 是历史兼容叫法；新的指导审查规则由 `skill-workflow-advisor` 维护，具体修改、扫描范围、编排审查和回归评估闭环由 `workflow-self-improvement` 维护，不在主 skill 重复展开。
-
-## 确认式沉淀收口
-
-普通业务任务不应因为发现沉淀候选就改判成 `workflow/meta`；主场景仍按业务目标执行。验收收口时必须执行 `learning_gate`，判断是否需要给用户展示沉淀提案。
-
-以下信号应触发沉淀提案判断：重复人工修正、遗漏验收、新国家差异、新接口模式、发布规则变化、未知/复合需求兜底后形成稳定判断标准，或用户反馈“自动沉淀/自动学习没有触发”。
-
-若候选项明确、可复用且归属清晰，先主动告知沉淀方向、目标文件、规则摘要或笔记摘要、触发证据、风险等级和建议动作；只有用户确认后，才写入对应位置。学习知识写入 `D:\code\my-project\personal-ai-kb`，workflow 规则进入 `workflow-self-improvement` 修改、校验并同步运行时。未确认前只记录为候选。若候选项只是一事一例、归属不清或涉及高风险业务结论，交付时列为待确认沉淀项，不把一次性事实写成通用规则。
-
-## 未来扩展
-
-后续增加 backend/flutter 方向时，按以下顺序扩展：
-
-1. 更新 `references/direction-registry.md`
-2. 为新方向新增 scene map/reference
-3. 需要时新增 dedicated workflow/skill
-4. 只为受影响方向补验收和回归
-
-不要直接把 backend/flutter 的业务细节继续加长主 skill。
-
-## 当前前端子 skill
-
-- `h5-vendor-architecture`
-- `api-doc-kb-archiver`
-- `api-kb-contract-reader`
-- `h5-api-mapping`
-- `h5-apply-flow`
-- `h5-first-reloan-flow`
-- `h5-feishu-alert`
-- `h5-official-site`
-- `design-image-analysis`
-- `design-image-restore`
-- `release-precheck`
-- `release-tag`
-- `admin-management-flow`
-- `h5-testing-checklist`
-- `skill-workflow-advisor`
-- `workflow-self-improvement`
-- `spec-driven-development`
-- `workflow-orchestration-patterns`
-- `llm-evaluation`
+`workflow/meta` 是独立方向，不属于 frontend。历史 `Scene H` 只作为兼容别名；新规则见 `references/workflow-meta-scene-map.md`。
 
 ## 通用出口
 
