@@ -22,6 +22,8 @@ description: 跨端项目接口契约映射消费。用于 H5、Flutter 或其�
 - 缺少项目/appName 接口文档、缺少字段定义或结构不明确时，输出“需确认”，不要猜字段。
 - 不因为有接口全集就全量读取；必须先定位 appName，再通过 `_indexes/contracts.jsonl`、`_indexes/by-path.json` 或 `_indexes/by-symbol.json` 命中接口。
 - 命中后只读取对应 `contracts/<中文接口作用>.md`；需要 baseURL/header/响应码时再读 `全局配置.md`，需要 WebView/Native 字段时再读 `原生交互.md`。
+- KB 图谱关系以 `<appName>.md` 为中心；接口 contract 只应直接链接 appName 节点，不应直接链接公共的全局配置或原生交互节点。
+- `全局配置.md` 的环境地址只表示后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理，正式地址只从 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production` 读取。
 
 ## 执行方式
 

@@ -25,13 +25,15 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | Java 知识层读取 | 看一下这个 Java Controller 接口链路 | 自动进入 `front-workflow`，读取 `personal-ai-kb` 的 `README.md`、`Home.md` 和 `Java/MOC.md`，再结合目标项目代码分析 |
 | KB 与 Workflow 双提案 | 这次解释里有个 Flutter 概念可以记一下，同时工作流触发规则也要补 | 交付时分开展示 KB 沉淀提案和 Workflow 沉淀提案；确认写入知识库只改 `personal-ai-kb`，确认沉淀工作流只改 `Desktop\\skills` |
 | KB 写入确认 | 确认写入知识库：把 Dio 请求封装这段沉淀到 Flutter 笔记 | 只写入 `personal-ai-kb` 对应方向笔记并同步 MOC；不得修改 workflow skill 文件，除非用户另行确认 Workflow 沉淀 |
+| 外层规则回写 skill | 把上述 AGENTS.md 里的全局工作流门禁记录到工作流对应 skill 里面 | 进入 workflow/meta；将工作类请求强制入口、状态条、确认式沉淀和 KB/Workflow 分流规则沉淀到 `front-workflow`、`agents/openai.yaml`、交付模板或对应子 skill，而不是只依赖目录级 AGENTS.md |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有新接口文档也没启用 vendor | 主场景 B，直接在目标项目实现并按风险验收；不强行串 `h5-api-mapping` 或 `h5-vendor-architecture` |
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景 B；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
 | 项目接口文档即准绳 | 不保留 mx-api/co-api 源文档，直接按每个 appName 的接口文档开发 | 入库调度 `api-doc-kb-archiver`；使用调度 `api-contract-mapping`；项目真实 path/header/request/response 字段必须来自该 appName 接口文档，不维护全局源文档基准 |
 | API 入库按 appName | 用户要求“把接口文档记录到知识库、整理项目所有接口 contract” | 调度 `api-doc-kb-archiver`，写入 `personal-ai-kb/API/apps/<appName>`，生成 `全局配置.md`、`原生交互.md`、中文 contract 和 `_indexes`；不按新/旧系统或国家拆分 |
 | API 环境地址语义 | 生成 app 全局配置时记录环境地址 | 环境地址只指后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支读取 |
+| API 图谱关系收敛 | Obsidian 图谱里所有接口都连到全局配置/原生交互，公共节点被刷屏 | `api-doc-kb-archiver` 必须生成 `<appName>.md` 作为 app 中心节点；接口 contract 只直接双链到 appName 节点；全局配置和原生交互只由 appName 节点/README/索引承接 |
 | 只读项目用到接口 | 用 Confiq 这类 H5 项目做接口替换，swaggerApi.json 是项目接口全集 | 先从 `src/services/api/config.ts`、`src/services/api/*.ts` 和 types 提取 used API manifest，只读取命中的项目接口小节，不默认加载全量接口文档 |
-| 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；除 endpoint index 和 used API manifest 外，还要生成/读取 endpoint contracts，并按 `contracts/by-endpoint/index.jsonl` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
+| 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；每个实际接口都生成中文 contract，并通过 `_indexes/contracts.jsonl`、`by-path.json`、`by-symbol.json` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
 | appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |
 | Flutter 共用接口契约 | Flutter App 也用每个 appName 的接口文档和混淆字段 | 调度 `api-contract-mapping` 提取 Dio/request wrapper、endpoint constants、repository/service/model 中实际接口；接口契约层共用，Flutter 实现不走 `h5-api-mapping` 的 H5 落地规则 |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |

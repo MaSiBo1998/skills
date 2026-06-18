@@ -19,6 +19,13 @@ def has_chinese(value: str) -> bool:
     return bool(re.search(r"[\u4e00-\u9fff]", value))
 
 
+def find_app_index_row(path: Path, app_name: str) -> dict:
+    for row in read_jsonl(path):
+        if row.get("appName") == app_name:
+            return row
+    return {}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--kb-root", required=True, type=Path)
@@ -27,15 +34,16 @@ def main() -> int:
 
     api_root = args.kb_root / "API"
     app_dir = api_root / "apps" / args.app_name
+    app_index_path = api_root / "apps" / "_app-index.jsonl"
+    app_index_row = find_app_index_row(app_index_path, args.app_name)
     errors: list[str] = []
     required = [
         api_root / "MOC.md",
         api_root / "apps" / "MOC.md",
-        api_root / "apps" / "_app-index.jsonl",
+        app_index_path,
         app_dir / f"{args.app_name}.md",
         app_dir / "README.md",
         app_dir / "全局配置.md",
-        app_dir / "原生交互.md",
         app_dir / "contracts" / "索引.md",
         app_dir / "_indexes" / "contracts.jsonl",
         app_dir / "_indexes" / "by-path.json",
@@ -44,6 +52,15 @@ def main() -> int:
     for path in required:
         if not path.exists():
             errors.append(f"missing: {path}")
+    if not app_index_row:
+        errors.append(f"missing app index row: {args.app_name}")
+
+    native_bridge = app_index_row.get("native_bridge") if app_index_row else ""
+    native_bridge_path = app_dir / "原生交互.md"
+    if native_bridge and not (args.kb_root / native_bridge).exists():
+        errors.append(f"missing native bridge file: {args.kb_root / native_bridge}")
+    if not native_bridge and native_bridge_path.exists():
+        errors.append(f"unexpected native bridge file without app index evidence: {native_bridge_path}")
 
     rows = read_jsonl(app_dir / "_indexes" / "contracts.jsonl")
     for row in rows:

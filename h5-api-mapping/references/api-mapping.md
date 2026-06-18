@@ -40,6 +40,7 @@
 
 - 所有 service 层接口路径必须进入项目 API 配置层，例如 `src/services/api/config.ts` 的 `API` 常量；页面、hook、service 调用点不得散落硬编码接口 URL。
 - `VITE_API_BASE_URL`、`VITE_APP_NAME`、线上 H5 域名、业务线/事业线、成功码、token 过期码等可随国家或产品变化的配置，优先放入 `.env*`。已有 `.env*` 或 Vite `import.meta.env` 时，消费处可直接读取 `import.meta.env.VITE_*`；不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层。
+- KB `全局配置.md` 里的“环境地址”只表示后端 API 访问地址，只分测试和正式；测试分支里的 `.env.production` 仍按测试地址处理，正式地址只从 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production` 读取。H5 页面地址可另作配置字段，但不要混入环境地址表。
 - 请求头中的固定业务值如果来自产品/国家配置，例如业务线、事业线、渠道线，不得硬编码在 HTTP 封装中；应通过 `import.meta.env` 读取并提供兼容默认值。
 - 接口路径迁移完成后，必须 grep service/API 目录，确认除 API 配置文件外无残留硬编码接口 path。
 
@@ -82,7 +83,7 @@
 - `endpoint`：接口路径和 API base URL。
 - `request`：请求 body/query 参数。
 - `response`：响应字段。
-- `global_config`：`appName`、`baseURL`、成功码、token 过期码等配置。
+- `global_config`：`appName`、后端 API baseURL、成功码、token 过期码等配置。
 - `global_config` 还应覆盖线上 H5 域名、业务线/事业线等请求头业务值，避免写死在 HTTP 封装中。
 
 appName 项目文档补充列建议：

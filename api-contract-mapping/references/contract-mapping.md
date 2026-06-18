@@ -4,14 +4,19 @@
 
 | 层级 | 位置 | 用途 | 是否可直接进入项目 |
 | --- | --- | --- | --- |
-| app 入口 | `personal-ai-kb/API/apps/<appName>/README.md` | 说明 appName、全局配置、原生交互和 contracts 入口 | 是 |
-| app 全局配置 | `personal-ai-kb/API/apps/<appName>/全局配置.md` | baseURL、响应码、header key、业务线、appName、平台、token/loginId/device 等取值来源 | 是 |
+| app 中心节点 | `personal-ai-kb/API/apps/<appName>/<appName>.md` | Obsidian 图谱中心，连接接口索引、全局配置、原生交互和接口 contract | 是 |
+| app 入口 | `personal-ai-kb/API/apps/<appName>/README.md` | 工作流读取顺序和 app 入口说明 | 是 |
+| app 全局配置 | `personal-ai-kb/API/apps/<appName>/全局配置.md` | 后端 API 测试/正式地址、响应码、header key、业务线、appName、平台、token/loginId/device 等取值来源 | 是 |
 | app 原生交互 | `personal-ai-kb/API/apps/<appName>/原生交互.md` | Native 方法、callback、字段和混淆名 | 是 |
 | contract 索引 | `personal-ai-kb/API/apps/<appName>/_indexes/contracts.jsonl` | 给 Codex 快速检索 contract 文件 | 是 |
 | endpoint contracts | `personal-ai-kb/API/apps/<appName>/contracts/*.md` | 每个接口一个中文 contract，记录用途、path、request/response 字段路径、类型、描述、枚举 | 是 |
 | 项目代码 | H5 / Flutter 目标项目 | 提取实际使用接口和落地实现 | 是 |
 
 不维护全局源文档基准，不在 KB 保留 `mx-api.md` / `co-api.md` 这类跨项目全集，也不按国家、新旧系统维度建立接口索引。每个 appName 独立归档。实际开发必须先定位 appName，再读取 `_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 找到命中接口，只打开对应 `contracts/*.md`，不默认读取全量接口文档。
+
+图谱关系必须以 `<appName>.md` 为中心。接口 contract 只直接双链到 appName 节点，不直接双链 `全局配置.md` 或 `原生交互.md`；公共配置和原生交互由 appName 节点承接，避免 Obsidian 图谱被公共节点刷屏。
+
+`全局配置.md` 的“环境地址”只表示后端 API 访问地址，只分测试和正式。测试分支里的 `.env.production` 仍按测试地址处理；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production` 读取。H5 页面地址不进入环境地址表。
 
 ## used_api_manifest
 
@@ -34,6 +39,7 @@
 
 ```text
 API/apps/<appName>/README.md
+API/apps/<appName>/<appName>.md
 API/apps/<appName>/全局配置.md
 API/apps/<appName>/原生交互.md
 API/apps/<appName>/contracts/索引.md

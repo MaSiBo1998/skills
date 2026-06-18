@@ -30,6 +30,7 @@ description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json
 - 接口字段名必须严格按文档。
 - H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应接口文档；缺文档或缺字段时标记需确认。
 - 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
+- 使用 KB 全局配置时，“环境地址”只代表后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 不能当正式地址，正式地址只信任 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production`。
 - 参考项目中真实调用但接口文档未覆盖的接口，必须沉淀为待补项目接口文档清单，不得忽略。
 - 不做无差别全局字符串替换。
 - API base URL、后端接口地址、固定请求头值、国家/产品差异等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。

@@ -1009,7 +1009,7 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
         "",
         "## 用途",
         "",
-        f"{contract['title']}。如需确认 baseURL、响应码、header 或原生交互字段，先从 app 节点进入对应全局文档。",
+        f"{contract['title']}。如需确认 baseURL、响应码或 header，先从 app 节点进入对应全局文档。",
         "",
         "## Request Fields",
         "",
@@ -1136,7 +1136,7 @@ def build_global_config(root: Path, app_name: str) -> str:
             "",
             "- 接口实现时不要猜 header key，先读本文件。",
             "- 具体接口入参/出参只读命中的 contract，不遍历全部接口文档。",
-            "- token、loginId、device 信息还要结合 [[API/apps/{}/原生交互]] 判断混淆字段。".format(app_name),
+            "- token、loginId、device 信息以本文件和项目登录态来源为准；只有检测到真实原生交互证据时，app 节点才会额外生成原生交互入口。",
             "",
         ]
     )
@@ -1158,7 +1158,7 @@ def extract_ts_object(text: str, name: str) -> dict[str, str]:
     return values
 
 
-def build_native_bridge(root: Path, app_name: str, extra_mapping: dict[str, str] | None = None) -> str:
+def collect_native_bridge(root: Path, extra_mapping: dict[str, str] | None = None) -> dict[str, dict[str, str]]:
     path = root / "src" / "utils" / "nativeFieldMap.ts"
     text = read_text(path) if path.exists() else ""
     methods = extract_ts_object(text, "NATIVE_METHOD_CODES")
@@ -1192,6 +1192,21 @@ def build_native_bridge(root: Path, app_name: str, extra_mapping: dict[str, str]
             methods.setdefault(key, value)
         else:
             fields.setdefault(key, value)
+    return {"methods": methods, "callbacks": callbacks, "fields": fields}
+
+
+def has_native_bridge(native_bridge: dict[str, dict[str, str]]) -> bool:
+    return any(native_bridge.get(name) for name in ("methods", "callbacks", "fields"))
+
+
+def build_native_bridge(root: Path, app_name: str, extra_mapping: dict[str, str] | None = None) -> str:
+    native_bridge = collect_native_bridge(root, extra_mapping)
+    if not has_native_bridge(native_bridge):
+        return ""
+    methods = native_bridge["methods"]
+    callbacks = native_bridge["callbacks"]
+    fields = native_bridge["fields"]
+    extra_mapping = extra_mapping or {}
     today = date.today().isoformat()
     lines = [
         "---",
@@ -1344,7 +1359,10 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
     write_human_index(app_dir, app_name, contracts, file_by_path)
     write_indexes(app_dir, app_name, contracts, file_by_path)
     write_text(app_dir / "全局配置.md", build_global_config(project_root, app_name))
-    write_text(app_dir / "原生交互.md", build_native_bridge(project_root, app_name, extra_mapping))
+    native_bridge_text = build_native_bridge(project_root, app_name, extra_mapping)
+    has_native = bool(native_bridge_text.strip())
+    if has_native:
+        write_text(app_dir / "原生交互.md", native_bridge_text)
     if swagger_path and swagger_path.exists():
         shutil.copyfile(swagger_path, app_dir / "raw" / swagger_path.name)
     today = date.today().isoformat()
@@ -1352,6 +1370,15 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
         f"- [[API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
         for contract in contracts
     ]
+    app_entry_lines = [
+        f"- 工作流入口：[[API/apps/{app_name}/README|README]]",
+        f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+        f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
+    ]
+    if has_native:
+        app_entry_lines.append(f"- 原生交互：[[API/apps/{app_name}/原生交互]]")
+    app_summary = f"{app_name} 的接口、全局配置" + ("和原生交互" if has_native else "") + "中心节点。"
+    app_next_action = "从这里进入接口索引、全局配置" + ("或原生交互。" if has_native else "。")
     write_text(
         app_dir / f"{app_name}.md",
         "\n".join(
@@ -1367,18 +1394,15 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 f"appName: {app_name}",
                 f"created: {today}",
                 f"updated: {today}",
-                f"summary: {app_name} 的接口、全局配置和原生交互中心节点。",
-                "next_action: 从这里进入接口索引、全局配置或原生交互。",
+                f"summary: {app_summary}",
+                f"next_action: {app_next_action}",
                 "---",
                 "",
                 f"# {app_name}",
                 "",
                 "## 入口",
                 "",
-                f"- 工作流入口：[[API/apps/{app_name}/README|README]]",
-                f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
-                f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
-                f"- 原生交互：[[API/apps/{app_name}/原生交互]]",
+                *app_entry_lines,
                 "",
                 "## 接口",
                 "",
@@ -1387,6 +1411,21 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
             ]
         ),
     )
+    readme_entry_lines = [
+        f"- App 节点：[[API/apps/{app_name}/{app_name}|{app_name}]]",
+        f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
+        f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+    ]
+    readme_steps = [
+        "1. 读取本文件确认 appName。",
+        "2. 读取 `_indexes/contracts.jsonl` 按 path、symbol 或关键词命中接口。",
+        "3. 只打开命中的 `contracts/<中文接口作用>.md`。",
+        "4. 涉及 baseURL/header/响应码时读取 `全局配置.md`。",
+    ]
+    readme_summary = f"{app_name} 的接口契约、全局配置" + ("、原生交互" if has_native else "") + "和快速索引入口。"
+    if has_native:
+        readme_entry_lines.insert(2, f"- 原生交互：[[API/apps/{app_name}/原生交互]]")
+        readme_steps.append("5. 涉及 WebView/Native 字段时读取 `原生交互.md`。")
     write_text(
         app_dir / "README.md",
         "\n".join(
@@ -1400,7 +1439,7 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 f"  - {app_name}",
                 f"created: {today}",
                 f"updated: {today}",
-                f"summary: {app_name} 的接口契约、全局配置、原生交互和快速索引入口。",
+                f"summary: {readme_summary}",
                 "next_action: 工作流使用时先读 _indexes，再打开命中的 contract。",
                 "---",
                 "",
@@ -1408,18 +1447,11 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "",
                 "## 入口",
                 "",
-                f"- App 节点：[[API/apps/{app_name}/{app_name}|{app_name}]]",
-                f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
-                f"- 原生交互：[[API/apps/{app_name}/原生交互]]",
-                f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+                *readme_entry_lines,
                 "",
                 "## 工作流读取顺序",
                 "",
-                "1. 读取本文件确认 appName。",
-                "2. 读取 `_indexes/contracts.jsonl` 按 path、symbol 或关键词命中接口。",
-                "3. 只打开命中的 `contracts/<中文接口作用>.md`。",
-                "4. 涉及 baseURL/header/响应码时读取 `全局配置.md`。",
-                "5. 涉及 WebView/Native 字段时读取 `原生交互.md`。",
+                *readme_steps,
                 "",
             ]
         ),
@@ -1438,7 +1470,7 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "  - moc",
                 f"created: {today}",
                 f"updated: {today}",
-                "summary: 按 appName 维护 H5 和 Flutter 共用的接口契约、全局配置、原生交互和快速索引。",
+                "summary: 按 appName 维护 H5 和 Flutter 共用的接口契约、全局配置、可选原生交互和快速索引。",
                 "next_action: 新增或更新 app 接口时，进入 API/apps/<appName> 并更新索引。",
                 "---",
                 "",
@@ -1453,7 +1485,7 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "- 只按 appName 划分，不按新/旧系统或国家划分。",
                 "- 每个 app 的真实接口文档就是该 app 的实现依据。",
                 "- 工作流先读 app 索引，再打开命中的接口 contract，不遍历全量内容。",
-                "- 服务端接口、全局 header、原生 bridge 字段分开记录，使用时按需读取。",
+                "- 服务端接口和全局 header 分开记录；只有检测到真实原生 bridge/callback 证据时才额外生成原生交互文档。",
                 "",
             ]
         ),
@@ -1464,11 +1496,12 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
         "app_node": f"API/apps/{app_name}/{app_name}.md",
         "readme": f"API/apps/{app_name}/README.md",
         "global_config": f"API/apps/{app_name}/全局配置.md",
-        "native_bridge": f"API/apps/{app_name}/原生交互.md",
         "contract_index": f"API/apps/{app_name}/_indexes/contracts.jsonl",
         "contract_count": len(contracts),
         "updated": today,
     }
+    if has_native:
+        app_index_row["native_bridge"] = f"API/apps/{app_name}/原生交互.md"
     app_index_path = app_root / "_app-index.jsonl"
     app_index_rows: dict[str, dict[str, Any]] = {}
     if app_index_path.exists():

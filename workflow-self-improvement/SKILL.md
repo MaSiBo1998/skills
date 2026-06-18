@@ -33,6 +33,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
 4. 执行更新：
    - 只有用户明确回复“确认沉淀/可以沉淀/按这个写入/确认更新”等确认语义后，才修改对应 skill 文件。
    - 用户明确要求完善或更新 skill 时，也应先确认本轮变更目标；若用户的请求本身已经包含明确的实施计划和要求，则可视为已确认本轮修改。
+   - 用户要求“把 AGENTS.md / 全局规则 / 上述记录到工作流对应 skill 里”时，视为已确认把外层提示沉淀回 `Desktop\skills`。按内容归属写入 `front-workflow`、对应子 skill、交付模板或回归样例，避免关键规则只停留在会话级或目录级提示中。
    - 用户拒绝沉淀时，只保留本轮交付记录和 `learning_candidates`，不修改 workflow 文件。
    - 保持 `name` 和目录名稳定，除非用户明确要求改 skill ID。
    - 同步更新 `agents/openai.yaml` 中与展示、默认提示相关的文案。
@@ -138,6 +139,7 @@ Workflow 沉淀提案
 | --- | --- |
 | skill 工作流指导、分类准确性审查、触发归属体检、新 skill 设计建议 | `skill-workflow-advisor` 先诊断；形成明确可复用规则后再回到 `workflow-self-improvement` 沉淀 |
 | 场景识别、未知/复合需求兜底、调度顺序、checkpoint、交付汇总 | `front-workflow` |
+| 全局工作流入口、工作流状态条、工作类请求在实现或详细建议前的强制入口、KB 与 Workflow 沉淀分流 | `front-workflow` + `front-workflow/agents/openai.yaml`；交付呈现规则同步到 `h5-testing-checklist/references/delivery.md` |
 | 跨功能/首复贷/进件的公共原生桥接协议 | `h5-apply-flow/references/native-methods.md` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
 | 接口文档入库、记录接口到知识库、生成中文 contract、生成 API/apps/<appName> 索引 | `api-doc-kb-archiver` |
