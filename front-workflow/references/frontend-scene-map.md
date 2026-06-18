@@ -12,7 +12,7 @@
 | D | Apply / Entry / 进件步骤 / 国家差异 / 原生交互 | `h5-apply-flow` | `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 / App 内嵌协议或客服 | `h5-official-site` | 设计图能力、`h5-testing-checklist` |
 | F | 设计图复原 / 视觉还原 / 切图规范化 | `design-image-restore` | `design-image-analysis`、主业务场景、`h5-testing-checklist` |
-| G | release-tag / 发版 / tag / 国家发布 | `release-tag` | 发布前校验 |
+| G | release-precheck / release-tag / 发版检查 / 发布 / tag / 国家发布 | `release-precheck` 只做发版前检查；用户确认正式发布后使用 `release-tag` | `h5-testing-checklist` |
 | I | 管理后台 / Vue2 / Element UI / 角色权限 / 菜单入口 | `admin-management-flow` | `h5-api-mapping`、设计图能力、`h5-testing-checklist` |
 | J | 飞书前端告警 / 白屏监控 / 前端预警 | `h5-feishu-alert` | `h5-testing-checklist` |
 | K | 未知/复合需求分析 | 最小探索后回落到 A-J | 相关 supporting capabilities |
@@ -41,6 +41,8 @@
   主场景仍是 B；先按普通 H5 性能/兼容改造处理，读取 `references/h5-common-feature-flow.md` 和 `h5-testing-checklist` 的 App WebView 兼容专项。只有出现本地 depend/vendor、external globals、build:static 或自定义资源协议证据时，才追加 `h5-vendor-architecture`。
 - “贴一段现有 hook/初始化代码，要求把无依赖 async 改成并行并在全部完成后再收口状态”：
   主场景是 B；先判断两个异步步骤是否存在数据依赖，无依赖时直接在目标项目实现并行化，并把最终 `loading/initializing` 状态更新放到全部任务完成之后。
+- “发版检查 / 发布前检查 / 检查 vConsole / 检查能不能发版”：
+  主场景是 G，但只调度 `release-precheck` 做 readiness 检查，不进入提交、tag 或 push；只有用户确认正式发布时才进入 `release-tag`。
 
 ## Workflow/Meta Migration
 

@@ -36,7 +36,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
    - 用户拒绝沉淀时，只保留本轮交付记录和 `learning_candidates`，不修改 workflow 文件。
    - 保持 `name` 和目录名稳定，除非用户明确要求改 skill ID。
    - 同步更新 `agents/openai.yaml` 中与展示、默认提示相关的文案。
-   - 新增 skill、重命名 skill 或调整 skill 之间的调度链接后，必须以 `C:\Users\11731\Desktop\skills` 为唯一源目录，使用 `scripts/sync-runtime-skills.ps1 -All -RepairLinks` 同步到 Codex、Trae、Claude 的运行时 skill 目录；若本机存在 `C:\Users\11731\.agents\skills` 或当前会话从该目录加载 skill，也必须把它作为运行时目录同步，并确认引用方与被引用方都存在。
+   - 新增 skill、重命名 skill 或调整 skill 之间的调度链接后，必须以 `C:\Users\11731\Desktop\skills` 为唯一源目录，使用 `scripts/sync-runtime-skills.ps1 -All -RepairLinks` 同步到 Codex、Trae、Claude 的运行时 skill 目录；源目录根级 skill 与 `Desktop\skills\.agents\skills` 辅助 skill 都必须被纳入 `-All`。若本机存在 `C:\Users\11731\.agents\skills` 或当前会话从该目录加载 skill，也必须把它作为运行时目录同步，并确认引用方与被引用方都存在。
    - 同步运行时目录前先确认目标目录可写；若目录不在当前可写根或写入返回 Access denied/permission denied，不要在同一轮反复尝试覆盖，必须记录漂移文件、受阻运行时目录和后续需要在有权限环境同步的动作。
 5. 校验更新：
    - 修改任意 skill 后，运行 `quick_validate.py <skill目录>`；优先使用当前仓库里的 skill-creator quick_validate 脚本（若存在），若不存在则使用可读的系统 skill 路径，例如 `C:\Users\11731\.codex\skills\.system\skill-creator\scripts\quick_validate.py`。
@@ -147,7 +147,8 @@ Workflow 沉淀提案
 | 官网需求、协议文档解析、协议 HTML 输出、官网协议展示、官网域名小 H5 挂载 | `h5-official-site` |
 | 设计图读取、375 宽基准、布局尺寸、颜色文字规格、切图需求分析 | `design-image-analysis` |
 | 设计图复原、design 文件夹、切图复用、切图命名规范、设计稿视觉还原 | `design-image-restore` |
-| release-env、国家码、构建校验、Commit、Release Tag | `release-tag` |
+| 发版前检查、vConsole、release-env readiness、构建产物、发布风险清单 | `release-precheck` |
+| 国家码、构建校验、Commit、Release Tag、推送 | `release-tag` |
 | 管理后台功能、Vue/Element UI 后台、角色权限展示、顶部全局组件、后台接口接入、状态轮询、后台 i18n 与构建验收 | `admin-management-flow` |
 | 通用验收、专项验收、人工验收项 | `h5-testing-checklist` |
 

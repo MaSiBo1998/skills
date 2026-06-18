@@ -35,7 +35,8 @@ flowchart TD
     D -->|设计图| J["design-image-analysis / design-image-restore"]
     D -->|管理后台| K["admin-management-flow"]
     D -->|飞书告警| L["h5-feishu-alert"]
-    D -->|发布| M["h5-release-tag"]
+    D -->|发版检查| M["release-precheck"]
+    D -->|正式发布| T["release-tag"]
     E --> N["h5-testing-checklist"]
     F --> N
     G --> N
@@ -81,8 +82,8 @@ flowchart TD
 | D | 进件开发 | Apply、Entry、步骤页、原生交互、国家差异 | 可选 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 | 官网、协议 HTML、App 内嵌协议、客服问答 | `h5-official-site` -> `h5-testing-checklist` |
 | F | 设计图复原 | design 图片解析、照图实现、切图命名 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
-| G | 国家发布 | 发布、发版、打 tag、mx/co/ng | `h5-release-tag` |
-| H | 工作流自我更新 | 记住规则、完善 skill、巡检流程 | `spec-driven-development` -> `workflow-self-improvement` |
+| G | 发版检查 / 国家发布 | 发版检查、发布前检查、vConsole、发布、发版、打 tag、mx/co/ng | `release-precheck`；确认正式发布后 `release-tag` |
+| workflow/meta | 工作流自我更新 | 记住规则、完善 skill、巡检流程 | `spec-driven-development` -> `workflow-self-improvement` |
 | I | 管理后台开发 | 后台管理、Element UI、角色权限、模型配置 | `admin-management-flow` -> `h5-testing-checklist` |
 | J | 飞书前端告警 | 白屏监控、异常告警、Promise 异常 | `h5-feishu-alert` -> `h5-testing-checklist` |
 | K | 未知/复合需求分析 | 不能稳定命中 A-J，或多个场景交织 | 先探索候选归属 -> 回落到最接近的子 skill -> `h5-testing-checklist` |
@@ -177,7 +178,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 4. 哪些子 skill 被跳过，为什么跳过。
 5. 下一步应该从哪里继续。
 
-断点处理还区分普通任务和自动化续跑：普通一次性任务交付完成后可以清理 checkpoint；场景 H、recurring automation、automation memory 续跑、运行时漂移或外部阻塞未解决时要保留 checkpoint，避免下一轮重复处理已确认的问题。
+断点处理还区分普通任务和自动化续跑：普通一次性任务交付完成后可以清理 checkpoint；workflow/meta、recurring automation、automation memory 续跑、运行时漂移或外部阻塞未解决时要保留 checkpoint，避免下一轮重复处理已确认的问题。
 
 为什么要做这层机制？因为工作流一旦从“短问答”变成“长期协作”，可靠性就不只取决于回答质量，还取决于能不能恢复现场、保留判断依据、避免重复劳动。
 
@@ -220,7 +221,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 - 进件流程和国家差异归 `h5-apply-flow`。
 - 首复贷状态流归 `h5-first-reloan-flow`。
 - 后台功能归 `admin-management-flow`。
-- 发布规则归 `h5-release-tag`。
+- 发版前检查归 `release-precheck`；正式发布规则归 `release-tag`；`h5-release-tag` 只作为旧 H5 引用的兼容入口。
 - 验收清单归 `h5-testing-checklist`。
 
 这样可以避免主工作流膨胀，也方便不同同事维护自己熟悉的业务模块。
@@ -316,7 +317,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 
 工作流判断：
 
-- 命中工作流自我更新场景 H。
+- 命中 workflow/meta 自我更新方向。
 - 如果只是单条明确规则，也要先输出沉淀提案卡，说明沉淀方向和目标文件；用户确认后再轻量写入、校验并同步运行时。
 - 如果是巡检、优化或较大改造，先用 `spec-driven-development` 固化目标和成功标准。
 - 再用 `workflow-self-improvement` 判断规则归属，修改对应 skill。

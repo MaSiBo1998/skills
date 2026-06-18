@@ -37,9 +37,9 @@
 - 场景 I 管理后台未确认角色权限或菜单入口时先读取现有项目实现；若无法从代码判断且会影响真实权限/菜单，再询问。
 - 场景 J 若缺少后端告警代理接口且代码中无法推断，必须询问具体缺失项；不要用浏览器端飞书 webhook 代替。
 - 场景 J 若缺少可用于判断线上页面 host 的 H5 域名配置，可以先新增显式 H5 host 配置并让空配置默认不发送，交付列为待配置/待验；只有用户要求真实生产收发验证或发布时，才把实际线上 H5 域名作为阻塞问题询问。不得用 API 域名、通用 HTTP baseURL 或飞书 webhook 域名判断页面环境。
-- 场景 H 巡检默认使用 `workflow-self-improvement/references/workflow-regression-evaluation.md` 的当前样例集；用户未指定评估集时不阻塞，样例数量和通过线按该文件的样例表动态计算。
-- 场景 H 先根据用户范围自动判定 `规则补丁 / 流程调优 / 全量巡检`；只有明确是整个工作流或所有 skill 的系统性优化时，才把全量扫描和全量回归作为默认范围。
-- 场景 H 来自自动化续跑时，必须先读取 automation memory 和 `.workflow-checkpoint.json`，并把本轮 memory 路径、读取状态、写回状态、剩余漂移和下一轮关注点写入 checkpoint。
+- workflow/meta 巡检默认使用 `workflow-self-improvement/references/workflow-regression-evaluation.md` 的当前样例集；用户未指定评估集时不阻塞，样例数量和通过线按该文件的样例表动态计算。
+- workflow/meta 先根据用户范围自动判定 `规则补丁 / 流程调优 / 全量巡检`；只有明确是整个工作流或所有 skill 的系统性优化时，才把全量扫描和全量回归作为默认范围。
+- workflow/meta 来自自动化续跑时，必须先读取 automation memory 和 `.workflow-checkpoint.json`，并把本轮 memory 路径、读取状态、写回状态、剩余漂移和下一轮关注点写入 checkpoint。
 - 场景 K 必须先完成最小探索，再决定回落到 A-J 或继续询问阻塞项；K 不能作为最终交付归属。
 - 若场景 D 的国家为 `Guatemala` / `GT` / `危地马拉`，在后续步骤加载 `h5-apply-flow/references/country-guatemala.md`
 - 若场景 D 的国家为墨西哥、哥伦比亚或其他国家，不能套用危地马拉规范；要求用户提供该国家差异或按通用 Apply 流程执行

@@ -13,7 +13,7 @@
 6. **待用户验收项**：需要用户在真实设备/浏览器上手动验证的功能点
 7. **KB 沉淀提案**：面向 `D:\code\my-project\personal-ai-kb` 的学习笔记、项目理解、踩坑复盘候选；无候选时说明暂无
 8. **Workflow 沉淀提案**：面向 `Desktop\skills` 的触发规则、验收规则、skill 调度规则候选；无候选时说明暂无
-9. **巡检辅助结果**（场景 H 适用）：轻量规格、编排审查、回归样例、automation memory 读写状态、运行时漂移和失败项处理结果
+9. **巡检辅助结果**（workflow/meta 适用）：轻量规格、编排审查、回归样例、automation memory 读写状态、运行时漂移和失败项处理结果
 
 ---
 
@@ -123,7 +123,7 @@ Workflow 沉淀提案
 - Workflow 沉淀提案的目标 skill/reference 和确认状态；或暂无 Workflow 沉淀项。
 - 已确认并写入的知识库文件或 workflow 规则、所属文件和校验结果；或已提出但等待确认的沉淀方向。
 - 暂不沉淀的项目特例、原因和触发再次沉淀的条件。
-- 场景 H 还需说明 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 的调用结论、automation memory 读写状态、未同步运行时漂移和未通过样例处理结果。
+- workflow/meta 还需说明 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 的调用结论、automation memory 读写状态、未同步运行时漂移和未通过样例处理结果。
 
 > "已提出以下 KB / Workflow 沉淀提案，等待确认后写入：[目标文件列表]。未确认前不会修改知识库或工作流文件。"
 
@@ -132,13 +132,15 @@ Workflow 沉淀提案
 ## Checkpoint 清理
 
 - 普通一次性业务工作流交付完成后，可删除 `.workflow-checkpoint.json` 结束流程。
-- 场景 H、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞时，不删除 `.workflow-checkpoint.json`；必须保留最新 checkpoint，便于下次自动化直接复用本轮结论。
+- workflow/meta、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞时，不删除 `.workflow-checkpoint.json`；必须保留最新 checkpoint，便于下次自动化直接复用本轮结论。
 
 ---
 
 ## 交付后发布确认
 
 发布入口只在主工作流交付出口出现。交付信息输出完成后，按以下流程判断是否进入场景 G：
+
+若用户只要求“发版检查、发布前检查、上线前检查、检查 vConsole、检查能不能发版”，先调用 `release-precheck` 做只读 readiness 检查；不得在该步骤提交、打 tag 或推送。只有用户明确确认正式发布时，才进入下面的 `release-tag` 发布流程。
 
 ### Step 1. 读取 release-env
 

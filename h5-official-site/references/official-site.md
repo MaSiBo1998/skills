@@ -217,7 +217,7 @@ public/
 
 完整交付模板见 `h5-testing-checklist/references/delivery.md`。
 
-**→ 清理 checkpoint**: 按 `h5-testing-checklist/references/delivery.md` 的 Checkpoint 清理规则处理；普通一次性官网/协议任务完成后可删除，recurring automation、包含 automation memory 的续跑、场景 H 或仍有运行时漂移/外部阻塞时必须保留。
+**→ 清理 checkpoint**: 按 `h5-testing-checklist/references/delivery.md` 的 Checkpoint 清理规则处理；普通一次性官网/协议任务完成后可删除，recurring automation、包含 automation memory 的续跑、workflow/meta 或仍有运行时漂移/外部阻塞时必须保留。
 
 ---
 

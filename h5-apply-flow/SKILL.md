@@ -7,6 +7,15 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 
 本 skill 只负责所有国家的 Apply 进件流程。各国家不是独立流程，只是同一进件模型下的差异 profile，例如步骤顺序、Entry 名称、发布环境、字段映射约束、原生返回细节。首贷/复贷状态流是独立场景，归属 `h5-first-reloan-flow`。
 
+## 维护边界
+
+- `SKILL.md` 只保留进件场景入口、跨项目强约束和高频防错规则。
+- 旧/新流程判断写入 `references/flow-variants.md`。
+- 通用进件步骤、表单草稿、自动弹窗、键盘遮挡和页面交互细节写入 `references/apply-flow.md`。
+- 原生桥接协议写入 `references/native-methods.md`。
+- 国家差异写入对应 `references/country-*.md` profile；新国家先建 profile，不把国家细节堆进本文件。
+- 后续沉淀若只是单个项目字段、组件名或接口名，默认不写入本 skill；只有形成跨项目判断标准时才进入对应 reference。
+
 ## 执行方式
 
 1. 确认产品、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构；vendor 默认为不执行，只有用户明确要求、checkpoint 已启用或项目现有约束需要时才启用。

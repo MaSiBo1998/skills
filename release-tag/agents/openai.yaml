@@ -1,4 +1,4 @@
 interface:
   display_name: "Release Tag"
   short_description: "发布版本并生成 Release Tag"
-  default_prompt: "使用 release-tag 在用户直接要求发布或主 workflow 确认进入 release-tag 场景后，执行构建校验、git 发布前检查、提交发布改动、生成 Release Tag 并推送；当前读取 release-env 支持 mx/co/ng，生成 tag 前先 git fetch --tags；不要判断普通业务交付是否应该发布，也不要用 reset、强推或覆盖远端标签处理冲突。"
+  default_prompt: "使用 release-tag 在用户直接要求正式发布或主 workflow 确认进入 release-tag 场景后，执行构建校验、git 发布前检查、提交发布改动、生成 Release Tag 并推送；当前读取 release-env 支持 mx/co/ng，生成 tag 前先 git fetch --tags；不要判断普通业务交付是否应该发布，也不要用 reset、强推或覆盖远端标签处理冲突。若用户只是说发版检查、发布前检查、检查 vConsole 或检查能不能发版，先使用 release-precheck，只检查不提交、不打 tag、不推送。"

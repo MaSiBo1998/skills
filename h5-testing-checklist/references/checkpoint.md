@@ -98,10 +98,10 @@
 | `selected_scene_reason` | 选择当前场景的证据说明 |
 | `candidate_scenes` | 复合或未知需求时的候选场景、证据和置信度 |
 | `skipped_skills` | 被跳过的可选子 skill 及原因 |
-| `workflow_improvement_spec` | 场景 H 巡检时由 `spec-driven-development` 产出的轻量规格：目标、范围、边界、成功标准、阻塞问题 |
-| `orchestration_audit` | 场景 H 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
-| `eval_cases` | 场景 H 巡检时由 `llm-evaluation` 维护的回归样例 |
-| `eval_results` | 场景 H 巡检时由 `llm-evaluation` 输出的指标、失败项和处理结果 |
+| `workflow_improvement_spec` | workflow/meta 巡检时由 `spec-driven-development` 产出的轻量规格：目标、范围、边界、成功标准、阻塞问题 |
+| `orchestration_audit` | workflow/meta 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
+| `eval_cases` | workflow/meta 巡检时由 `llm-evaluation` 维护的回归样例 |
+| `eval_results` | workflow/meta 巡检时由 `llm-evaluation` 输出的指标、失败项和处理结果 |
 | `automation_memory` | 自动化续跑时使用的 memory 路径、读取状态、写回状态、剩余运行时漂移和下一轮关注点 |
 
 各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
@@ -144,7 +144,7 @@
 // 场景 G（发布，4 步）
 { "scene": "G", "step_names": { "1": "输入收集与国家识别", "2": "发布前校验", "3": "提交发布", "4": "交付" } }
 
-// 场景 H（工作流自我更新，7 步）
+// workflow/meta（工作流自我更新，7 步）
 { "scene": "H", "step_names": { "1": "轻量规格化", "2": "发现可沉淀项", "3": "判断归属与编排审查", "4": "修改 skill", "5": "回归评估", "6": "校验同步", "7": "交付" } }
 
 // 场景 I（管理后台，5 步）
@@ -165,7 +165,7 @@
 
 1. **检测**：项目根目录是否存在 `.workflow-checkpoint.json`
 2. **解析校验**：读取并解析 JSON，如解析失败（文件损坏）则删除并重新开始
-3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始；场景 H、recurring automation、包含 automation memory 的续跑，或存在未同步运行时漂移/外部阻塞时，保留 checkpoint 作为续跑证据，不按普通过期规则删除
+3. **过期判断**：`updated_at` 超过 24 小时视为过期，自动删除并重新开始；workflow/meta、recurring automation、包含 automation memory 的续跑，或存在未同步运行时漂移/外部阻塞时，保留 checkpoint 作为续跑证据，不按普通过期规则删除
 4. **续跑判断**：recurring automation、包含 automation memory 的续跑、或 checkpoint 中 `automation_memory`/未同步运行时漂移仍存在时，默认复用 checkpoint 继续执行，不询问用户；只有普通交互式任务才询问是否继续。
    ```
    检测到未完成的工作流（场景 {scene}，已完成步骤：{completed_steps 中的 step 列表}；最新完成 Step {last_completed_step}：{step_names[last_completed_step]}）。
@@ -180,8 +180,8 @@
 
 - 普通一次性工作流全部完成（最后一步交付）→ 删除 checkpoint
 - 用户选择重新开始 → 删除 checkpoint
-- checkpoint 超过 24 小时且不属于场景 H、recurring automation、automation memory 续跑、未同步运行时漂移或外部阻塞 → 自动删除
-- 场景 H、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞 → 保留最新 checkpoint，直到阻塞消失或用户明确要求清理
+- checkpoint 超过 24 小时且不属于workflow/meta、recurring automation、automation memory 续跑、未同步运行时漂移或外部阻塞 → 自动删除
+- workflow/meta、recurring automation、包含 automation memory 的续跑，或仍有运行时漂移/外部阻塞 → 保留最新 checkpoint，直到阻塞消失或用户明确要求清理
 
 ---
 

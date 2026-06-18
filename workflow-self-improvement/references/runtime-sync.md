@@ -1,10 +1,10 @@
 # 多运行时链接同步
 
-当新增 skill、重命名 skill、或让一个 skill 调度另一个 skill 时，按以下顺序同步链接。`C:\Users\11731\Desktop\skills` 是本地自定义 skill 的唯一源目录；运行时目录只保留指向源目录的 junction 或外部/system skill，不把桌面源 skill 复制成独立副本。
+当新增 skill、重命名 skill、或让一个 skill 调度另一个 skill 时，按以下顺序同步链接。`C:\Users\11731\Desktop\skills` 是本地自定义 skill 的唯一源目录；运行时目录只保留指向源目录的 junction 或外部/system skill，不把桌面源 skill 复制成独立副本。若源目录下存在 `C:\Users\11731\Desktop\skills\.agents\skills\<skill>` 辅助 skill，也视为桌面源的一部分，运行时目标仍按 skill 名归一化为 `<runtime>\<skill>`。
 
 ## 目标目录
 
-以 `C:\Users\11731\Desktop\skills\<skill>` 作为源目录，同步到：
+以 `C:\Users\11731\Desktop\skills\<skill>` 作为优先源目录；若根级不存在且 `C:\Users\11731\Desktop\skills\.agents\skills\<skill>` 存在，则以该辅助目录作为源目录。统一同步到：
 
 - `C:\Users\11731\.trae\skills\<skill>`
 - `C:\Users\11731\.codex\skills\<skill>`
@@ -16,14 +16,14 @@
 优先运行 `scripts/sync-runtime-skills.ps1` 完成同步和漂移检查：
 
 - `-Skill <skill-name>`：只检查或修复指定 skill。
-- `-All`：扫描源目录下所有包含 `SKILL.md` 的自定义 skill。
+- `-All`：扫描源目录根级以及 `.agents\skills` 辅助目录下所有包含 `SKILL.md` 的自定义 skill；同名时根级源优先。
 - `-CheckOnly`：只读检查，不创建、不移动、不删除任何文件。
 - `-RepairLinks`：把缺失项创建为 junction；把普通复制目录先备份再替换为 junction；把错误目标的 junction 修正到源目录。
 
 1. 新增 skill 优先创建指向源码目录的 junction，避免后续源码和运行时副本漂移。
 2. 已存在的普通目录不能直接删除；先做 hash 比对并备份到运行时目录的 `.runtime-link-backups\<timestamp>\<skill>`，再创建指向源目录的 junction。
 3. 如果引用方 skill 的 `SKILL.md` 或 `agents/openai.yaml` 发生变化，也同步引用方目录，避免运行时仍使用旧调度关系。
-4. 同步后用 `-All -CheckOnly` 确认 Trae、Codex、Claude 以及已启用的 `.agents` 运行时都能找到新增 skill 名和调度链接，且桌面源 skill 都是 `ok-junction`。
+4. 同步后用 `-All -CheckOnly` 确认 Trae、Codex、Claude 以及已启用的 `.agents` 运行时都能找到新增 skill 名和调度链接，且桌面源根级 skill 与 `.agents\skills` 辅助 skill 都是 `ok-junction`。
 5. 对源目录和同步后的关键目录运行 `quick_validate.py`，至少覆盖新增 skill、引用方 skill 和 `workflow-self-improvement`。
 
 ## 漂移判断
@@ -36,7 +36,7 @@
 
 若使用脚本比对，必须兼容 Windows PowerShell，不依赖新版 .NET 才有的 `Path.GetRelativePath`。脚本报错、输出被错误污染或未完成 `.agents/skills/<skill>` 路径归一化时，本次漂移结论无效，必须修正后重跑。
 
-隐藏辅助 skill 源目录只表示发现来源，运行时目标必须按 skill 名归一化为 `<runtime>/<skill>`，不得按 `.agents/skills/<skill>` 字面路径映射到 runtime 根目录后误报缺失。
+隐藏辅助 skill 源目录不再只是发现来源；它也是 `-All` 的受管源目录。运行时目标必须按 skill 名归一化为 `<runtime>/<skill>`，不得按 `.agents/skills/<skill>` 字面路径映射到 runtime 根目录后误报缺失。
 
 `-CheckOnly` 输出必须能区分以下状态：
 
@@ -46,7 +46,7 @@
 - `wrong-target`：运行时是 junction，但没有指向桌面源目录。
 - `hash-diff`：普通目录或错误目标中的关键文件与源目录 hash 不一致。
 
-脚本只管理 `C:\Users\11731\Desktop\skills` 中存在同名源目录且包含 `SKILL.md` 的 skill；运行时目录中的外部/system skill 不删除、不替换。
+脚本只管理 `C:\Users\11731\Desktop\skills\<skill>` 或 `C:\Users\11731\Desktop\skills\.agents\skills\<skill>` 中存在同名源目录且包含 `SKILL.md` 的 skill；运行时目录中的外部/system skill 不删除、不替换。
 
 ## 权限阻塞
 

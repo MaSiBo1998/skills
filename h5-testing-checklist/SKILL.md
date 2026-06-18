@@ -7,6 +7,14 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 
 本 skill 只负责公共输入收集、checkpoint/交付规范和交付前验收。
 
+## 维护边界
+
+- `SKILL.md` 只保留验收入口、等级定义、跨场景强约束和高频防错规则。
+- 验收流程、等级选择和 workflow/meta 巡检细节写入 `references/testing-workflow.md`。
+- 具体通用检查和各业务专项检查写入 `references/testing-checklist.md`。
+- 输入收集、checkpoint 和交付模板分别写入 `references/input-collection.md`、`references/checkpoint.md`、`references/delivery.md`。
+- 后续新增检查项时，优先沉淀到对应 reference；只有影响所有验收入口的判断标准才写回本文件。
+
 ## 执行方式
 
 1. 加载 `references/testing-workflow.md`，确认当前场景应执行哪些检查。
@@ -38,5 +46,5 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 进件项目必须按 country profile 额外检查国家差异；危地马拉需检查 `mx` 发布、字段映射四类、Entry/跳转/原生交互、键盘聚焦滚动处理。
 - 管理后台项目必须额外检查路由/菜单入口、左侧/侧边栏入口、权限展示、列表/详情/配置页/模型配置页数据流、Element UI 交互、后台接口错误态、i18n 文案和构建结果。
 - 场景 K 未知/复合需求必须检查最终回落场景的专项验收，并在交付中说明候选归属、选择理由和仍需人工确认的假设。
-- 场景 H 工作流巡检必须检查 `spec-driven-development` 轻量规格、`workflow-orchestration-patterns` 编排审查、`llm-evaluation` 回归样例、automation memory 读写、未解析 `CODEX_HOME` memory 路径回退、checkpoint 自动续跑/保留策略、文件发现递归覆盖 `SKILL.md`、`references/*.md`、`agents/openai.yaml` 和隐藏/被 ignore 的 `.agents/skills` 辅助 skill，且记录分类计数；回归样例计数必须只统计 `## 评估样例` 区段，不能把 `## 输出格式` 示例表或其他说明表计入动态通过线，且按排除表头和分隔行后的数据行统计，不要求首列是编号；若使用 `rg`，必须有 hidden、ignore 覆盖和 `**/` 递归 glob，不能因 `.gitignore` 或窄 glob 导致 reference/openai 计数为 0；内部引用扫描无脚本错误或污染输出，未解析 CODEX_HOME 模板路径、正则裁剪后的 `CODEX_HOME/...`、`codex/automations/...`、`agents/skills/...` 片段、斜杠分隔的概念标签/枚举/比例/尺寸、文件发现 glob、可选校验 runner fallback、已发现辅助 skill 的说明性导航和跨 skill 导航引用未被误报为缺失引用，运行时 hash 比对无脚本错误，且已把 `.agents/skills/<skill>` 这类隐藏辅助 skill 源路径归一化为 `<runtime>/<skill>` 后再判定漂移或缺失；若当前会话实际从 `~/.agents/skills` 加载 skill，还必须把该目录作为运行时镜像检查同步状态；失败项必须修复或记录为待确认沉淀项。
+- workflow/meta 工作流巡检细节按 `references/testing-workflow.md` 的 workflow/meta 验收执行，主文件只保留入口：必须覆盖轻量规格、编排审查、回归样例、automation memory、checkpoint 续跑、递归文件发现、引用扫描容错、辅助 skill 归一化和运行时同步检查；失败项必须修复或记录为待确认沉淀项。
 - 沉淀候选必须经过 `learning_gate`：学习笔记、项目理解和踩坑复盘输出 KB 沉淀提案；触发规则、验收规则和 skill 调度输出 Workflow 沉淀提案；无候选时分别说明暂无 KB 沉淀项和暂无 Workflow 沉淀项；用户确认前不得把候选写入知识库或 workflow 文件。

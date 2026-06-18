@@ -46,15 +46,77 @@ function Get-FileHashSafe([string]$Path) {
   return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash
 }
 
-function Get-SourceSkillNames {
+function Get-SourceSkillEntries {
+  $candidateDirs = @()
+
   if ($All) {
-    return @(Get-ChildItem -LiteralPath $SourceRoot -Directory -Force |
+    Get-ChildItem -LiteralPath $SourceRoot -Directory -Force |
       Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") } |
-      Sort-Object Name |
-      ForEach-Object { $_.Name })
+      ForEach-Object {
+        $candidateDirs += [pscustomobject]@{
+          Name = $_.Name
+          FullName = $_.FullName
+          Priority = 0
+        }
+      }
+
+    $auxiliarySourceRoot = Join-Path $SourceRoot ".agents\skills"
+    if (Test-Path -LiteralPath $auxiliarySourceRoot) {
+      Get-ChildItem -LiteralPath $auxiliarySourceRoot -Directory -Force |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") } |
+        ForEach-Object {
+          $candidateDirs += [pscustomobject]@{
+            Name = $_.Name
+            FullName = $_.FullName
+            Priority = 1
+          }
+        }
+    }
+  } else {
+    foreach ($skillName in @($Skill | Sort-Object -Unique)) {
+      $rootCandidate = Join-Path $SourceRoot $skillName
+      $auxiliaryCandidate = Join-Path (Join-Path $SourceRoot ".agents\skills") $skillName
+
+      if (Test-Path -LiteralPath (Join-Path $rootCandidate "SKILL.md")) {
+        $item = Get-Item -LiteralPath $rootCandidate
+        $candidateDirs += [pscustomobject]@{
+          Name = $item.Name
+          FullName = $item.FullName
+          Priority = 0
+        }
+      } elseif (Test-Path -LiteralPath (Join-Path $auxiliaryCandidate "SKILL.md")) {
+        $item = Get-Item -LiteralPath $auxiliaryCandidate
+        $candidateDirs += [pscustomobject]@{
+          Name = $item.Name
+          FullName = $item.FullName
+          Priority = 1
+        }
+      } else {
+        $candidateDirs += [pscustomobject]@{
+          Name = $skillName
+          FullName = $rootCandidate
+          Priority = 0
+        }
+      }
+    }
   }
 
-  return @($Skill | Sort-Object -Unique)
+  $entries = @()
+  $seen = @{}
+  foreach ($candidateDir in @($candidateDirs | Sort-Object Name, Priority, FullName)) {
+    $skillName = $candidateDir.Name
+    if ($seen.ContainsKey($skillName)) {
+      continue
+    }
+
+    $seen[$skillName] = $true
+    $entries += [pscustomobject]@{
+      Name = $skillName
+      Path = Get-FullPathSafe $candidateDir.FullName
+    }
+  }
+
+  return $entries
 }
 
 function Get-RelativeSkillFiles([string]$SkillPath) {
@@ -126,11 +188,12 @@ if (-not (Test-Path -LiteralPath $sourceRootFull)) {
   throw "Source root not found: $sourceRootFull"
 }
 
-$skillNames = Get-SourceSkillNames
+$sourceSkillEntries = Get-SourceSkillEntries
 $results = @()
 
-foreach ($skillName in $skillNames) {
-  $source = Join-Path $sourceRootFull $skillName
+foreach ($sourceSkill in $sourceSkillEntries) {
+  $skillName = $sourceSkill.Name
+  $source = Get-FullPathSafe $sourceSkill.Path
   if (-not (Test-Path -LiteralPath (Join-Path $source "SKILL.md"))) {
     throw "Source skill not found or missing SKILL.md: $source"
   }

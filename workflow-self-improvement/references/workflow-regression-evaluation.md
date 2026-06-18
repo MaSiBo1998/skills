@@ -32,6 +32,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 参考项目缺失 fallback | 按进件旧流程处理，但 `D:\code\H5\Crediapoyo\crediapoyo-step-app` 不存在 | 不阻断；读取目标项目路由、steps、API、types、配置和 checkpoint，按进件旧流程抽象合同执行；缺少旧/新流程判断时只问一个最小阻塞问题 |
 | 精确结构少兜底 | 我已经给了接口返回类型和字段结构，页面直接展示接口文案 | 按明确类型和结构直接取值或解析；不得新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底；只有真实崩溃风险才做最小错误隔离 |
 | release-tag 泛化 | 后续发布/tag 能力不要叫 H5 发布，因为 backend/flutter 以后也可能用 | 发布能力命名和调度使用 `release-tag`；旧 `h5-release-tag` 只作为兼容入口，不把 release tag 能力限定为 H5 |
+| 发版前检查 | 帮我做发版检查，重点看有没有 vConsole | 进入 `front-workflow` Scene G，调度 `release-precheck` 检查 release-env、git 状态、build、vConsole 源码/产物、WebView 待验和发布风险；不得提交、打 tag 或推送；用户确认正式发布后才进入 `release-tag` |
 | 流程调优分级 | front-workflow 的 K 兜底太重，帮我收敛一下 | 进入 workflow/meta，并判定为 `流程调优`；先写轻量 spec，再只扫描相关 workflow/验收文件并跑定向回归，而不是直接全量巡检所有 skill |
 | 全量巡检 | 帮我巡检优化工作流 | 进入 workflow/meta 的 M3，自驱动执行轻量规格、全量扫描、编排审查、运行时 hash 比对和回归评估；运行时不可写时记录漂移与权限阻塞，不重复失败 |
 | 运行时漂移检测 | 巡检时 PowerShell 不支持 `[System.IO.Path]::GetRelativePath`，hash 比对命令报错并输出异常漂移清单 | 判定本次漂移结果无效，改用兼容当前 shell 的相对路径计算重新比对；只把无脚本错误的 verified drift 写入 checkpoint、automation memory 和交付说明 |
@@ -39,6 +40,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 文件发现范围 | 巡检时用仓库根目录窄 glob、默认忽略隐藏/ignore 目录的发现命令，或只写 `rg --hidden -g 'references/*.md'` 这类缺少 `--no-ignore` 与 `**/` 的命令，只发现 `SKILL.md` 或只覆盖根级 skill，漏掉各 skill 子目录下的 `references/*.md`、`agents/openai.yaml` 或 `.agents/skills` 辅助 skill | 判定本次全量扫描范围无效，改用能覆盖 skill 子目录、隐藏目录和 ignore 目录的递归发现或等价枚举；若使用 `rg`，需要 hidden、ignore 覆盖和 `**/` 递归 glob；记录 `SKILL.md`、reference 和 openai 配置数量后重跑引用扫描、触发语义检查和运行时漂移比对 |
 | 运行时路径归一化 | 巡检已发现 `.agents/skills/spec-driven-development/SKILL.md`，但 Trae/Codex/Claude runtime 中真实路径是根级 `spec-driven-development/SKILL.md`；hash 比对脚本按 `.agents/skills/...` 字面路径映射后误报缺失 | 判定漂移结果无效；先把隐藏辅助 skill 源路径按 skill 目录名归一化为 `<runtime>/<skill>`，确认根级 runtime 是否存在，再进行 hash 比对；只报告归一化后仍缺失或 hash 不一致的 verified drift |
 | 活动运行时同步 | 当前会话实际从 `C:\Users\11731\.agents\skills\workflow-self-improvement\SKILL.md` 加载 skill，但源目录 `C:\Users\11731\Desktop\skills\workflow-self-improvement` 更新后只比对 Trae/Codex/Claude | 将 `.agents\skills` 识别为当前活动运行时镜像，纳入 hash 漂移比对、同步目标、权限阻塞记录和 automation memory；不得只把它当成源仓库里的隐藏辅助 skill 发现目录 |
+| 辅助 skill 受管同步 | `Desktop\skills\.agents\skills\spec-driven-development` 已更新，运行时 `~\.codex\skills\spec-driven-development` 还是普通复制目录 | `sync-runtime-skills.ps1 -All -CheckOnly` 必须扫描源目录根级和 `.agents\skills` 辅助目录；按 skill 名归一化到 `<runtime>\<skill>`，报告 `copied-dir/hash-diff`；`-All -RepairLinks` 先备份普通目录再替换为指向辅助源目录的 junction |
 | 新增 skill 多端链接 | 新建 `Desktop\skills\foo-skill` 后交付 | 以 `Desktop\skills` 为唯一源目录，运行 `sync-runtime-skills.ps1 -All -RepairLinks`，确保 Codex、Trae、Claude 以及已存在的 `.agents` 运行时都有指向源目录的 junction；外部/system skill 不被替换 |
 | 设计图业务保留 | 根据设计图改首复贷放款失败页，设计图截图里没有底部 banner，但当前代码有 `BannerRail`、轮询、bridge 按钮和多个状态分支 | 主场景 C，设计图作为视觉输入；必须先对照修改前代码保留既有 banner、轮询、bridge、按钮回调、刷新和埋点，只改目标状态分支；只有用户明确要求删除时才移除业务模块，并在验收中检查其他分支未被连带改坏 |
 | 原生 Base64 加号 | App 通过 URL query 给 H5 传 AES/Base64 参数，线上发现参数里的 `+` 被 `URLSearchParams` 读成空格 | 识别为原生交互验收缺口，归属到 `h5-apply-flow/references/native-methods.md` 和 `h5-testing-checklist`；要求 App 侧用 `%2B` 编码，或 H5 侧只对指定字段做空格还原 `+`，不得扩大为重写 bridge 协议或新增无关 WebView 通道 |

@@ -25,7 +25,8 @@
 - `h5-official-site`
 - `design-image-analysis`
 - `design-image-restore`
-- `h5-release-tag`
+- `release-precheck`
+- `release-tag`
 - `admin-management-flow`
 - `h5-testing-checklist`
 - `skill-workflow-advisor`
