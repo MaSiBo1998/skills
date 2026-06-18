@@ -6,7 +6,7 @@
 
 ## Step 1. 输入收集
 
-完整步骤见 `h5-testing-checklist/references/input-collection.md`。收集项目、产品名、国家、接口文档。
+完整步骤见 `h5-testing-checklist/references/input-collection.md`。收集项目、产品名、国家、appName、KB contract 或可入库接口材料。
 
 按国家选择 `references/country-profile-index.md` 中的 profile，并将 `country_profile` 写入 checkpoint。若国家为危地马拉（Guatemala / GT / 危地马拉），加载 `references/country-guatemala.md`，并将 `country=Guatemala`、`product_name`、`country_profile=guatemala`、`release_country_code=mx` 写入 checkpoint。危地马拉进件同国项目按同结构、不同接口和混淆字段处理，只允许替换接口地址、endpoint、入参字段名、回参字段名、请求头字段名和配置值。危地马拉业务国家允许 `release-env=mx`，表示后续发布走 `mx`；其他不一致再提示并要求确认。
 
@@ -26,15 +26,15 @@
 
 ---
 
-## Step 3. JSON 接口文档自动解析
+## Step 3. KB Contract 读取
 
-如 Step 1 未提供接口文档，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
+如本次不涉及接口 path、header、request/response 字段、状态枚举、类型或业务判断，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
 
-完整步骤见 `h5-api-mapping/references/api-mapping.md`。对照现有 Apply 模块 API 封装输出字段映射表。
+Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`；需要 H5 字段落地时再读取 `h5-api-mapping/references/api-mapping.md`。先由 `api-kb-contract-reader` 按 appName 读取 KB contract；若只有本地 swagger/api 文档或用户临时文档，先由 `api-doc-kb-archiver` 入库到 `API/apps/<appName>`，再读取 KB contract。
 
-危地马拉项目必须输出 header / endpoint / request / response 四类字段映射表，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与目标 swagger 冲突时，以目标接口文档为准修正并在交付中说明。
+危地马拉项目必须输出 header / endpoint / request / response 覆盖情况，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与 KB contract 冲突时，以 KB contract 为准修正并在交付中说明。
 
-**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（接口解析）完成
+**→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 3（KB Contract 读取）完成
 
 ---
 
@@ -63,7 +63,7 @@
 - 如果页面或父级布局是内部滚动容器（例如 `height: 100vh; overflow-y: auto`），防遮挡 hook 必须滚动最近的真实可滚动父容器，并按键盘高度给页面根节点增加底部占位；只执行 `window.scrollTo` 会在 App WebView 中出现聚焦后完全不滚动。
 - 打开选择器、级联选择器、通讯录、弹层前先 blur 当前输入框；不要用移动 `submit-bar` 的方式处理键盘遮挡。
 
-开发时结合 Step 3 的字段映射表（如有）进行接口适配。
+开发时结合 Step 3 的命中 KB contract 和 H5 落地清单（如有）进行接口适配。
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 5（进件功能开发）完成
 
@@ -82,8 +82,8 @@
 □ 步骤条展示正确（危地马拉为 5 阶段：work、personal、id/face、contacts、bank）
 □ 输入框聚焦后页面滚动正确，底部输入框不被键盘和固定 submit-bar 遮挡
 □ 退出拦截留存弹窗正常
-□ API 字段映射正确、风险埋点集成
-□ 危地马拉项目：产品/国家已确认，接口仅替换 URL、endpoint 与混淆字段名，header/endpoint/request/response 映射完整
+□ API contract 落地正确、风险埋点集成
+□ 危地马拉项目：产品/国家已确认，接口仅替换 URL、endpoint 与混淆字段名，header/endpoint/request/response 落地完整
 ```
 
 **→ 写入 checkpoint**: 更新 `.workflow-checkpoint.json`，标记 Step 6（自动测试验收）完成
@@ -92,7 +92,7 @@
 
 ## Step 7. 交付
 
-完整步骤见 `h5-testing-checklist/references/delivery.md`。输出进件步骤修改说明、接口映射汇总、测试结果、待用户验收项。
+完整步骤见 `h5-testing-checklist/references/delivery.md`。输出进件步骤修改说明、API contract 落地汇总、测试结果、待用户验收项。
 
 **→ 清理 checkpoint**: 删除 `.workflow-checkpoint.json`，工作流完成
 
@@ -103,5 +103,5 @@
 - **构建失败**：检查接口层代码；若启用了 vendor，再检查 vendor 配置
 - **进件步骤路由异常**：检查 `progress.ts` 中的 `getNextStep` 逻辑和路由配置
 - **原生交互不生效**：确认 `nativeBridge.ts` / `useAppBridge.ts` 中的方法名与对应 `references/country-*.md` 的原生协议一致；危地马拉项目对照 `references/country-guatemala.md`，不得因服务端字段混淆而改动原生回调字段名
-- **危地马拉字段映射异常**：重新对照 `references/country-guatemala.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构
+- **危地马拉 contract 落地异常**：重新对照 `references/country-guatemala.md`，只替换 URL / endpoint / header key / request key / response key，不重构数据结构
 - **测试未通过**：修复对应模块后重跑单项测试

@@ -23,7 +23,7 @@ description: 接口文档入库到个人知识库。用于用户要求“接口�
 - `<appName>.md` 负责连接接口索引、全局配置和所有接口 contract；只有检测到真实原生 bridge/callback/字段映射证据时，才额外连接 `原生交互.md`。
 - 不要为了模板完整性生成空的 `原生交互.md`：若项目没有原生方法、callback 或字段映射证据，app 入口、`_app-index.jsonl` 和读取顺序都不得引用原生交互。
 - 工作流以后使用接口时，先读 `_indexes` 命中接口，再打开具体 contract；不要遍历全部 contract。
-- 本 skill 只负责入库；实现 H5 接口字段替换交给 `h5-api-mapping`，跨端按需定位交给 `api-contract-mapping`。
+- 本 skill 只负责入库；实现 H5 接口字段替换交给 `h5-api-mapping`，跨端读取和定位 KB contract 交给 `api-kb-contract-reader`。
 
 ## 目标结构
 

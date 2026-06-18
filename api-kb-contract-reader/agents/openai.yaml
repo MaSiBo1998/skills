@@ -1,0 +1,4 @@
+interface:
+  display_name: "API KB Contract Reader"
+  short_description: "跨端按 appName 从 KB 读取接口 contract"
+  default_prompt: "Use $api-kb-contract-reader to read archived API contracts from D:\\code\\my-project\\personal-ai-kb\\API\\apps\\<appName>. First read the app README and _indexes/contracts.jsonl, by-path.json, or by-symbol.json, then open only the matched contracts/<Chinese purpose>.md files. Read 全局配置.md for baseURL/header/response codes and 原生交互.md for WebView/Native fields only when needed. Do not archive, generate API docs, or implement business code here; use api-doc-kb-archiver for KB ingestion and hand the contract evidence to the H5, Flutter, or admin workflow for implementation."

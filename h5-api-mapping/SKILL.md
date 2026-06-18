@@ -1,42 +1,41 @@
 ---
 name: h5-api-mapping
-description: H5 接口文档解析与字段映射。用于解析 swaggerApi.json、api.json、api.md、api.html，生成字段映射表，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；按项目/appName 接口 contract 落地时，先调用 api-contract-mapping 从 API/apps/<appName> 按索引读取命中接口；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
+description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reader 从 personal-ai-kb/API/apps/appName 读取到的接口 contract，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；本地 swaggerApi.json、api.json、api.md、api.html 只能先交给 api-doc-kb-archiver 入库，不能直接作为实现依据；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
 ---
 
-# H5 接口映射
+# H5 API Contract 落地
 
-本 skill 只负责接口文档解析和 API 字段迁移。
+本 skill 只负责 H5 API 字段迁移和代码落地。接口 contract 的读取和定位由 `api-kb-contract-reader` 完成，接口文档入库由 `api-doc-kb-archiver` 完成。
 
 ## 适用模式
 
-- 普通接口适配：新增接口、接口字段变化、请求/响应结构调整。
+- 普通接口适配：根据 KB contract 新增接口、调整接口字段、请求/响应结构或状态枚举。
 - 同结构、不同混淆字段替换：复制旧 H5 项目作为新项目时，业务流程、接口语义、请求入参和返回数据结构保持一致，只替换 API base URL、endpoint path、header key、request body key、response key 和全局配置字段。
-- 项目类型基准替换：`src/types/home.ts` 是首页信息接口结构规范，`src/types/device.ts` 是原生交互传入的设备信息结构规范，`src/types/bankList.ts` 是银行列表结构规范；新接口文档替换时以这三份 types 为结构基准，只替换 key 值。
-- appName 接口契约定位：项目/appName 的接口 contract 就是实现依据；只按 appName 归档，不按国家、新旧系统拆分。先调用 `api-contract-mapping`，读取 `API/apps/<appName>/README.md` 和 `_indexes/contracts.jsonl`，再按需读取对应 `contracts/*.md`。
+- 同构 types 替换：目标项目已有 types/model 与 KB contract 结构一致时，只替换字段 key，不改对象层级、数组结构、字段类型、枚举语义或业务流程。
+- appName 接口契约落地：项目/appName 的 KB contract 是唯一接口依据；只按 appName 归档，不按国家、新旧系统拆分。先调用 `api-kb-contract-reader`，读取命中 contract 后再落地到 H5。
 
 ## 执行方式
 
-1. 按 `swaggerApi.json -> api.json -> api.md -> api.html` 顺序查找项目内接口文档；若需要从 KB 读取项目/appName 接口文档，先调用 `api-contract-mapping`，并读取命中接口的 endpoint contracts。
-2. 加载 `references/api-mapping.md`，按其中原流程执行。
-3. 先按标准字段映射表模板输出字段映射表，再改代码。
-4. 若用户或接口文档说明“接口返回参数结构一样，只是参数名变化”，必须先做路径级字段映射：以旧字段的对象/数组层级、父子关系、同级关系为锚点，只替换字段名，不移动字段位置；不能因为字段语义或备注相近，把同级字段挪进另一个对象，或把对象内字段提升到外层。
-5. 路径级字段映射必须写清旧路径、新路径和层级关系，例如 `financial.deadly.phone -> unseeing.deadly.eggplant`，并标记 `romaji` 与 `eggplant/doctor/joltily` 是同级还是父子；如果文档只给片段且层级不明，先用现有结构和周边字段验证，仍不明确才向用户确认。
-6. 混淆字段迁移必须优先改 types，再用 TypeScript 报错逐处修复消费点；修复消费点时只能按字段映射表取值，禁止新增未在映射表中的旧字段兜底。
-7. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口映射只负责 API 差异，不决定业务流程分叉。
-8. 如果由 `admin-management-flow` 调用，只输出后台接口字段映射、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
+1. 先调用 `api-kb-contract-reader`，从 `personal-ai-kb/API/apps/<appName>` 读取命中接口的 endpoint contracts；本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能先交给 `api-doc-kb-archiver` 入库，入库后再读取 KB contract。
+2. 加载 `references/api-mapping.md`，按 H5 API Contract 落地顺序执行。
+3. 先列 H5 落地清单，说明命中 contract、API symbol、path/header/request/response/config 变化、触达文件和风险，再改代码。
+4. 若 contract 与现有类型同构，优先改 types/model 字段名，再用 TypeScript 报错逐处修复消费点；禁止新增未在 contract 中定义的旧字段兜底。
+5. 若 contract 与现有类型层级、数组结构、类型或枚举不一致，标记“结构不一致，需确认”，暂停自动替换。
+6. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口落地只负责 API 差异，不决定业务流程分叉。
+7. 如果由 `admin-management-flow` 调用，只输出后台接口字段依据、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
 
 ## 约束
 
-- 接口字段名必须严格按文档。
-- H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应接口文档；缺文档或缺字段时标记需确认。
+- 接口字段名必须严格按 KB contract。
+- H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应 KB contract；缺 contract 或缺字段时标记需确认。
+- 不直接消费项目内接口文档作为实现依据；KB 中缺 app、缺 contract、缺 response fields 或结构不一致时，暂停落地并输出“需入库/需确认”。
 - 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
 - 使用 KB 全局配置时，“环境地址”只代表后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 不能当正式地址，正式地址只信任 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production`。
-- 参考项目中真实调用但接口文档未覆盖的接口，必须沉淀为待补项目接口文档清单，不得忽略。
+- 目标项目中真实调用但 KB 未覆盖的接口，必须交给 `api-doc-kb-archiver` 入库或沉淀为待补 contract 清单，不得忽略。
 - 不做无差别全局字符串替换。
 - API base URL、后端接口地址、固定请求头值、国家/产品差异等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。
 - 同结构混淆字段替换模式不改业务流程、不增删字段、不改变字段类型、不改变数组/对象层级、不改变枚举业务含义。
 - 同结构混淆字段替换必须保持结构同构：字段名可以变化，路径深度、数组位置、对象父级和同级字段关系不能凭推断变化；如果实际文档显示结构变化，必须标记为“结构不一致”并停止按同结构模式迁移。
-- 对 `home.ts`、`device.ts`、`bankList.ts` 执行新接口文档替换时，不改结构，只替换 key；若文档出现新增字段、缺字段、层级变化或类型变化，必须暂停并标记为“结构不一致，需确认”。
 - 原生 bridge 回调字段不属于服务端混淆字段，不参与替换。
 - 后台接口映射不得套用 H5 原生桥接、首复贷或进件状态流规则。

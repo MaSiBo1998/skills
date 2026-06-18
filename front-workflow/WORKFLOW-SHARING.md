@@ -5,7 +5,7 @@
 前端需求看起来常常只是“改一个页面”或“接一个接口”，但真正执行时会牵出很多隐性判断：
 
 - 这是普通功能开发，还是进件、首复贷、管理后台、官网协议、发布或监控？
-- 接口文档只是字段输入，还是会改变业务流程？
+- API contract 只是字段依据，还是会改变业务流程？
 - 设计图只是视觉参考，还是要完整复原页面并处理切图？
 - 交付前应该跑哪些检查，哪些必须留给真实 WebView 或人工验收？
 - 本次踩到的规则，是否应该沉淀到工作流里，避免下次重复判断？
@@ -17,7 +17,7 @@
 这套工作流采用“主编排 + 子模块执行”的结构：
 
 - `front-workflow`：主工作流，只负责识别需求、判断场景、安排执行链和交付出口。
-- 业务子 skill：负责具体执行，例如接口映射、进件、首复贷、官网、后台、设计图复原、发布等。
+- 业务子 skill：负责具体执行，例如 API contract 读取、H5 字段落地、进件、首复贷、官网、后台、设计图复原、发布等。
 - `h5-testing-checklist`：统一负责交付前验收、专项检查、checkpoint 和交付说明。
 - `workflow-self-improvement`：负责把可复用经验沉淀回主工作流或对应子 skill。
 - 元能力 skill：在复杂、模糊或工作流巡检场景中，用 `spec-driven-development`、`workflow-orchestration-patterns`、`llm-evaluation` 辅助规格化、编排审查和回归评估。
@@ -28,7 +28,8 @@ flowchart TD
     B --> C["识别场景 A-J 或 K"]
     C --> D{"是否需要业务子 skill"}
     D -->|架构| E["h5-vendor-architecture"]
-    D -->|接口/字段| F["h5-api-mapping"]
+    D -->|接口依据| F["api-kb-contract-reader"]
+    F --> U["h5-api-mapping（H5 落地）"]
     D -->|进件| G["h5-apply-flow"]
     D -->|首复贷| H["h5-first-reloan-flow"]
     D -->|官网/协议| I["h5-official-site"]
@@ -38,7 +39,7 @@ flowchart TD
     D -->|发版检查| M["release-precheck"]
     D -->|正式发布| T["release-tag"]
     E --> N["h5-testing-checklist"]
-    F --> N
+    U --> N
     G --> N
     H --> N
     I --> N
@@ -65,7 +66,7 @@ flowchart TD
 - 用户输入和最新上下文
 - 当前目录和项目结构
 - 路由、页面、接口封装、配置文件
-- `design/`、`release-env`、接口文档、协议文档等材料
+- `design/`、`release-env`、API contract / 接口入库材料、协议文档等材料
 - `.workflow-checkpoint.json` 或 automation memory
 
 这么做是为了避免“词命中了，但项目证据不支持”的误判。例如用户说“配置页”，如果项目是 Vue/Element UI 后台，并且存在 `src/views`、`src/api`、权限或菜单结构，那么它更可能归到管理后台场景，而不是普通 H5 页面。
@@ -77,9 +78,9 @@ flowchart TD
 | 场景 | 归属 | 典型意图 | 主要执行链 |
 | --- | --- | --- | --- |
 | A | 架构改造 | depend、vendor、static-app、本地资源、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
-| B | 功能/API 开发 | 普通功能、新接口、字段适配 | 可选 `h5-api-mapping` -> `h5-testing-checklist` |
-| C | 首复贷开发 | 首贷、复贷、状态流、订单、还款、额度确认 | 可选 `h5-api-mapping` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
-| D | 进件开发 | Apply、Entry、步骤页、原生交互、国家差异 | 可选 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
+| B | 功能/API 开发 | 普通功能、新接口、字段适配 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-testing-checklist` |
+| C | 首复贷开发 | 首贷、复贷、状态流、订单、还款、额度确认 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
+| D | 进件开发 | Apply、Entry、步骤页、原生交互、国家差异 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 | 官网、协议 HTML、App 内嵌协议、客服问答 | `h5-official-site` -> `h5-testing-checklist` |
 | F | 设计图复原 | design 图片解析、照图实现、切图命名 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G | 发版检查 / 国家发布 | 发版检查、发布前检查、vConsole、发布、发版、打 tag、mx/co/ng | `release-precheck`；确认正式发布后 `release-tag` |
@@ -95,13 +96,13 @@ flowchart TD
 场景确认后，主工作流会生成执行链：
 
 - 必调子 skill：本次必须执行的业务模块。
-- 可选子 skill：只有满足条件才调用，例如新接口文档才需要 `h5-api-mapping`。
+- 可选子 skill：只有满足条件才调用，例如涉及接口字段时先读 `api-kb-contract-reader`；KB 缺失先由 `api-doc-kb-archiver` 入库；需要 H5 代码字段落地时才调用 `h5-api-mapping`。
 - 跳过子 skill：明确记录为什么不调用，避免后续复盘时不知道判断依据。
 
-复合需求会先确定主目标，再把其他能力作为辅助输入。例如“根据设计图改后台配置页并接接口”，主目标是管理后台开发，设计图是视觉输入，接口文档是字段输入，所以执行思路是：
+复合需求会先确定主目标，再把其他能力作为辅助输入。例如“根据设计图改后台配置页并接接口”，主目标是管理后台开发，设计图是视觉输入，API KB contract 是字段依据，所以执行思路是：
 
 1. 用设计图解析和复原能力辅助视觉还原。
-2. 用接口映射能力理解字段和路径。
+2. 用 `api-kb-contract-reader` 定位 appName 下的命中 contract，必要时再用业务 skill 落地字段。
 3. 主实现仍归 `admin-management-flow`。
 4. 最后用 `h5-testing-checklist` 做后台专项验收。
 
@@ -201,7 +202,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 | 场景识别、调度顺序、K 兜底标准 | `front-workflow` | 影响的是主流程如何判断和编排 |
 | 业务执行细节 | 对应业务子 skill | 避免主工作流膨胀 |
 | 验收缺口、人工待验项 | `h5-testing-checklist` | 影响的是交付质量控制 |
-| 接口字段映射模式 | `h5-api-mapping` | 属于接口解析和迁移方法 |
+| API contract 落地模式 | `h5-api-mapping` | 属于 H5 service/types/model/hook/page 的字段落地方法 |
 | 单项目事实 | 默认不沉淀 | 避免把一次性情况写成通用规则 |
 
 为什么要有自我沉淀？因为前端业务变化快，今天遇到的新国家、新接口模式、新后台权限规则，明天可能就会重复出现。如果每次都靠人提醒，工作流不会变强；如果不加归属控制地乱记，又会把流程写乱。自我沉淀的价值，就是在“能学习”和“不乱学”之间建立边界。
@@ -249,7 +250,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 | --- | --- |
 | 场景识别、调度顺序、未知需求兜底 | `front-workflow` |
 | 验收缺口、人工待验项 | `h5-testing-checklist` |
-| 接口字段映射模式 | `h5-api-mapping` |
+| API contract 落地模式 | `h5-api-mapping` |
 | 具体业务流程规则 | 对应业务子 skill |
 | 一次性项目事实 | 默认不沉淀，除非确认跨项目通用 |
 
@@ -277,7 +278,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 工作流判断：
 
 - 命中首复贷场景 C。
-- 如果有新接口文档或字段替换，先调用 `h5-api-mapping`。
+- 如果涉及接口 contract 或字段替换，先用 `api-kb-contract-reader` 读取对应 appName 的命中 contract；KB 缺失先由 `api-doc-kb-archiver` 入库；需要 H5 字段落地时再调用 `h5-api-mapping`。
 - 业务实现归 `h5-first-reloan-flow`，重点关注状态流、订单详情、未确认、放款、还款、App 列表等。
 - 如果用户明确要求异常监控，再串联 `h5-feishu-alert`。
 - 交付前用 `h5-testing-checklist` 做首复贷专项验收。
@@ -292,7 +293,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 
 - 命中管理后台场景 I。
 - 实现归 `admin-management-flow`，关注 Vue/Element UI、路由、菜单、权限、列表/详情/配置页、i18n 和接口错误态。
-- 如果有新接口文档，可以参考 `h5-api-mapping` 的字段映射方法，但主实现仍属于后台流程。
+- 如果涉及接口 contract 或字段替换，先用 `api-kb-contract-reader` 读取对应 appName 的命中 contract；后台页面实现仍属于 `admin-management-flow`，必要时只复用 `h5-api-mapping` 的字段落地思路。
 - 最后用 `h5-testing-checklist` 做后台专项验收。
 
 可复用思路：同样是“接接口”，不同项目类型的验收重点完全不同。场景判断要优先看项目结构。
@@ -344,7 +345,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 按“执行方式真的不同”来拆模块，而不是按页面名称随意拆。例如：
 
 - 页面开发和发布应该分开。
-- 接口字段映射和业务状态流应该分开。
+- API contract 读取 / H5 字段落地和业务状态流应该分开。
 - 设计图解析和业务实现应该分开。
 - 后台和 H5 应该分开。
 

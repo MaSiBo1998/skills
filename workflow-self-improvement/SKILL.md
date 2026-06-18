@@ -21,7 +21,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
    - 如果候选内容是概念解释、学习笔记、项目理解或踩坑复盘，只输出 KB 沉淀提案，不写入 workflow 文件。
 2. 判断内容归属：
    - 只影响场景识别、调度顺序、checkpoint、交付汇总的规则，写入主工作流 skill。
-   - 影响 vendor 架构、接口映射、进件、协议、发布、测试的执行细节，写入对应子 skill。
+   - 影响 vendor 架构、API contract 读取/落地、进件、协议、发布、测试的执行细节，写入对应子 skill。
    - 跨多个子 skill 的约束，主工作流只保留调度和归属规则，细节分别沉淀到子 skill。
    - 项目特例默认不写成通用规则；只有用户明确要求、重复出现或已确认跨项目通用时才沉淀。
 3. 输出沉淀提案：
@@ -110,7 +110,7 @@ Workflow 沉淀提案
 
 - 触发词是否被当成最终路由，而不是候选信号。
 - 新方向接入是否直接把 backend/flutter 细节塞进主 skill，而不是先新增方向注册和方向内 scene map。
-- 设计图、接口文档、告警、vendor、发布这类输入是否错误抢占了主场景。
+- 设计图、接口文档、API contract、告警、vendor、发布这类输入是否错误抢占了主场景。
 - 执行链是否写成固定流水线，而不是“输入补齐 -> 前置约束 -> 核心实现 -> 风险附加 -> 验收收口”的最小可行链。
 - 可选 skill 是否缺少明确加入条件，导致每次都被机械串联。
 - 同一条判断是否同时写在主 workflow、子 skill 和验收说明里，形成重复维护。
@@ -143,8 +143,8 @@ Workflow 沉淀提案
 | 跨功能/首复贷/进件的公共原生桥接协议 | `h5-apply-flow/references/native-methods.md` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
 | 接口文档入库、记录接口到知识库、生成中文 contract、生成 API/apps/<appName> 索引 | `api-doc-kb-archiver` |
-| 跨端接口契约消费、used API manifest、H5/Flutter 共用接口 contract 检索 | `api-contract-mapping` |
-| H5 API 文档解析、字段映射、请求响应类型、混淆字段落地 | `h5-api-mapping` |
+| 跨端 API KB contract 读取、used API manifest、H5/Flutter/后台共用接口 contract 检索 | `api-kb-contract-reader` |
+| H5 API contract 字段落地、请求响应类型、混淆字段落地到 service/types/model/hook/page | `h5-api-mapping` |
 | 飞书前端告警、白屏监控、线上异常预警 | `h5-feishu-alert` |
 | Apply、Entry、步骤页、原生交互、国家差异 profile | `h5-apply-flow` |
 | 首贷、复贷、状态流、订单详情、App 列表、未确认、放款、还款 | `h5-first-reloan-flow` |

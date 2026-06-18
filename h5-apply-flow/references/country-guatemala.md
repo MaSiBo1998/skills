@@ -13,7 +13,7 @@
 - 危地马拉进件不是重做流程，而是在 Confiq-H5 最终态上做“同结构、不同混淆字段”的迁移；优先替换 base URL、endpoint、header key、request key、response key、配置值。
 - 不允许因为新接口字段名变化而重构请求/响应层级、枚举语义、步骤顺序或原生回调协议。
 - `release-env=mx` 对危地马拉进件是预期发布环境，不代表业务国家是墨西哥；场景 D 以用户确认的业务国家为准，场景 G 以 `release-env` 国家码发布。
-- `swaggerApi.json` 与代码存在过历史不一致，执行时必须用最终态代码校准关键路径：`getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、银行卡查询分 `getBankInfo` 与 `getBankCardInfo`。
+- 旧接口材料与代码存在过历史不一致，执行时必须用 KB contract 与最终态代码共同校准关键路径：`getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、银行卡查询分 `getBankInfo` 与 `getBankCardInfo`。
 
 ### 入口逻辑
 
@@ -112,19 +112,19 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 | --- | --- |
 | 产品名 | 如 Confiq 或新产品名，写入 `product_name` |
 | 国家 | 必须明确为 Guatemala / GT / 危地马拉后才加载本规范 |
-| 接口文档 | 优先 `swaggerApi.json` |
-| base URL | 从接口文档全局配置或用户输入获取，写入 `.env*` |
+| 接口依据 | 优先 `API/apps/<appName>` 的 KB contract |
+| base URL | 从 `全局配置.md` 或用户输入获取，写入 `.env*` |
 | 差异说明 | 若用户声明流程、字段层级、枚举语义不同，先暂停确认 |
 
 同一国家内不同产品按“同结构、不同混淆名”处理：只替换接口地址、endpoint、请求头 key、请求入参 key、响应字段 key、配置值。
 
 ---
 
-## API 与字段映射
+## API Contract 与字段落地
 
 ### 全局配置
 
-从 `swaggerApi.json` 的 `GET /` 提取：
+从 `API/apps/<appName>/全局配置.md` 提取：
 
 - App 名称、业务线、测试/生产域名、RSA 公钥。
 - 成功 code 与 token 过期 code。
@@ -135,24 +135,24 @@ Confiq 当前请求头语义参考：
 | 语义 | Confiq 字段 |
 | --- | --- |
 | 业务线 | `a0835d` |
-| App 名称 | `v7028c` / 文档还出现 `x0665g`，以接口文档为准 |
+| App 名称 | `v7028c` / 历史材料还出现 `x0665g`，以 KB contract/全局配置为准 |
 | App 版本 | `y0566y` |
 | 平台/登录态相关 | `b8637r` |
 | loginId / 用户标识 | `f1378d` |
 | 设备/广告/DRM 相关 | `h8306j`、`r1408o`、`t0849o`、`u7495s` |
 
-执行新项目时不得照抄 Confiq 字段名，必须重新从新产品接口文档抽取 header key 并生成映射表。
+执行新项目时不得照抄 Confiq 字段名，必须重新从新产品 KB contract 和全局配置读取 header key 并生成落地清单。
 
 ### 接口路径基线
 
-以下路径用于识别危地马拉进件接口语义和历史冲突点。执行新危地马拉项目时，新项目的 endpoint 仍以新 `swaggerApi.json` 为准；但若新文档与既有流程语义发生结构级冲突，必须先标出差异并要求用户确认，不能直接按字段替换继续。
+以下路径用于识别危地马拉进件接口语义和历史冲突点。执行新危地马拉项目时，新项目的 endpoint 仍以对应 appName 的 KB contract 为准；但若 contract 与既有流程语义发生结构级冲突，必须先标出差异并要求用户确认，不能直接按字段替换继续。
 
 | 语义 | Confiq 最终态路径 | 备注 |
 | --- | --- | --- |
 | 用户详情/步骤状态 | `POST /jocosely/pivot` | `getUserDetail()`，驱动 `getNextStep()` |
 | 首页信息 | `POST /puruloid/grim` | `getHomeInfo()`，完件后透传给原生 `goBack(homeInfo)` |
-| 步骤配置 | `POST /hong/lettrism` | 当前 swagger 未定义，代码返回 `{ mexico: string }`，需按新项目确认 |
-| 通用配置/地址配置 | `POST /tessera/lateness` | 当前 swagger 未定义，代码用于缓存地址/邮箱后缀 |
+| 步骤配置 | `POST /hong/lettrism` | 当前 KB contract 未覆盖完整结构，代码返回 `{ mexico: string }`，需按新项目确认 |
+| 通用配置/地址配置 | `POST /tessera/lateness` | 当前 KB contract 未覆盖完整结构，代码用于缓存地址/邮箱后缀 |
 | 保存工作信息 | `POST /deafen/croker/chiapas` | Apply 必需 |
 | 保存联系人 | `POST /peke/cottager/jabez` | Apply 必需 |
 | 保存个人信息 | `POST /kaolin/amimeche` | Apply 必需 |
@@ -163,13 +163,13 @@ Confiq 当前请求头语义参考：
 | 查询已填写银行卡 | `POST /sizar/manitu/pareve/seafloor` | `getBankInfo()`，非 home 入口回填 |
 | 查询银行卡回填信息 | `POST /epidote/mome` | `getBankCardInfo()` |
 | 保存银行卡 | `POST /subacid/oof/stearine/jameson` | Apply 必需 |
-| 邮箱验证码 | `POST /flotsan/cavort/alcor/qei` | 当前 swagger 未定义，若新项目启用邮箱验证码需确认 |
+| 邮箱验证码 | `POST /flotsan/cavort/alcor/qei` | 当前 KB contract 未覆盖完整结构，若新项目启用邮箱验证码需确认 |
 | 被拒修改自拍 | `POST /germon/ice` | 如新项目启用 edit 场景需接入 |
 | 被拒修改身份 | `POST /papoose/blush/mascaret/dryness` | 如新项目启用 edit 场景需接入 |
 
 ### 入参与回参基线
 
-字段名必须与新项目接口文档一致。Confiq 字段只作为语义参照：
+字段名必须与新项目 KB contract 一致。Confiq 字段只作为语义参照：
 
 | 步骤 | 关键入参语义 | Confiq 字段 |
 | --- | --- | --- |
@@ -321,8 +321,8 @@ H5 稳定封装在 `src/hooks/useAppBridge.ts`：
 
 - 已输出产品名、国家、base URL、成功 code、token 过期 code。
 - 若业务国家为危地马拉且 `release-env=mx`，已记录“危地马拉进件走 mx 发布”；其他不一致已提示并记录用户确认。
-- 字段映射表覆盖 header、endpoint、request、response 四类。
-- 目标项目 `src/services/api/config.ts` 与目标 `swaggerApi.json` 路径一致；若与 Confiq 最终态语义不一致，已标注差异并获得确认。
+- KB contract / H5 落地清单覆盖 header、endpoint、request、response 四类。
+- 目标项目 `src/services/api/config.ts` 与目标 KB contract 路径一致；若与 Confiq 最终态语义不一致，已标注差异并获得确认。
 - `src/types/api.ts` 只替换字段名，不改变类型/结构/顺序。
 - `npx tsc --noEmit -p tsconfig.app.json` 零错误。
 - 旧混淆字段在 `src/` 中无残留。

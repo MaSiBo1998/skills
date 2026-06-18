@@ -1,4 +1,4 @@
-# 跨端项目接口契约映射
+# API KB Contract 读取
 
 ## 文档分层
 
@@ -12,7 +12,7 @@
 | endpoint contracts | `personal-ai-kb/API/apps/<appName>/contracts/*.md` | 每个接口一个中文 contract，记录用途、path、request/response 字段路径、类型、描述、枚举 | 是 |
 | 项目代码 | H5 / Flutter 目标项目 | 提取实际使用接口和落地实现 | 是 |
 
-不维护全局源文档基准，不在 KB 保留 `mx-api.md` / `co-api.md` 这类跨项目全集，也不按国家、新旧系统维度建立接口索引。每个 appName 独立归档。实际开发必须先定位 appName，再读取 `_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 找到命中接口，只打开对应 `contracts/*.md`，不默认读取全量接口文档。
+不维护全局源文档基准，不在 KB 保留 `mx-api.md` / `co-api.md` 这类跨项目全集，也不按国家、新旧系统维度建立接口索引。每个 appName 独立归档。实际开发必须先定位 appName，再读取 `_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 找到命中接口，只打开对应 `contracts/*.md`，不默认读取全量接口文档。本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能作为 `api-doc-kb-archiver` 的入库来源，不能绕过 KB 直接作为实现依据。
 
 图谱关系必须以 `<appName>.md` 为中心。接口 contract 只直接双链到 appName 节点，不直接双链 `全局配置.md` 或 `原生交互.md`；公共配置和原生交互由 appName 节点承接，避免 Obsidian 图谱被公共节点刷屏。
 
@@ -104,10 +104,11 @@ Flutter 实现阶段由 Flutter 工作流处理 Dio、model 和 repository，不
 - 不改变对象层级、数组结构、字段类型、状态枚举、状态判断和业务流程。
 - 项目代码与项目接口文档结构不一致时，标记“结构不一致，需确认”，暂停自动替换。
 - 原生 bridge 字段不属于服务端接口字段，不参与项目接口契约映射。
+- 本文件只定义读取和输出接口依据；具体 H5 字段替换、Flutter model/Dio 落地、后台页面接入由对应业务 skill 完成。
 
 ## Endpoint Index
 
-`generate_endpoint_index.py` 输出 JSONL 字段：
+`api-doc-kb-archiver` 入库后生成的 endpoint index 使用 JSONL 字段：
 
 ```json
 {"appName":"confiq","module":"首页","title":"首页信息","path":"/example/path","method":"POST","source_file":"swaggerApi.json","start_line":1,"end_line":120,"keywords":["首页","首页信息","/example/path"]}

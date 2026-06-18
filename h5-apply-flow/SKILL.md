@@ -5,7 +5,7 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 
 # H5 进件流程
 
-本 skill 只负责所有国家的 Apply 进件流程。各国家不是独立流程，只是同一进件模型下的差异 profile，例如步骤顺序、Entry 名称、发布环境、字段映射约束、原生返回细节。首贷/复贷状态流是独立场景，归属 `h5-first-reloan-flow`。
+本 skill 只负责所有国家的 Apply 进件流程。各国家不是独立流程，只是同一进件模型下的差异 profile，例如步骤顺序、Entry 名称、发布环境、接口字段落地约束、原生返回细节。首贷/复贷状态流是独立场景，归属 `h5-first-reloan-flow`。
 
 ## 维护边界
 
@@ -25,7 +25,7 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
    - 墨西哥：`references/country-mexico.md`
    - 哥伦比亚：`references/country-colombia.md`
    - 危地马拉：`references/country-guatemala.md`
-5. 只有本次涉及接口文档、新字段、新接口地址、新项目迁移或字段替换时，接口字段迁移才交给 `h5-api-mapping`；普通进件页面/交互补充复用现有 API。
+5. 只有本次涉及接口 contract、新字段、新接口地址、新项目迁移或字段替换时，先用 `api-kb-contract-reader` 读取 KB contract；KB 缺失时先用 `api-doc-kb-archiver` 入库；需要 H5 代码落地时再交给 `h5-api-mapping`。普通进件页面/交互补充复用现有 API。
 6. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
 7. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
 8. 验收交给 `h5-testing-checklist`。

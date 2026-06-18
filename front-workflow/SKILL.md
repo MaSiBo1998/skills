@@ -73,7 +73,7 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 3. 当前方向对应的 scene map
    - frontend：`references/frontend-scene-map.md`
    - workflow/meta：`references/workflow-meta-scene-map.md`
-   - Scene B 普通 H5 功能/API 开发：按需读取 `references/h5-common-feature-flow.md`
+   - 普通 H5 功能/API 开发：按需读取 `references/h5-common-feature-flow.md`
 4. 相关子 skill / 验收 reference / checkpoint / automation memory
 
 ## 核心流程
@@ -110,11 +110,11 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 - 修改任何需求时默认先走最小改动：优先沿已有数据流、调用点、接口层和配置层就地接入，减少修改文件和跨模块耦合；只有复用价值、风险隔离或项目既有模式明确要求时，才新增 helper、中间层或抽象。
 - 没有专属 skill 的普通功能/API 开发，默认直接在目标项目实现。
-- Scene B 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
+- 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
 - 用户直接贴出目标文件里的少量现有代码，并明确要求调整局部调用顺序、并行化互不依赖的 async，或修正 `loading/initializing` 一类状态收口条件时，按高置信度普通功能小改直接定位实现，不先停在方案描述。
 - 只有证据表明确实需要时，才追加 `h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、设计图能力或发布能力。
 - 用户要求“接口文档入库、记录接口到知识库、整理项目接口、从项目提取接口、归档 app 接口、生成接口 contract”时，先调度 `api-doc-kb-archiver` 写入 `personal-ai-kb/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和 `_indexes`。
-- H5 或 Flutter 命中项目/appName 接口文档、只读取项目用到接口、混淆字段落地或接口契约使用时，先追加 `api-contract-mapping` 做跨端接口契约定位，再交给对应方向实现。
+- H5、Flutter、管理后台或其他客户端涉及接口 path、header、request/response 字段、状态枚举、类型/model 或业务判断时，先追加 `api-kb-contract-reader` 从 `personal-ai-kb/API/apps/<appName>` 读取命中 contract，再交给对应方向实现；若 KB 缺少 appName、contract 或字段结构，先调度 `api-doc-kb-archiver` 入库或输出需确认，不直接用本地 swagger/api 文档实现。
 - 不要因为命中关键词，就机械把所有可选 skill 串上。
 - 验收总是收口，但等级按风险控制，不让小改自动升级成全量重流程。
 
@@ -159,7 +159,7 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 - `h5-vendor-architecture`
 - `api-doc-kb-archiver`
-- `api-contract-mapping`
+- `api-kb-contract-reader`
 - `h5-api-mapping`
 - `h5-apply-flow`
 - `h5-first-reloan-flow`
@@ -181,7 +181,7 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 - 输入和 checkpoint：`h5-testing-checklist/references/input-collection.md`
 - 验收：`h5-testing-checklist/references/testing-workflow.md`
-- Scene B 普通 H5 功能基线：`references/h5-common-feature-flow.md`
+- 普通 H5 功能基线：`references/h5-common-feature-flow.md`
 - 交付：`h5-testing-checklist/references/delivery.md`
 - 工作流指导：`skill-workflow-advisor`
 - 规则沉淀：`workflow-self-improvement`

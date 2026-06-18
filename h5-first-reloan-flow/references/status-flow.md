@@ -1,6 +1,6 @@
 # 首复贷状态组件架构
 
-本文档为场景 C 的通用参考，用来约束首复贷状态流的分析顺序。它不是某个项目的架构拷贝清单；执行时必须使用目标项目已有字段、接口、组件和路由。只有用户明确要求用新接口文档、新字段或新接口地址替换时，才需要先完成字段/接口映射。
+本文档为场景 C 的通用参考，用来约束首复贷状态流的分析顺序。它不是某个项目的架构拷贝清单；执行时必须使用目标项目已有字段、接口、组件和路由。只有用户明确要求用接口 contract、新字段或新接口地址替换时，才需要先完成 API contract 读取和 H5 字段落地。
 
 `参考项目` 的命名只作为示例，不能作为其他项目的硬编码依赖。
 
@@ -93,27 +93,27 @@ mpls.outpace === 600               -> LoanInProgress
 
 在其他项目中，必须把“金融订单/授信订单”映射到本项目真实订单模型，例如 loan order / credit order、repayment order / apply order、financial order / approval order 等。
 
-## 三、关键数据字段映射
+## 三、关键数据字段落地
 
-普通首复贷业务补充优先复用目标项目已有字段。仅当本次涉及新接口文档、新字段、新接口地址或新项目迁移时，才需要记录业务语义到目标项目字段的映射。`参考项目` 示例仅用于理解：
+普通首复贷业务补充优先复用目标项目已有字段。仅当本次涉及接口 contract、新字段、新接口地址或新项目迁移时，才需要记录业务语义到目标项目字段的落地关系。`参考项目` 示例仅用于理解：
 
 | 业务语义 | 目标项目字段 | `参考项目` 示例 |
 | --- | --- | --- |
-| 首页顶层用户状态码 | 待映射 | `HomeData.visor` |
-| 产品列表 | 待映射 | `HomeData.attorn[]` |
-| 产品名或 appName | 待映射 | `AppList.arala` |
-| 订单大类 | 待映射 | `AppList.outpace`，`300=金融`，其他为授信 |
-| 是否还款期 | 待映射 | `AppList.noho` |
-| 是否启用产品 | 待映射 | `AppList.spectrin` |
-| 授信/申请订单详情 | 待映射 | `AppList.mpls` |
-| 金融/还款订单详情 | 待映射 | `AppList.trophy` |
-| 授信内部状态 | 待映射 | `ApplyOrderDetail.outpace` |
-| 是否风险定价倒计时 | 待映射 | `ApplyOrderDetail.orexis` |
-| 可选产品配置 | 待映射 | `ApplyOrderDetail.maulers` |
-| 金融内部状态 | 待映射 | `FinancialOrderDetail.outpace` |
-| 还款计划状态 | 待映射 | `RepaymentPlanItem.krutch` |
+| 首页顶层用户状态码 | 待按 contract 落地 | `HomeData.visor` |
+| 产品列表 | 待按 contract 落地 | `HomeData.attorn[]` |
+| 产品名或 appName | 待按 contract 落地 | `AppList.arala` |
+| 订单大类 | 待按 contract 落地 | `AppList.outpace`，`300=金融`，其他为授信 |
+| 是否还款期 | 待按 contract 落地 | `AppList.noho` |
+| 是否启用产品 | 待按 contract 落地 | `AppList.spectrin` |
+| 授信/申请订单详情 | 待按 contract 落地 | `AppList.mpls` |
+| 金融/还款订单详情 | 待按 contract 落地 | `AppList.trophy` |
+| 授信内部状态 | 待按 contract 落地 | `ApplyOrderDetail.outpace` |
+| 是否风险定价倒计时 | 待按 contract 落地 | `ApplyOrderDetail.orexis` |
+| 可选产品配置 | 待按 contract 落地 | `ApplyOrderDetail.maulers` |
+| 金融内部状态 | 待按 contract 落地 | `FinancialOrderDetail.outpace` |
+| 还款计划状态 | 待按 contract 落地 | `RepaymentPlanItem.krutch` |
 
-如果目标项目字段为混淆命名，必须保留业务注释并在类型或映射表中写清来源。
+如果目标项目字段为混淆命名，必须保留业务注释并在类型或 H5 落地清单中写清来源。
 
 ## 四、数据流
 
@@ -171,20 +171,20 @@ HomeData.visor                       AppList
 
 如果使用路由字符串判断，必须集中检查路由调整时的影响，避免隐藏耦合。
 
-## 六、API 接口映射
+## 六、API Contract 读取与落地
 
-不要把示例接口 URL 当作通用依赖。普通首复贷需求使用目标项目现有接口；只有用户明确要求接口/字段替换或新项目迁移时，才重新映射：
+不要把示例接口 URL 当作通用依赖。普通首复贷需求使用目标项目现有接口；只有用户明确要求接口/字段替换或新项目迁移时，才重新按 contract 落地：
 
 | 接口语义 | 目标项目接口 | `参考项目` 示例 URL |
 | --- | --- | --- |
-| 获取首页状态 | 待映射 | `/cateyed/roneo/oud` |
-| 通用埋点提交 | 待映射 | `/annoit/energism/annalist/santalin` |
-| 获取银行列表 | 待映射 | `/hissing/lrl` |
-| 提交贷款申请 | 待映射 | `/iotp/aruspex` |
-| 执行还款支付 | 待映射 | `/luke/lugsail/ayd` |
-| 获取产品详情 | 待映射 | `/nauseous/kanpur/zillion/monkship` |
+| 获取首页状态 | 待按 contract 落地 | `/cateyed/roneo/oud` |
+| 通用埋点提交 | 待按 contract 落地 | `/annoit/energism/annalist/santalin` |
+| 获取银行列表 | 待按 contract 落地 | `/hissing/lrl` |
+| 提交贷款申请 | 待按 contract 落地 | `/iotp/aruspex` |
+| 执行还款支付 | 待按 contract 落地 | `/luke/lugsail/ayd` |
+| 获取产品详情 | 待按 contract 落地 | `/nauseous/kanpur/zillion/monkship` |
 
-接口迁移由 `h5-api-mapping` 负责生成字段映射和类型，首复贷工作流负责校验这些接口是否接入正确状态节点。未涉及接口/字段替换时，本节只作为理解现有数据流的参考。
+接口 contract 先由 `api-kb-contract-reader` 按 appName 从 KB 定位；KB 缺失时先由 `api-doc-kb-archiver` 入库；H5 代码字段落地由 `h5-api-mapping` 负责生成落地清单和类型，首复贷工作流负责校验这些接口是否接入正确状态节点。未涉及接口/字段替换时，本节只作为理解现有数据流的参考。
 
 ## 七、各状态组件关键逻辑
 
@@ -201,7 +201,7 @@ HomeData.visor                       AppList
 | 放款中 | 金额、期限、银行卡等数据源在首贷/复贷下正确切换 |
 | 放款失败 | 编辑银行卡或重试入口按 App bridge 规则触发 |
 | 首复贷 Banner | 接口 URL 收敛到 API 配置层，多个 banner 3 秒轮播展示，空数组不占位，点击按内跳/外链/不跳转分发，App 内跳统一走 bridge，内跳参数按接口原值透传 |
-| 多产品/App 列表 | 启用/未启用、还款期/逾期、权限、风控上传、详情跳转正确；还款点击上传 `uploadType: 3`，字段映射使用当前 App 对应混淆字段（例如某项目为 `9ac914938c59`） |
+| 多产品/App 列表 | 启用/未启用、还款期/逾期、权限、风控上传、详情跳转正确；还款点击上传 `uploadType: 3`，原生字段映射使用当前 App 对应混淆字段（例如某项目为 `9ac914938c59`） |
 | 还款 | 还款金额、还款计划、支付方式、支付接口和埋点来自金融订单数据 |
 
 ## 八、风控 Store 与原生 Bridge

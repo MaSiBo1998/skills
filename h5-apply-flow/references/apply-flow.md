@@ -9,7 +9,7 @@
 ## 典型触发示例
 
 - “进件新增键盘遮挡处理，不换字段”：场景 D，复用现有 API，只修改 Apply 页面交互和样式约束，不调用 `h5-api-mapping`。
-- “危地马拉进件换新 swagger，业务流程不变”：场景 D 业务归属，先调用 `h5-api-mapping` 做同结构字段/API 替换，再按 `country_profile=guatemala` 执行专项验收。
+- “危地马拉进件换新接口 contract，业务流程不变”：场景 D 业务归属，先用 `api-kb-contract-reader` 读取 KB contract；若只有本地 swagger/api 文档，先用 `api-doc-kb-archiver` 入库；需要 H5 字段落地时再调用 `h5-api-mapping` 做同结构字段/API 替换，最后按 `country_profile=guatemala` 执行专项验收。
 - “调整 Apply 步骤顺序或 Entry 跳转”：场景 D，优先加载国家 profile，避免复制整套进件流程。
 
 ---

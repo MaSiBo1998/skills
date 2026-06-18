@@ -23,18 +23,18 @@
 - **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
 - **禁止**用新的步骤记录覆盖旧的 `completed_steps`；如果同一步重复执行，追加新记录并在 `note` 中说明 rerun/修正原因
 
-格式（以场景 B 为例）：
+格式（以普通 H5 功能/API 开发为例）：
 
 ```json
 {
-  "scene": "B",
+  "scene": "ordinary-h5",
   "last_completed_step": 3,
   "completed_steps": [
     {
       "step": 1,
       "step_name": "输入收集",
       "completed_at": "2026-05-08T10:10:00",
-      "note": "已收集项目根目录和接口文档路径"
+      "note": "已收集项目根目录、appName 和 API contract 路径"
     },
     {
       "step": 2,
@@ -44,15 +44,15 @@
     },
     {
       "step": 3,
-      "step_name": "JSON 接口文档自动解析",
+      "step_name": "KB Contract 读取",
       "completed_at": "2026-05-08T10:30:00",
-      "note": "完成字段映射"
+      "note": "完成 KB Contract 读取和 H5 落地清单"
     }
   ],
   "step_names": {
     "1": "输入收集",
     "2": "判断 vendor 架构",
-    "3": "JSON 接口文档自动解析",
+    "3": "KB Contract 读取",
     "4": "项目开发",
     "5": "自动测试验收",
     "6": "交付"
@@ -60,7 +60,7 @@
   "context": {
     "discovered_facts": [
       "package.json 存在 build 脚本",
-      "接口文档路径来自用户输入"
+      "appName 和命中 API contract 来自 KB 索引或用户确认"
     ],
     "assumptions": [
       "未提供国家，不阻塞普通功能开发"
@@ -78,7 +78,7 @@
 
 | 字段 | 说明 |
 |------|------|
-| `scene` | 场景标识：A / B / C / D / E / F / G / H / I / J / K |
+| `scene` | 场景标识或命名场景，例如 `ordinary-h5` / C / D / E / F / G / workflow/meta / I / J / K |
 | `last_completed_step` | 已完成的最后一个 Step 编号，仅作快速恢复索引 |
 | `completed_steps` | 已完成 Step 的追加式历史记录，记录每一步完成时间和说明 |
 | `step_names` | 各步骤名称映射 |
@@ -109,14 +109,14 @@
 | 场景 | 推荐 context 字段 |
 |------|-------------------|
 | A | `{ vendor_enabled, build_script }` |
-| B | `{ vendor_enabled, api_doc_path, project_config, target_route }` |
-| C | `{ product_name, country, vendor_enabled, api_doc_path, project_config }` |
-| D | `{ product_name, country, country_profile, release_country_code, vendor_enabled, api_doc_path, project_config }` |
+| ordinary-h5 | `{ vendor_enabled, appName, api_contract_paths, project_config, target_route }` |
+| C | `{ product_name, country, appName, vendor_enabled, api_contract_paths, project_config }` |
+| D | `{ product_name, country, appName, country_profile, release_country_code, vendor_enabled, api_contract_paths, project_config }` |
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |
 | H | `{ learning_candidates, skill_updates, workflow_improvement_spec, orchestration_audit, eval_cases, eval_results, automation_memory }` |
-| I | `{ admin_module, target_route, roles, api_doc_path, i18n_scope }` |
+| I | `{ admin_module, target_route, roles, appName, api_contract_paths, i18n_scope }` |
 | J | `{ project_root, alert_scope, alert_api_path, h5_host_config, monitor_files }` |
 | K | `{ candidate_scenes, fallback_scene, exploration_paths, unresolved_blockers }` |
 
@@ -126,14 +126,14 @@
 // 场景 A（4 步）
 { "scene": "A", "step_names": { "1": "技术栈评估", "2": "vendor 架构建立", "3": "自动测试验收", "4": "交付" } }
 
-// 场景 B（普通功能/API，7 步）
-{ "scene": "B", "step_names": { "1": "输入收集", "2": "开发范围确认", "3": "判断 vendor 架构", "4": "JSON 接口文档自动解析", "5": "项目开发", "6": "自动测试验收", "7": "交付" } }
+// 普通 H5 功能/API（7 步）
+{ "scene": "ordinary-h5", "step_names": { "1": "输入收集", "2": "开发范围确认", "3": "判断 vendor 架构", "4": "KB Contract 读取", "5": "项目开发", "6": "自动测试验收", "7": "交付" } }
 
 // 场景 C（首复贷，7 步）
-{ "scene": "C", "step_names": { "1": "输入收集", "2": "判断 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立（可选）", "5": "首复贷状态流开发", "6": "自动测试验收", "7": "交付" } }
+{ "scene": "C", "step_names": { "1": "输入收集", "2": "判断 vendor 架构", "3": "KB Contract 读取", "4": "vendor 架构建立（可选）", "5": "首复贷状态流开发", "6": "自动测试验收", "7": "交付" } }
 
 // 场景 D（进件，7 步）
-{ "scene": "D", "step_names": { "1": "输入收集", "2": "判断 vendor 架构", "3": "JSON 接口文档自动解析", "4": "vendor 架构建立（可选）", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
+{ "scene": "D", "step_names": { "1": "输入收集", "2": "判断 vendor 架构", "3": "KB Contract 读取", "4": "vendor 架构建立（可选）", "5": "进件功能开发", "6": "自动测试验收", "7": "交付" } }
 
 // 场景 E（官网/协议/挂载 H5，5 步）
 { "scene": "E", "step_names": { "1": "输入收集", "2": "官网/协议需求解析", "3": "页面或协议文件实现", "4": "自动验收", "5": "交付" } }
