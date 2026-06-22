@@ -1,6 +1,6 @@
 ---
 name: h5-api-mapping
-description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reader 从 personal-ai-kb/API/apps/appName 读取到的接口 contract，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；本地 swaggerApi.json、api.json、api.md、api.html 只能先交给 api-doc-kb-archiver 入库，不能直接作为实现依据；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
+description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reader 从 personal-ai-kb/Work/API/apps/appName 读取到的接口 contract，迁移接口路径、base URL、请求头、请求入参、响应字段、混淆字段和 TypeScript 类型；本地 swaggerApi.json、api.json、api.md、api.html 只能先交给 api-doc-kb-archiver 入库，不能直接作为实现依据；管理后台接口字段替换可复用映射方法，但后台页面实现仍归属 admin-management-flow。
 ---
 
 # H5 API Contract 落地
@@ -16,7 +16,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 
 ## 执行方式
 
-1. 先调用 `api-kb-contract-reader`，从 `personal-ai-kb/API/apps/<appName>` 读取命中接口的 endpoint contracts；本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能先交给 `api-doc-kb-archiver` 入库，入库后再读取 KB contract。
+1. 先调用 `api-kb-contract-reader`，从 `personal-ai-kb/Work/API/apps/<appName>` 读取命中接口的 endpoint contracts；本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能先交给 `api-doc-kb-archiver` 入库，入库后再读取 KB contract。
 2. 加载 `references/api-mapping.md`，按 H5 API Contract 落地顺序执行。
 3. 先列 H5 落地清单，说明命中 contract、API symbol、path/header/request/response/config 变化、触达文件和风险，再改代码。
 4. 若 contract 与现有类型同构，优先改 types/model 字段名，再用 TypeScript 报错逐处修复消费点；禁止新增未在 contract 中定义的旧字段兜底。
@@ -29,7 +29,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 - 接口字段名必须严格按 KB contract。
 - H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应 KB contract；缺 contract 或缺字段时标记需确认。
 - 不直接消费项目内接口文档作为实现依据；KB 中缺 app、缺 contract、缺 response fields 或结构不一致时，暂停落地并输出“需入库/需确认”。
-- 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
+- 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `Work/API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
 - 使用 KB 全局配置时，“环境地址”只代表后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 不能当正式地址，正式地址只信任 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production`。
 - 目标项目中真实调用但 KB 未覆盖的接口，必须交给 `api-doc-kb-archiver` 入库或沉淀为待补 contract 清单，不得忽略。
 - 不做无差别全局字符串替换。

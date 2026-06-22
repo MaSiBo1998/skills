@@ -13,6 +13,7 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 验收流程、等级选择和 workflow/meta 巡检细节写入 `references/testing-workflow.md`。
 - 具体通用检查和各业务专项检查写入 `references/testing-checklist.md`。
 - 输入收集、checkpoint 和交付模板分别写入 `references/input-collection.md`、`references/checkpoint.md`、`references/delivery.md`。
+- 验收背后的说明性知识、案例复盘和 H5 公共场景背景写入 `personal-ai-kb/Work/H5`；本 skill 保留会影响通过/失败/跳过的硬规则。
 - 后续新增检查项时，优先沉淀到对应 reference；只有影响所有验收入口的判断标准才写回本文件。
 
 ## 执行方式

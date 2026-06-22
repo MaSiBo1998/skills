@@ -1,4 +1,4 @@
-# Frontend Scene Map
+﻿# Frontend Scene Map
 
 当前 active 的业务方向仍是 frontend，本文件只维护前端方向内的 scene map。
 
@@ -36,9 +36,9 @@
 - “普通页面补一个接口字段展示”：
   主场景是普通 H5 功能/API 开发；没有接口 contract / 字段替换和 vendor 证据时，不强拉 `h5-api-mapping` 或 `h5-vendor-architecture`。
 - “项目/appName API contract 做字段替换”：
-  主场景是普通 H5 功能/API 开发；先调度 `api-kb-contract-reader` 提取项目实际使用接口，通过 `API/apps/<appName>/_indexes` 只读取命中的接口 contract，再由 `h5-api-mapping` 做 H5 落地。若 KB 缺少 appName 或命中 contract，先调度 `api-doc-kb-archiver` 入库或标记需确认；项目真实字段必须来自该 appName 的 KB contract。
+  主场景是普通 H5 功能/API 开发；先调度 `api-kb-contract-reader` 提取项目实际使用接口，通过 `Work/API/apps/<appName>/_indexes` 只读取命中的接口 contract，再由 `h5-api-mapping` 做 H5 落地。若 KB 缺少 appName 或命中 contract，先调度 `api-doc-kb-archiver` 入库或标记需确认；项目真实字段必须来自该 appName 的 KB contract。
 - “接口文档入库 / 记录接口到知识库 / 整理项目所有接口 contract”：
-  主场景是普通 H5 功能/API 开发，supporting capability 是 `api-doc-kb-archiver`；把接口写入 `personal-ai-kb/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和快速索引，不进入 H5 代码实现。
+  主场景是普通 H5 功能/API 开发，supporting capability 是 `api-doc-kb-archiver`；把接口写入 `personal-ai-kb/Work/API/apps/<appName>`，生成中文 contract、全局配置、原生交互和快速索引，不进入 H5 代码实现。
 - “普通 App 内嵌 H5 页面加登录态判断、返回拦截、埋点或多语言文案”：
   主场景仍是普通 H5 功能/API 开发；读取 `references/h5-common-feature-flow.md`，复用项目已有 auth、bridge、tracking、i18n/formatting 和 WebView 兼容模式，不误进 C/D/J/F。
 - “App 内嵌 H5 加载慢、首屏慢、低版本机型不支持新语法、只想问题机型再加载兼容包”：

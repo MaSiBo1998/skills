@@ -69,7 +69,8 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 - 方向先于场景，场景先于 supporting capability；触发词只是候选信号。
 - 普通 H5 横切规则只读 `h5-common-feature-flow.md`，不新增独立业务 skill。
-- 接口实现以 `personal-ai-kb/API/apps/<appName>` 的 KB contract 为准；本地 swagger/api 文档只能先入库。
+- 接口实现以 `personal-ai-kb/Work/API/apps/<appName>` 的 KB contract 为准；本地 swagger/api 文档只能先入库。
+- 标准规范、场景知识和已确认可信经验按场景写入 `personal-ai-kb/Work`；本工作流只保留触发、路由、执行链、硬性验收门槛和确认式沉淀流程。
 - 发版检查只调度 `release-precheck`；用户确认正式发布后才进入 `release-tag`。
 - workflow/meta 诊断先交给 `skill-workflow-advisor`；明确修改、沉淀、补回归、同步运行时交给 `workflow-self-improvement`。
 - backend/flutter 当前按 `direction-registry.md` 的 planned 规则处理，不把方向内细节塞回主 skill。

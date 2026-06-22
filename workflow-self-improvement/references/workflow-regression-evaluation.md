@@ -1,4 +1,4 @@
-# 工作流回归评估
+﻿# 工作流回归评估
 
 workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思路执行本文件。优先运行 `scripts/evaluate-routing-regression.ps1` 统计样例数、总分和动态通过线；若没有自动评测 runner，则按 LLM-as-judge/规则化审查输出通过/失败表。
 
@@ -28,14 +28,15 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 外层规则回写 skill | 把上述 AGENTS.md 里的全局工作流门禁记录到工作流对应 skill 里面 | 进入 workflow/meta；将工作类请求强制入口、状态条、确认式沉淀和 KB/Workflow 分流规则沉淀到 `front-workflow`、`agents/openai.yaml`、交付模板或对应子 skill，而不是只依赖目录级 AGENTS.md |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有接口 contract / 字段替换证据也没启用 vendor | 主场景为普通 H5 功能/API 开发；涉及接口字段时先用 `api-kb-contract-reader` 读取对应 appName 的命中 contract，再在目标项目实现并按风险验收；不强行串 `h5-vendor-architecture` |
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景为普通 H5 功能/API 开发；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
-| API KB contract 即准绳 | 不保留 mx-api/co-api 源文档，所有涉及接口的都从知识库里对应产品取 | 入库调度 `api-doc-kb-archiver`；读取调度 `api-kb-contract-reader`；项目真实 path/header/request/response 字段必须来自 `API/apps/<appName>` 的命中 contract，不维护全局源文档基准 |
-| 本地接口文档先入库 | 项目根目录有 swaggerApi.json，帮我接这个接口 | 不能直接用本地 swagger/api 文档改代码；先用 `api-doc-kb-archiver` 入库到 `API/apps/<appName>`，再用 `api-kb-contract-reader` 读取命中 contract，最后交给对应业务 skill 实现 |
-| API 入库按 appName | 用户要求“把接口文档记录到知识库、整理项目所有接口 contract” | 调度 `api-doc-kb-archiver`，写入 `personal-ai-kb/API/apps/<appName>`，生成 `全局配置.md`、`原生交互.md`、中文 contract 和 `_indexes`；不按新/旧系统或国家拆分 |
+| API KB contract 即准绳 | 不保留 mx-api/co-api 源文档，所有涉及接口的都从知识库里对应产品取 | 入库调度 `api-doc-kb-archiver`；读取调度 `api-kb-contract-reader`；项目真实 path/header/request/response 字段必须来自 `Work/API/apps/<appName>` 的命中 contract，不维护全局源文档基准 |
+| 本地接口文档先入库 | 项目根目录有 swaggerApi.json，帮我接这个接口 | 不能直接用本地 swagger/api 文档改代码；先用 `api-doc-kb-archiver` 入库到 `Work/API/apps/<appName>`，再用 `api-kb-contract-reader` 读取命中 contract，最后交给对应业务 skill 实现 |
+| API 入库按 appName | 用户要求“把接口文档记录到知识库、整理项目所有接口 contract” | 调度 `api-doc-kb-archiver`，写入 `personal-ai-kb/Work/API/apps/<appName>`，生成 `全局配置.md`、`原生交互.md`、中文 contract 和 `_indexes`；不按新/旧系统或国家拆分 |
 | API 环境地址语义 | 生成 app 全局配置时记录环境地址 | 环境地址只指后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支读取 |
 | API 图谱关系收敛 | Obsidian 图谱里所有接口都连到全局配置/原生交互，公共节点被刷屏 | `api-doc-kb-archiver` 必须生成 `<appName>.md` 作为 app 中心节点；接口 contract 只直接双链到 appName 节点；全局配置和原生交互只由 appName 节点/README/索引承接 |
+| KB H5 场景分层 | 做 confiq 的进件接口和页面调整 | 接口依据读取 `Work/API/apps/confiq` 命中 contract 和全局配置；进件规范读取 `Work/H5/业务场景/进件流程`；API contract 不承接 App WebView/视觉/验收公共规范，也不按 appName 自动追加 app 专属页 |
 | 只读项目用到接口 | 用 Confiq 这类 H5 项目做接口替换，swaggerApi.json 是项目接口全集 | 先从 `src/services/api/config.ts`、`src/services/api/*.ts` 和 types 提取 used API manifest；若 swagger 未入库先归档到 KB，再只读取命中的 contract，不默认加载全量接口文档 |
 | 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；每个实际接口都生成中文 contract，并通过 `_indexes/contracts.jsonl`、`by-path.json`、`by-symbol.json` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
-| appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |
+| appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `Work/API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |
 | Flutter 共用接口契约 | Flutter App 也用每个 appName 的接口文档和混淆字段 | 调度 `api-kb-contract-reader` 提取 Dio/request wrapper、endpoint constants、repository/service/model 中实际接口；接口契约层共用，Flutter 实现不走 `h5-api-mapping` 的 H5 落地规则 |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |
 | 业务场景不等于内嵌 | 首复贷或进件页面没有任何原生方法、bridge、window 回调证据，只是普通 H5 页面 | 不能仅凭“首复贷/进件”判定为 App 内嵌；按对应业务场景执行，只有出现原生交互证据时才追加 App WebView、键盘遮挡和 Flutter 通道规则 |

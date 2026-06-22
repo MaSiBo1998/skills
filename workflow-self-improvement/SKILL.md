@@ -5,7 +5,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
 
 # 工作流自我更新成长
 
-本 skill 负责把一次任务中的可复用 workflow 经验整理为沉淀提案，并在用户确认后沉淀为稳定规则，完成修改、校验和交付说明。沉淀时优先提炼“判断标准”，不要把每个新需求都写成孤立限制。目标不是把 workflow 继续写成更长的硬编码说明，而是保留稳定约束、削掉重复判断、把固定框架改成可编排规则。不要执行具体业务开发；具体业务仍交给对应工作流或子 skill。学习笔记、项目理解和踩坑复盘属于 `D:\code\my-project\personal-ai-kb` 的 KB 沉淀，不写入本 skill。
+本 skill 负责把一次任务中的可复用 workflow 经验整理为沉淀提案，并在用户确认后沉淀为稳定规则，完成修改、校验和交付说明。沉淀时优先提炼“判断标准”，不要把每个新需求都写成孤立限制。目标不是把 workflow 继续写成更长的硬编码说明，而是保留稳定约束、削掉重复判断、把固定框架改成可编排规则。不要执行具体业务开发；具体业务仍交给对应工作流或子 skill。标准规范、场景知识、已确认可信经验、学习笔记、项目理解和踩坑复盘属于 `D:\code\my-project\personal-ai-kb` 的 KB 沉淀，不写入本 skill。
 
 ## 更新闭环
 
@@ -18,7 +18,7 @@ description: 工作流自我更新成长。用于用户要求“记住、记一�
    - 实际执行中出现重复判断、重复人工修正、遗漏验收、国家差异或接口模式无法被现有 skill 覆盖。
    - 子 skill 输出与项目真实约束冲突。
    - 未知/复合需求进入 K 兜底后，最终形成了可复用的场景识别、执行顺序或阻塞问题判断标准。
-   - 如果候选内容是概念解释、学习笔记、项目理解或踩坑复盘，只输出 KB 沉淀提案，不写入 workflow 文件。
+   - 如果候选内容是标准规范、场景知识、可信经验、概念解释、学习笔记、项目理解或踩坑复盘，只输出 KB 沉淀提案，不写入 workflow 文件。
 2. 判断内容归属：
    - 只影响场景识别、调度顺序、checkpoint、交付汇总的规则，写入主工作流 skill。
    - 影响 vendor 架构、API contract 读取/落地、进件、协议、发布、测试的执行细节，写入对应子 skill。
@@ -142,7 +142,7 @@ Workflow 沉淀提案
 | 全局工作流入口、工作流状态条、工作类请求在实现或详细建议前的强制入口、KB 与 Workflow 沉淀分流 | `front-workflow` + `front-workflow/agents/openai.yaml`；交付呈现规则同步到 `h5-testing-checklist/references/delivery.md` |
 | 跨功能/首复贷/进件的公共原生桥接协议 | `h5-apply-flow/references/native-methods.md` + 涉及的业务子 skill + `h5-testing-checklist` |
 | vendor、本地资源、Vite external、static-app | `h5-vendor-architecture` |
-| 接口文档入库、记录接口到知识库、生成中文 contract、生成 API/apps/<appName> 索引 | `api-doc-kb-archiver` |
+| 接口文档入库、记录接口到知识库、生成中文 contract、生成 Work/API/apps/<appName> 索引 | `api-doc-kb-archiver` |
 | 跨端 API KB contract 读取、used API manifest、H5/Flutter/后台共用接口 contract 检索 | `api-kb-contract-reader` |
 | H5 API contract 字段落地、请求响应类型、混淆字段落地到 service/types/model/hook/page | `h5-api-mapping` |
 | 飞书前端告警、白屏监控、线上异常预警 | `h5-feishu-alert` |

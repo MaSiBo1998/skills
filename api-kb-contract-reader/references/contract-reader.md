@@ -1,15 +1,15 @@
-# API KB Contract 读取
+﻿# API KB Contract 读取
 
 ## 文档分层
 
 | 层级 | 位置 | 用途 | 是否可直接进入项目 |
 | --- | --- | --- | --- |
-| app 中心节点 | `personal-ai-kb/API/apps/<appName>/<appName>.md` | Obsidian 图谱中心，连接接口索引、全局配置、原生交互和接口 contract | 是 |
-| app 入口 | `personal-ai-kb/API/apps/<appName>/README.md` | 工作流读取顺序和 app 入口说明 | 是 |
-| app 全局配置 | `personal-ai-kb/API/apps/<appName>/全局配置.md` | 后端 API 测试/正式地址、响应码、header key、业务线、appName、平台、token/loginId/device 等取值来源 | 是 |
-| app 原生交互 | `personal-ai-kb/API/apps/<appName>/原生交互.md` | Native 方法、callback、字段和混淆名 | 是 |
-| contract 索引 | `personal-ai-kb/API/apps/<appName>/_indexes/contracts.jsonl` | 给 Codex 快速检索 contract 文件 | 是 |
-| endpoint contracts | `personal-ai-kb/API/apps/<appName>/contracts/*.md` | 每个接口一个中文 contract，记录用途、path、request/response 字段路径、类型、描述、枚举 | 是 |
+| app 中心节点 | `personal-ai-kb/Work/API/apps/<appName>/<appName>.md` | Obsidian 图谱中心，连接接口索引、全局配置、原生交互和接口 contract | 是 |
+| app 入口 | `personal-ai-kb/Work/API/apps/<appName>/README.md` | 工作流读取顺序和 app 入口说明 | 是 |
+| app 全局配置 | `personal-ai-kb/Work/API/apps/<appName>/全局配置.md` | 后端 API 测试/正式地址、响应码、header key、业务线、appName、平台、token/loginId/device 等取值来源 | 是 |
+| app 原生交互 | `personal-ai-kb/Work/API/apps/<appName>/原生交互.md` | Native 方法、callback、字段和混淆名 | 是 |
+| contract 索引 | `personal-ai-kb/Work/API/apps/<appName>/_indexes/contracts.jsonl` | 给 Codex 快速检索 contract 文件 | 是 |
+| endpoint contracts | `personal-ai-kb/Work/API/apps/<appName>/contracts/*.md` | 每个接口一个中文 contract，记录用途、path、request/response 字段路径、类型、描述、枚举 | 是 |
 | 项目代码 | H5 / Flutter 目标项目 | 提取实际使用接口和落地实现 | 是 |
 
 不维护全局源文档基准，不在 KB 保留 `mx-api.md` / `co-api.md` 这类跨项目全集，也不按国家、新旧系统维度建立接口索引。每个 appName 独立归档。实际开发必须先定位 appName，再读取 `_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 找到命中接口，只打开对应 `contracts/*.md`，不默认读取全量接口文档。本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能作为 `api-doc-kb-archiver` 的入库来源，不能绕过 KB 直接作为实现依据。
@@ -38,16 +38,16 @@
 每个 appName 目录必须在 `contracts/` 下保存接口结构：
 
 ```text
-API/apps/<appName>/README.md
-API/apps/<appName>/<appName>.md
-API/apps/<appName>/全局配置.md
-API/apps/<appName>/原生交互.md
-API/apps/<appName>/contracts/索引.md
-API/apps/<appName>/contracts/*.md
-API/apps/<appName>/_indexes/contracts.jsonl
-API/apps/<appName>/_indexes/by-path.json
-API/apps/<appName>/_indexes/by-symbol.json
-API/apps/<appName>/raw/
+Work/API/apps/<appName>/README.md
+Work/API/apps/<appName>/<appName>.md
+Work/API/apps/<appName>/全局配置.md
+Work/API/apps/<appName>/原生交互.md
+Work/API/apps/<appName>/contracts/索引.md
+Work/API/apps/<appName>/contracts/*.md
+Work/API/apps/<appName>/_indexes/contracts.jsonl
+Work/API/apps/<appName>/_indexes/by-path.json
+Work/API/apps/<appName>/_indexes/by-symbol.json
+Work/API/apps/<appName>/raw/
 ```
 
 每条 contract 至少包含：
@@ -67,8 +67,8 @@ API/apps/<appName>/raw/
 项目中真实调用的接口必须沉淀到 contract 索引：
 
 ```text
-API/apps/<appName>/contracts/索引.md
-API/apps/<appName>/_indexes/contracts.jsonl
+Work/API/apps/<appName>/contracts/索引.md
+Work/API/apps/<appName>/_indexes/contracts.jsonl
 ```
 
 - `contracts/索引.md` 给人阅读，按模块归纳所有 API symbol、path、用途、入参字段数、出参字段数、文档状态和 contract 文件。

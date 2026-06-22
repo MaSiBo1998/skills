@@ -34,12 +34,13 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 
 1. 确认产品、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构；vendor 默认为不执行，只有用户明确要求、checkpoint 已启用或项目现有约束需要时才启用。
 2. 判断本次是否涉及接口 contract / 新字段 / 新接口地址 / 新项目迁移；若涉及，先交给 `api-kb-contract-reader` 读取命中 contract，KB 缺失则交给 `api-doc-kb-archiver` 入库，需要 H5 字段落地时再交给 `h5-api-mapping`；若不涉及则跳过接口字段迁移。
-3. 加载 `references/flow-variants.md`，先判断旧流程还是新流程；参考项目不可用时按抽象合同和目标项目证据执行，不阻断。
-4. 加载 `references/first-reloan-flow.md`，按首复贷场景执行，优先复用目标项目现有流程。
-5. 加载 `references/status-flow.md`，对照目标项目真实状态码、字段和组件补充或校验本次业务改动。
-6. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
-7. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次首复贷需求的可选操作；未明确要求时不阻断首复贷主流程。
-8. 验收交给 `h5-testing-checklist`，必须执行首复贷状态流专项检查，并说明哪些检查依赖真实 App WebView。
+3. 读取个人知识库的 H5 场景知识：首复贷读 `Work/H5/业务场景/首复贷状态流.md`；涉及 App WebView 时读 `Work/H5/公共规范/App WebView兼容.md`；涉及设计图或截图时读 `Work/H5/公共规范/视觉还原与截图预算.md`。
+4. 加载 `references/flow-variants.md`，先判断旧流程还是新流程；参考项目不可用时按抽象合同和目标项目证据执行，不阻断。
+5. 加载 `references/first-reloan-flow.md`，按首复贷场景执行，优先复用目标项目现有流程。
+6. 加载 `references/status-flow.md`，对照目标项目真实状态码、字段和组件补充或校验本次业务改动。
+7. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
+8. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次首复贷需求的可选操作；未明确要求时不阻断首复贷主流程。
+9. 验收交给 `h5-testing-checklist`，必须执行首复贷状态流专项检查，并说明哪些检查依赖真实 App WebView。
 
 ## 场景边界
 
@@ -59,6 +60,7 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 - 若用户口头描述“图里没有 banner/底部没有 banner”等与当前代码中已有 banner 冲突，优先理解为设计图截图范围不完整，不自动移除已有 banner；只有用户明确说“删除原有 banner/不要渲染这个 banner”时才移除，并在交付中说明移除的是已有业务展示位。
 - 首复贷状态组件同文件存在多状态分支时，必须逐分支确认本次只改目标状态分支；复用样式 class 可以，但不要把某一状态分支的结构变更、banner 增删或按钮行为带到其他状态分支。
 - 参考项目字段只能用于理解语义。用户或 KB contract 明确给出目标字段后，必须清理参考项目字段兼容读取；还款用户资料、路由 state 和类型定义必须只保留目标项目真实字段，并搜索确认旧字段无残留。
+- 参考项目复盘、可信规范和长解释优先按场景沉淀到 `personal-ai-kb/Work/H5`；本 skill 只保留执行硬规则和读取入口。
 - 当用户说明首复贷接口“返回参数结构一样，只是参数名变化”时，必须先由 `api-kb-contract-reader` 读取路径级 KB contract，再调用 `h5-api-mapping` 做 H5 字段落地后再改还款页；消费还款用户资料时按 contract 的完整路径取值，特别要核对对象父级和同级关系，不能把 `deadly`、`romaji`、手机号、邮箱、身份证号等字段按语义重新嵌套。
 - 还款页回显、路由 state 和提交参数改完后，必须用 `rg` 搜索旧字段、旧兜底和错误层级路径，例如旧项目字段、`deadly?.romaji?.<新字段>`、平级字段被误放进子对象等；搜索结果必须为空或逐条解释为什么保留。
 - 首复贷涉及原生 `uploadAllRiskData` 时，复贷提交成功传 `uploadType: 2`，还款点击传 `uploadType: 3`；业务层保持语义字段，由统一原生字段映射编码为当前 App 约定的混淆字段，`9ac914938c59` 只是某个项目的示例，不是新 App 固定字段。

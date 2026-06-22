@@ -25,10 +25,11 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
    - 墨西哥：`references/country-mexico.md`
    - 哥伦比亚：`references/country-colombia.md`
    - 危地马拉：`references/country-guatemala.md`
-5. 只有本次涉及接口 contract、新字段、新接口地址、新项目迁移或字段替换时，先用 `api-kb-contract-reader` 读取 KB contract；KB 缺失时先用 `api-doc-kb-archiver` 入库；需要 H5 代码落地时再交给 `h5-api-mapping`。普通进件页面/交互补充复用现有 API。
-6. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
-7. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
-8. 验收交给 `h5-testing-checklist`。
+5. 读取个人知识库的 H5 场景知识：通用进件读 `Work/H5/业务场景/进件流程.md`；涉及 App WebView 时读 `Work/H5/公共规范/App WebView兼容.md`；涉及视觉还原、截图预算、拍照图片质量时读 `Work/H5/公共规范/视觉还原与截图预算.md`。不要按 appName 自动追加 app 专属页。
+6. 只有本次涉及接口 contract、新字段、新接口地址、新项目迁移或字段替换时，先用 `api-kb-contract-reader` 读取 `Work/API/apps/<appName>` contract；KB 缺失时先用 `api-doc-kb-archiver` 入库；需要 H5 代码落地时再交给 `h5-api-mapping`。普通进件页面/交互补充复用现有 API。
+7. 若确认需要 vendor 架构，交给 `h5-vendor-architecture`；否则跳过。
+8. 若用户要求飞书告警、前端预警、白屏监控或线上异常监控，调用 `h5-feishu-alert` 作为本次进件需求的可选操作；未明确要求时不阻断进件主流程。
+9. 验收交给 `h5-testing-checklist`。
 
 ## 约束
 
@@ -39,13 +40,13 @@ description: H5 进件申请流程开发。用于新增或修改 Apply 页面、
 - 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter，不主动添加 Android、iOS WKWebView 或普通 Web 分支。
 - 国家差异只能覆盖明确差异点，不复制整套进件流程；默认复用通用 Apply 流程。
 - 新国家或新差异先沉淀为 country profile，再由通用进件流程调用。
+- 历史坑、标准规范、可信经验和长解释按场景沉淀到 `personal-ai-kb/Work/H5`；本 skill 只保留执行硬规则和读取入口。
 - 未明确国家差异时，不得套用危地马拉 profile；墨西哥、哥伦比亚和新国家默认先走通用 Apply 流程，再按用户或项目事实补差异。
 - 首贷/复贷、订单状态、产品详情、未确认、放款、还款和 App 列表不属于本 skill；遇到这些任务应切换到 `h5-first-reloan-flow`。
 - 包含真实输入框的页面必须处理键盘遮挡：根节点 ref、`input-wrapper`、`submit-bar`、16px 输入字体、选择器打开前 blur、多延迟滚动校正。若页面或外层布局使用内部滚动容器（例如 `height: 100vh; overflow-y: auto`），滚动逻辑必须定位最近的真实可滚动父容器并补足键盘底部占位，不能只依赖 `window.scrollTo`。
 - 含选项类字段的进件步骤页（例如工作信息、联系人关系、个人信息）必须保留初始化自动弹窗体验：接口回显和配置加载完成后，若页面处于可编辑且主流程必填项未完成，应根据 `userInfo` 计算第一个缺失选项并 `queueInitialDialog/getFirstMissingDialog` 延迟打开；判断优先使用本次接口回显数据，不依赖刚 `setState` 后尚未生效的组件状态。选择后的连续弹窗联动也要和初始化缺失项顺序保持一致；若移除通讯录等原生能力，需要同步收口不再适用的自动串弹。
 - Apply 页面必须处理移动端默认点击高亮和 focus 线框：全局样式优先覆盖 `button`、`a`、`[role='button']`、`[tabindex]` 的 `outline` 与 `-webkit-tap-highlight-color`；拍照按钮等关键局部按钮需保留无额外线框的 `focus/active` 状态。
 - 级联地址选择器长选项优先通过动态字号、按空格换行和列内宽度约束保证完整展示，禁止使用会把普通单词强制拆开的 `overflow-wrap: anywhere`。
-- 个人信息地址提交值若接口要求连字符拼接，必须确认分隔符是否带空格；常见格式是 `州-市-区`，每级 `trim()` 后用 `join('-')`。
-- 身份证性别选项必须同时确认展示文案和提交枚举；Confiq-H5 西语展示为 `Masculino` / `Femenino`，提交值为男 `H`、女 `M`。
+- 个人信息地址分隔符、性别展示文案和提交枚举必须以当前 app 的 API contract、产品资料或用户确认信息为准；不得把某个项目示例写成公共默认。
 - 新流程进件完件收口若触发原生风控上传，必须统一走 bridge hook / utility 调用 `uploadAllRiskData`，业务层传语义字段 `uploadType: 2`，由统一字段映射编码为当前 App 约定的混淆字段；`9ac914938c59` 只是某个项目的示例，不是新 App 固定字段。
 - 进件场景的飞书告警实现细节归属 `h5-feishu-alert`，本 skill 只负责在用户明确要求时调度它。

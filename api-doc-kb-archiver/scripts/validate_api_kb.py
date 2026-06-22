@@ -12,7 +12,7 @@ from pathlib import Path
 def read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8-sig").splitlines() if line.strip()]
 
 
 def has_chinese(value: str) -> bool:
@@ -32,7 +32,7 @@ def main() -> int:
     parser.add_argument("--app-name", required=True)
     args = parser.parse_args()
 
-    api_root = args.kb_root / "API"
+    api_root = args.kb_root / "Work" / "API"
     app_dir = api_root / "apps" / args.app_name
     app_index_path = api_root / "apps" / "_app-index.jsonl"
     app_index_row = find_app_index_row(app_index_path, args.app_name)
@@ -76,8 +76,8 @@ def main() -> int:
         if row.get("request_field_count", 0) <= 0 or row.get("response_field_count", 0) <= 0:
             errors.append(f"index missing field counts: {contract.name}")
 
-    if (api_root / "新系统接口").exists():
-        errors.append("legacy API/新系统接口 still exists")
+    if (args.kb_root / "API").exists():
+        errors.append("legacy top-level API still exists")
 
     if errors:
         print(json.dumps({"ok": False, "errors": errors}, ensure_ascii=False, indent=2))

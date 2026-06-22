@@ -1,4 +1,4 @@
-# 场景 D — 进件功能开发
+﻿# 场景 D — 进件功能开发
 
 新增或修改进件申请流程，含接口适配，可选 vendor 架构。**只修改 Apply 相关页面和 API，不涉及其他功能模块。**
 
@@ -30,7 +30,7 @@
 
 如本次不涉及接口 path、header、request/response 字段、状态枚举、类型或业务判断，跳过本步骤，直接写入 checkpoint 并进入 Step 4。
 
-Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`；需要 H5 字段落地时再读取 `h5-api-mapping/references/api-mapping.md`。先由 `api-kb-contract-reader` 按 appName 读取 KB contract；若只有本地 swagger/api 文档或用户临时文档，先由 `api-doc-kb-archiver` 入库到 `API/apps/<appName>`，再读取 KB contract。
+Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`；需要 H5 字段落地时再读取 `h5-api-mapping/references/api-mapping.md`。先由 `api-kb-contract-reader` 按 appName 读取 KB contract；若只有本地 swagger/api 文档或用户临时文档，先由 `api-doc-kb-archiver` 入库到 `Work/API/apps/<appName>`，再读取 KB contract。
 
 危地马拉项目必须输出 header / endpoint / request / response 覆盖情况，并确认接口结构未变化；若发现字段层级、数组结构、枚举语义或步骤流程变化，先暂停并要求用户确认，不能按“仅混淆名变化”继续自动替换。目标项目代码 API path 与 KB contract 冲突时，以 KB contract 为准修正并在交付中说明。
 

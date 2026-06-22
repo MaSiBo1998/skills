@@ -1,4 +1,4 @@
-# 危地马拉进件项目规范（Confiq-H5 最终态基线）
+﻿# 危地马拉进件项目规范（Confiq-H5 最终态基线）
 
 本参考用于场景 D（进件功能开发）中 `country=Guatemala/GT/危地马拉` 的项目。当前只约束危地马拉进件项目；墨西哥、哥伦比亚项目必须另行收集差异，不得直接套用本文件。
 
@@ -93,7 +93,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 
 ---
 
-## 技术与项目基线
+## 技术与项目事实
 
 - 技术栈：Vite 5、React 18、TypeScript、react-router-dom 6、antd-mobile 5、npm。
 - 构建命令：`npm run build` 先执行 `tsc --noEmit -p tsconfig.app.json`，再执行 `vite build`。
@@ -112,7 +112,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 | --- | --- |
 | 产品名 | 如 Confiq 或新产品名，写入 `product_name` |
 | 国家 | 必须明确为 Guatemala / GT / 危地马拉后才加载本规范 |
-| 接口依据 | 优先 `API/apps/<appName>` 的 KB contract |
+| 接口依据 | 优先 `Work/API/apps/<appName>` 的 KB contract |
 | base URL | 从 `全局配置.md` 或用户输入获取，写入 `.env*` |
 | 差异说明 | 若用户声明流程、字段层级、枚举语义不同，先暂停确认 |
 
@@ -124,7 +124,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 
 ### 全局配置
 
-从 `API/apps/<appName>/全局配置.md` 提取：
+从 `Work/API/apps/<appName>/全局配置.md` 提取：
 
 - App 名称、业务线、测试/生产域名、RSA 公钥。
 - 成功 code 与 token 过期 code。

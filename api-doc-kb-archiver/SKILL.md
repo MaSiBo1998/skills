@@ -1,6 +1,6 @@
 ---
 name: api-doc-kb-archiver
-description: 接口文档入库到个人知识库。用于用户要求“接口文档入库、记录接口到知识库、整理项目接口、从项目提取接口、归档 app 接口、生成接口 contract、生成 API 索引、把 swaggerApi.json/api.md 沉淀到 KB”时；按 appName 写入 personal-ai-kb/API/apps/appName，生成全局配置、中文接口 contract、快速检索索引，并只在检测到真实原生 bridge/callback 证据时生成原生交互。
+description: 接口文档入库到个人知识库。用于用户要求“接口文档入库、记录接口到知识库、整理项目接口、从项目提取接口、归档 app 接口、生成接口 contract、生成 API 索引、把 swaggerApi.json/api.md 沉淀到 KB”时；按 appName 写入 personal-ai-kb/Work/API/apps/appName，生成全局配置、中文接口 contract、快速检索索引，并只在检测到真实原生 bridge/callback 证据时生成原生交互。
 ---
 
 # API 文档入库
@@ -12,15 +12,16 @@ description: 接口文档入库到个人知识库。用于用户要求“接口�
 - 用户要求把接口文档、Swagger、api.md、api.json 或项目中实际调用的接口记录到知识库。
 - 用户要求整理某个 appName 的所有接口 contract。
 - 用户要求生成接口索引、按中文接口作用命名接口文档、补全入参/出参结构。
-- H5 或 Flutter 项目需要把真实接口文档长期归档到 `personal-ai-kb/API/apps/<appName>`。
+- H5 或 Flutter 项目需要把真实接口文档长期归档到 `personal-ai-kb/Work/API/apps/<appName>`。
 
 ## 核心边界
 
 - API 知识库只按 `appName` 划分，不按新/旧系统、国家或参考项目划分。
+- API 知识库只承接接口 contract、全局配置和 app-specific 原生交互；首复贷、进件、App WebView 兼容、视觉还原和截图预算等公共场景知识写入 `personal-ai-kb/Work/H5`。
 - 用户可见文件不展示代码文件路径、生成过程、path hash 文件名或“接口沉淀”过程稿。
 - 每个接口必须沉淀为独立 contract，文件名用中文接口作用。
 - Obsidian 图谱关系必须收敛到 appName：接口 contract 只双链到 `<appName>.md` app 中心节点，不直接双链到 `全局配置.md` 或 `原生交互.md`。
-- `<appName>.md` 负责连接接口索引、全局配置和所有接口 contract；只有检测到真实原生 bridge/callback/字段映射证据时，才额外连接 `原生交互.md`。
+- `<appName>.md` 负责连接接口索引、全局配置和所有接口 contract；只有检测到真实原生 bridge/callback/字段映射证据时，才额外连接 `原生交互.md`。app 入口页可以聚合相关 `Work/H5` 场景知识，单个接口 contract 不反向链接公共规范。
 - 不要为了模板完整性生成空的 `原生交互.md`：若项目没有原生方法、callback 或字段映射证据，app 入口、`_app-index.jsonl` 和读取顺序都不得引用原生交互。
 - 工作流以后使用接口时，先读 `_indexes` 命中接口，再打开具体 contract；不要遍历全部 contract。
 - 本 skill 只负责入库；实现 H5 接口字段替换交给 `h5-api-mapping`，跨端读取和定位 KB contract 交给 `api-kb-contract-reader`。
@@ -28,36 +29,37 @@ description: 接口文档入库到个人知识库。用于用户要求“接口�
 ## 目标结构
 
 ```text
-API/
-├── MOC.md
-└── apps/
+Work/
+└── API/
     ├── MOC.md
-    ├── _app-index.jsonl
-    └── <appName>/
-        ├── <appName>.md
-        ├── README.md
-        ├── 全局配置.md
-        ├── 原生交互.md              # 可选：仅有真实原生交互证据时生成
-        ├── raw/
-        ├── contracts/
-        │   ├── 索引.md
-        │   └── <中文接口作用>.md
-        └── _indexes/
-            ├── contracts.jsonl
-            ├── by-path.json
-            └── by-symbol.json
+    └── apps/
+        ├── MOC.md
+        ├── _app-index.jsonl
+        └── <appName>/
+            ├── <appName>.md
+            ├── README.md
+            ├── 全局配置.md
+            ├── 原生交互.md              # 可选：仅有真实原生交互证据时生成
+            ├── raw/
+            ├── contracts/
+            │   ├── 索引.md
+            │   └── <中文接口作用>.md
+            └── _indexes/
+                ├── contracts.jsonl
+                ├── by-path.json
+                └── by-symbol.json
 ```
 
 ## 执行流程
 
-1. 先读知识库 `README.md`、`Home.md`、`API/MOC.md`，确认当前 API 入口。
+1. 先读知识库 `README.md`、`Home.md`、`Work/API/MOC.md`，确认当前 API 入口。
 2. 判断 appName；用户未给时，从 `.env*`、项目名、包名或 `VITE_APP_NAME` 推断，推断不稳才问用户。
 3. 提取接口来源：
    - H5：优先读取 `src/services/api/config.ts`、`src/services/api/*.ts`、`src/types/**/*.ts`、项目根 `swaggerApi.json`。
    - Flutter：优先读取 Dio/request wrapper、endpoint constants、repository/service、model。
 4. 生成或更新 app 文档：
-   - `<appName>.md`：Obsidian 图谱中的 appName 中心节点，接口 contract 只链接到这个节点。
-   - `README.md`：工作流入口和读取顺序。
+   - `<appName>.md`：Obsidian 图谱中的 appName 中心节点，接口 contract 只链接到这个节点；可聚合相关 H5 场景知识链接。
+   - `README.md`：工作流入口、读取顺序和相关场景知识聚合入口。
    - `全局配置.md`：后端 API 测试/正式地址、响应码、header 参数名、业务线、appName、平台、版本、token/loginId/device 等取值来源。
      - 环境地址只指后端接口访问地址，不把 H5 页面地址混入环境地址表。
      - 测试分支中的 `.env.production` 仍按测试地址处理。

@@ -1,6 +1,6 @@
 ---
 name: api-kb-contract-reader
-description: API KB contract 读取/定位。用于 H5、Flutter、管理后台或其他客户端项目需要按 appName 从个人知识库 API/apps/appName 快速定位接口 contract，读取全局配置、原生交互、request/response 字段结构，并输出实现前接口依据；接口文档入库、生成 contract 和索引由 api-doc-kb-archiver 负责。
+description: API KB contract 读取/定位。用于 H5、Flutter、管理后台或其他客户端项目需要按 appName 从个人知识库 Work/API/apps/appName 快速定位接口 contract，读取全局配置、原生交互、request/response 字段结构，并输出实现前接口依据；接口文档入库、生成 contract 和索引由 api-doc-kb-archiver 负责。
 ---
 
 # API KB Contract Reader
@@ -19,12 +19,14 @@ description: API KB contract 读取/定位。用于 H5、Flutter、管理后台�
 
 - 不维护、不读取、不保留全局未混淆源文档基准。
 - 不负责接口文档入库；入库、中文 contract 生成、全局配置和原生交互沉淀由 `api-doc-kb-archiver` 负责。
-- 本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能作为入库来源；实现前必须先由 `api-doc-kb-archiver` 归档到 `personal-ai-kb/API/apps/<appName>`，再由本 skill 读取。
-- 每个 appName 的真实接口文档独立归档到 `personal-ai-kb/API/apps/<appName>`；项目实现只读取自己的 app 文档，不按新/旧系统、国家或参考项目建索引。
+- 本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时提供的接口文档只能作为入库来源；实现前必须先由 `api-doc-kb-archiver` 归档到 `personal-ai-kb/Work/API/apps/<appName>`，再由本 skill 读取。
+- 每个 appName 的真实接口文档独立归档到 `personal-ai-kb/Work/API/apps/<appName>`；项目实现只读取自己的 app 文档，不按新/旧系统、国家或参考项目建索引。
 - 缺少项目/appName 接口文档、缺少字段定义或结构不明确时，输出“需确认”，不要猜字段。
 - 不因为有接口全集就全量读取；必须先定位 appName，再通过 `_indexes/contracts.jsonl`、`_indexes/by-path.json` 或 `_indexes/by-symbol.json` 命中接口。
-- 命中后只读取对应 `contracts/<中文接口作用>.md`；需要 baseURL/header/响应码时再读 `全局配置.md`，需要 WebView/Native 字段时再读 `原生交互.md`。
+- 命中后只读取对应 `contracts/<中文接口作用>.md`；需要 baseURL/header/响应码时再读 `全局配置.md`，需要 app-specific Native 方法、callback 或混淆字段时再读 `原生交互.md`。
+- 本 skill 不读取 H5 公共业务规范；进件、首复贷、App WebView 兼容、视觉还原和截图预算由主 workflow 或 H5 子 skill 从 `personal-ai-kb/Work/H5` 读取。
 - KB 图谱关系以 `<appName>.md` 为中心；接口 contract 只应直接链接 appName 节点，不应直接链接公共的全局配置或原生交互节点。
+- app 入口页可以聚合相关 H5 场景知识，单个接口 contract 不反向链接公共规范，避免图谱刷屏。
 - `全局配置.md` 的环境地址只表示后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理，正式地址只从 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production` 读取。
 
 ## 执行方式
@@ -33,10 +35,10 @@ description: API KB contract 读取/定位。用于 H5、Flutter、管理后台�
 2. 从目标项目提取接口清单：
    - H5：优先读 `src/services/api/config.ts`、`src/services/api/*.ts`、`src/types/**/*.ts`。
    - Flutter：优先读 Dio/request wrapper、endpoint constants、repository/service、model。
-3. 根据 appName 或项目名查找 `personal-ai-kb/API/apps/<appName>/README.md`。
+3. 根据 appName 或项目名查找 `personal-ai-kb/Work/API/apps/<appName>/README.md`。
 4. 先读 `_indexes/contracts.jsonl`，按 API symbol、path、中文用途或关键词定位命中接口；必要时用 `_indexes/by-path.json` / `_indexes/by-symbol.json` 精确命中。
 5. 只读取命中的 `contracts/*.md` 的 request fields 和 response fields。
-6. 输出接口依据表：项目内 API symbol、接口 path、request/response 字段、全局配置依赖、原生交互依赖、状态、风险，并交给 H5/Flutter/后台等业务 skill 落地。
+6. 输出接口依据表：项目内 API symbol、接口 path、request/response 字段、全局配置依赖、app-specific 原生交互依赖、状态、风险，并交给 H5/Flutter/后台等业务 skill 落地；业务规范由对应场景 skill 读取 `Work/H5`。
 
 ## 可用脚本
 

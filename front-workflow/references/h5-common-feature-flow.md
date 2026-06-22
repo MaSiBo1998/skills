@@ -1,4 +1,4 @@
-# 普通 H5 功能基线
+﻿# 普通 H5 功能基线
 
 本文件用于普通 H5 功能/API 开发、单页交互调整、通用 hook/组件改造、新接口字段展示、非首复贷/非进件/非官网的普通 H5 页面开发。普通 H5 可以是独立页面，也可以是 App 内嵌页面；只有出现原生方法、bridge 或 window 回调证据时，才判定为 App 内嵌。它不是新的业务 skill；只是在“直接实现”前补一层轻量检查，避免普通 H5 需求漏掉登录态、返回、埋点、i18n 和 WebView 风险。
 
@@ -21,28 +21,26 @@
 - 样式与适配：375px 基准、setRem/px-to-rem、全局样式入口、旧 WebView/低版本浏览器兼容约束；若项目已使用全局 rem 适配链路，普通移动端布局不再新增或保留 `@media (max-width/min-width/max-height/min-height)` 这类屏幕查询样式。
 - 项目规范：页面、接口、路由、图片和公共工具的目录约定，例如 `pages`、`services`、`router`、`assets`。
 
+如本轮需要知识库背景，按 `knowledge-layer.md` 读取 `Work/H5` 公共场景知识：接口事实读 `Work/API/apps/<appName>`；App WebView、视觉还原、进件和首复贷公共规范读 `Work/H5`，不要把这些公共规范写入 API contract。
+
 ## 实现基线
 
-- 页面、hook、组件和样式优先沿用目标项目已有模式；不要为了一个普通需求新建一套并行架构。
-- 字段透传、初始化缓存、简单数据流补充等需求，优先沿现有入口、调用点和 API 封装直接实现；接口层能固定读取或兜底的字段，不要先下放到页面中转，也不要为一次性字段新增 helper、全局状态或中间层。
-- 页面放在页面目录，接口放在 `services` 或项目等价 API 层，路由放在 `router` 或项目等价路由层；新增图片、图标、背景和插画必须语义化命名，不使用 `image1`、`tmp`、`copy` 这类名字。
-- API base URL、固定请求头值、环境值和国家/产品差异应优先来自 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，直接在消费层读取 `import.meta.env.VITE_*`，不要新增只 re-export env 的 `src/config/app.js` 薄封装。API path 可继续放在项目既有 API 配置层；只有配置层承担校验、解析、组合或环境映射等真实职责时，才把环境值放入配置层。除配置文件外不要硬编码接口 URL、业务线、国家码、host 或固定 header。
-- 新接口或字段展示要补齐 loading、empty、error、retry 或项目等价状态；接口失败不伪造成功，后端文案优先使用现有 toast 规则展示。
-- KB contract、用户确认的固定示例或现有类型已经明确结构时，按固定结构直接取值或解析；不要再写多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底。接口返回格式已确定时只读取约定字段，例如后端明确错误提示只返回 `msg`，就不要再兜底读取 `message`、旧字段或额外本地业务文案。只有真实数据证明会崩溃时，才做最小错误隔离。
-- 登录态、token 过期、退出登录和用户信息刷新复用项目已有拦截器、storage、native bridge 或 auth 工具；不要在页面里新增第二套登录判断。
-- App 内嵌 H5 页面如果新增自定义返回、弹窗拦截、支付/外链/表单返回，必须收敛到项目统一返回入口，并在卸载时清理全局回调。
-- 只要本次涉及原生方法交互，就判定为 App 内嵌 H5：必须考虑真实 WebView、低版本浏览器和键盘遮挡风险；若用户没有主动指定 Android、iOS 或 Web 通道，默认只实现 Flutter 交互，不主动补 Android/iOS/WKWebView 分支。
-- App 内嵌 H5 必须默认避免 WebView 原生根滚动条：不要让 `html/body/#root` 成为可滚动层，应把根文档固定为视口高度并 `overflow: hidden`，再由 App 内部滚动容器承接页面滚动；滚动容器需显式隐藏 WebKit/Firefox/旧 Edge 滚动条（如 `::-webkit-scrollbar`、`scrollbar-width: none`、`-ms-overflow-style: none`），同时保留 `-webkit-overflow-scrolling: touch` 或项目等价触摸滚动能力。若项目已有 `AppLayout`、`PageShell`、`Layout` 等入口，优先在该统一外壳收敛滚动，不在每个页面散写。
-- 新增或调整埋点前先搜索现有事件模型；保留已有页面停留、按钮点击、接口结果和业务节点上报。设计图或接口改动不等于可以删除既有埋点。
-- 多语言项目新增文案必须补齐当前启用语言；金额、日期、手机号、证件号、银行卡等展示使用项目格式化/脱敏工具，不把币种、日期格式或遮罩规则写死在页面。
-- 样式要按项目既有 `base/layout/components/pages` 或等价层级拆分；关键布局严禁依赖 `gap/row-gap/column-gap`、无 fallback 的 `aspect-ratio`、`100dvh` 等低版本不稳定能力。
-- 已接入全局 `setRem`、px-to-rem 或等价 rem 适配的 H5 项目，尺寸适配应走 375px 设计稿 `px` 源码 + 构建/运行时统一换算；不要再通过 `@media` 给普通小屏写额外覆盖。遇到历史 `@media`，默认移除或改为稳定布局约束；只有横屏、桌面宽屏、特殊容器能力等有明确项目证据时才保留，并在交付中说明原因。
-- 首屏要优先加载关键内容；路由按需分包，非关键图片、音频、vConsole、监控、埋点、复杂动画和重型依赖延后、懒加载或失败降级，避免阻塞首屏。
-- 以内嵌 H5 加载提速为目标时，应检查首屏大图、弹窗背景、sprite 和关键插画体积；需要压缩图片时，优先从未压缩源图或当前 Git 基准重新生成候选，按多档质量比较体积和视觉效果。不得为了体积把图片压到明显失真；出现文字发糊、渐变色带、透明边污染、边缘锯齿、主体细节丢失或品牌/设计稿观感明显下降时，必须回退到更高质量档或放弃继续压缩。
-- 以内嵌 H5 加载提速为目标时，图片资源治理是必查项：先盘点 `public`、`src/assets` 和代码引用关系；代码内使用的业务图片优先迁入 `src/assets` 由构建处理并获得 hash，保留在 `public` 的只应是确实需要稳定公开 URL 的文件；删除无引用且无外部入口证据的旧图片；再对大图生成压缩候选并记录体积收益。Vite 项目还需检查 `assetsInlineLimit`，避免大量小图被内联进 JS chunk 反而拖慢解析。
-- App 内嵌加载慢或低版本机型不支持新语法时，默认先做能力检测和条件加载：现代 WebView 走现代包，旧 WebView 才加载 legacy/polyfill；不要为了少数问题机型让所有机型默认加载兼容包或调试面板。Vite 项目优先检查 `@vitejs/plugin-legacy`、`modernPolyfills: false`、`nomodule` 产物、首屏 chunk、图片体积和按需动态 import。
-- 调试、监控、音频、复制、权限探测、vConsole 等辅助能力应在首屏后初始化，并有 try/catch 或能力检测，失败不能阻塞页面渲染和主业务请求。
-- `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole；`test` 相关分支中如果用户要求加 vConsole，表示本地运行和线上打包都要启用 vConsole，不再区分 dev/prod。
+本文件只保留普通 H5 的执行骨架和硬约束；标准规范、可信经验和长解释按场景读取 KB：
+
+- 接口字段、path、header、baseURL、request/response：读 `Work/API/apps/<appName>`。
+- App WebView、原生返回、键盘遮挡、滚动容器、vConsole、旧 WebView：读 `Work/H5/公共规范/App WebView兼容.md`。
+- 视觉还原、图片压缩、截图预算、拍照图片质量：读 `Work/H5/公共规范/视觉还原与截图预算.md`。
+- 进件和首复贷场景知识：读 `Work/H5/业务场景/进件流程.md` 或 `Work/H5/业务场景/首复贷状态流.md`。
+
+硬约束：
+
+- 页面、hook、组件、样式、API、路由和资源放置优先沿用目标项目既有模式，不为一次普通需求新建并行架构。
+- API base URL、固定请求头、环境值、国家/产品差异来自 `.env*`、现有配置层或 KB contract；除配置文件外不散落硬编码。
+- KB contract、用户确认示例或现有类型已经明确结构时，按固定结构直接取值或解析，不新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底。
+- 登录态、token 过期、用户信息刷新、bridge、埋点、i18n/格式化和 toast 复用项目既有链路。
+- 出现原生方法、bridge 或 window callback 证据时，按 App WebView 场景处理；未明确通道时默认只考虑 Flutter，并把真实 WebView 行为列为人工待验。
+- 新增图片、图标、背景和插画必须语义化命名；图片压缩或设计图复原遵守 KB 截图预算，不无限截图微调。
+- `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole。
 
 ## Supporting Capability 加入条件
 

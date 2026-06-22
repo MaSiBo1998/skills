@@ -1,13 +1,13 @@
-# H5 API Contract 落地
+﻿# H5 API Contract 落地
 
 本文件只维护 H5 代码落地规则。接口依据来自 `api-kb-contract-reader` 读取到的 KB contract；接口文档入库、contract 生成和索引生成归 `api-doc-kb-archiver`。
 
 ## 输入
 
 - `api-kb-contract-reader` 输出的 used API manifest。
-- 命中的 `API/apps/<appName>/contracts/*.md`。
-- 需要时读取的 `API/apps/<appName>/全局配置.md`。
-- 需要原生字段时读取的 `API/apps/<appName>/原生交互.md`。
+- 命中的 `Work/API/apps/<appName>/contracts/*.md`。
+- 需要时读取的 `Work/API/apps/<appName>/全局配置.md`。
+- 需要原生字段时读取的 `Work/API/apps/<appName>/原生交互.md`。
 - 目标 H5 项目的现有 API 层、HTTP 封装、types、页面、hook、store 和环境变量。
 
 本地 `swaggerApi.json`、`api.json`、`api.md`、`api.html` 或用户临时给的接口文档不能直接用于改代码；先由 `api-doc-kb-archiver` 入库后再读取 KB contract。

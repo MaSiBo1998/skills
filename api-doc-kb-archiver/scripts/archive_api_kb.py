@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-"""Archive project API contracts into personal-ai-kb/API/apps/<appName>."""
+﻿#!/usr/bin/env python3
+"""Archive project API contracts into personal-ai-kb/Work/API/apps/<appName>."""
 
 from __future__ import annotations
 
@@ -1000,7 +1000,7 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
         "",
         "## 定位",
         "",
-        f"- appName：[[API/apps/{app_name}/{app_name}|{app_name}]]",
+        f"- appName：[[Work/API/apps/{app_name}/{app_name}|{app_name}]]",
         f"- 模块：{contract['module']}",
         f"- API symbol：{', '.join(f'`{symbol}`' for symbol in contract['symbols'])}",
         f"- Method / Path：`{contract['method']} {contract['path']}`",
@@ -1250,7 +1250,7 @@ def build_native_bridge(root: Path, app_name: str, extra_mapping: dict[str, str]
             "",
             "- 服务端接口字段和原生 bridge 字段分开处理，不把原生字段当作服务端 response key 替换。",
             "- H5 发送给 Native 前可按混淆字段编码，Native 回调进入业务前再还原为语义字段。",
-            "- URL query 中的 token、loginId、device key 以本文件和 [[API/apps/{}/全局配置]] 为准。".format(app_name),
+            "- URL query 中的 token、loginId、device key 以本文件和 [[Work/API/apps/{}/全局配置]] 为准。".format(app_name),
             "",
         ]
     )
@@ -1322,7 +1322,7 @@ def write_human_index(app_dir: Path, app_name: str, contracts: list[dict[str, An
     for module in modules:
         lines.extend([f"## {module}", "", "| 用途 | API symbol | Method / Path | 入参 | 出参 | 文档状态 |", "| --- | --- | --- | --- | --- | --- |"])
         for contract in [item for item in contracts if item["module"] == module]:
-            link = f"[[API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
+            link = f"[[Work/API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
             status = "正式接口文档" if contract["source_type"] == "swagger" else "项目已用，待正式文档校准"
             lines.append(
                 "| {link} | {symbols} | `{method} {path}` | {req} | {resp} | {status} |".format(
@@ -1339,8 +1339,19 @@ def write_human_index(app_dir: Path, app_name: str, contracts: list[dict[str, An
     write_text(app_dir / "contracts" / "索引.md", "\n".join(lines))
 
 
+def known_scene_knowledge_links(app_name: str) -> list[dict[str, str]]:
+    known = {
+        "confiq": [
+            {"path": "Work/H5/业务场景/进件流程", "title": "进件流程"},
+            {"path": "Work/H5/公共规范/App WebView兼容", "title": "App WebView兼容"},
+            {"path": "Work/H5/公共规范/视觉还原与截图预算", "title": "视觉还原与截图预算"},
+        ],
+    }
+    return known.get(app_name.lower(), [])
+
+
 def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]], project_root: Path, extra_mapping: dict[str, str] | None, swagger_path: Path | None, clean_legacy: bool) -> dict[str, Any]:
-    api_root = kb_root / "API"
+    api_root = kb_root / "Work" / "API"
     app_root = api_root / "apps"
     app_dir = app_root / app_name
     if app_dir.exists():
@@ -1367,18 +1378,20 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
         shutil.copyfile(swagger_path, app_dir / "raw" / swagger_path.name)
     today = date.today().isoformat()
     contract_links = [
-        f"- [[API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
+        f"- [[Work/API/apps/{app_name}/contracts/{Path(file_by_path[contract['path']]).stem}|{contract['title']}]]"
         for contract in contracts
     ]
+    scene_knowledge = known_scene_knowledge_links(app_name)
+    scene_links = [f"- [[{item['path']}|{item['title']}]]" for item in scene_knowledge]
     app_entry_lines = [
-        f"- 工作流入口：[[API/apps/{app_name}/README|README]]",
-        f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
-        f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
+        f"- 工作流入口：[[Work/API/apps/{app_name}/README|README]]",
+        f"- 接口索引：[[Work/API/apps/{app_name}/contracts/索引]]",
+        f"- 全局配置：[[Work/API/apps/{app_name}/全局配置]]",
     ]
     if has_native:
-        app_entry_lines.append(f"- 原生交互：[[API/apps/{app_name}/原生交互]]")
-    app_summary = f"{app_name} 的接口、全局配置" + ("和原生交互" if has_native else "") + "中心节点。"
-    app_next_action = "从这里进入接口索引、全局配置" + ("或原生交互。" if has_native else "。")
+        app_entry_lines.append(f"- 原生交互：[[Work/API/apps/{app_name}/原生交互]]")
+    app_summary = f"{app_name} 的接口 contract、全局配置" + ("和 app-specific 原生交互" if has_native else "") + "中心节点。"
+    app_next_action = "先进入接口索引定位 contract；涉及 H5 工作实践时再读取相关 Work/H5 知识。"
     write_text(
         app_dir / f"{app_name}.md",
         "\n".join(
@@ -1408,13 +1421,14 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "",
                 *contract_links,
                 "",
+                *(["## 相关场景知识", "", *scene_links, ""] if scene_links else []),
             ]
         ),
     )
     readme_entry_lines = [
-        f"- App 节点：[[API/apps/{app_name}/{app_name}|{app_name}]]",
-        f"- 全局配置：[[API/apps/{app_name}/全局配置]]",
-        f"- 接口索引：[[API/apps/{app_name}/contracts/索引]]",
+        f"- App 节点：[[Work/API/apps/{app_name}/{app_name}|{app_name}]]",
+        f"- 全局配置：[[Work/API/apps/{app_name}/全局配置]]",
+        f"- 接口索引：[[Work/API/apps/{app_name}/contracts/索引]]",
     ]
     readme_steps = [
         "1. 读取本文件确认 appName。",
@@ -1422,10 +1436,10 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
         "3. 只打开命中的 `contracts/<中文接口作用>.md`。",
         "4. 涉及 baseURL/header/响应码时读取 `全局配置.md`。",
     ]
-    readme_summary = f"{app_name} 的接口契约、全局配置" + ("、原生交互" if has_native else "") + "和快速索引入口。"
+    readme_summary = f"{app_name} 的接口契约、全局配置" + ("、app-specific 原生交互" if has_native else "") + "和快速索引入口。"
     if has_native:
-        readme_entry_lines.insert(2, f"- 原生交互：[[API/apps/{app_name}/原生交互]]")
-        readme_steps.append("5. 涉及 WebView/Native 字段时读取 `原生交互.md`。")
+        readme_entry_lines.insert(2, f"- 原生交互：[[Work/API/apps/{app_name}/原生交互]]")
+        readme_steps.append("5. 涉及 app-specific Native bridge/callback/混淆字段时读取 `原生交互.md`。")
     write_text(
         app_dir / "README.md",
         "\n".join(
@@ -1453,6 +1467,7 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "",
                 *readme_steps,
                 "",
+                *(["## 相关场景知识", "", *scene_links, ""] if scene_links else []),
             ]
         ),
     )
@@ -1470,38 +1485,44 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "  - moc",
                 f"created: {today}",
                 f"updated: {today}",
-                "summary: 按 appName 维护 H5 和 Flutter 共用的接口契约、全局配置、可选原生交互和快速索引。",
-                "next_action: 新增或更新 app 接口时，进入 API/apps/<appName> 并更新索引。",
+                "summary: Work 下的 API 模块只维护按 appName 归档的接口 contract、全局配置、app-specific 原生交互和快速索引。",
+                "next_action: 新增或更新 app 接口时进入 Work/API/apps/<appName>；H5 工作实践读取 Work/H5。",
                 "---",
                 "",
                 "# API 接口契约知识地图",
                 "",
                 "## 入口",
                 "",
-                "- App 接口归档：[[API/apps/MOC]]",
+                "- 返回工作实践入口：[[Work/MOC]]",
+                "- App 接口归档：[[Work/API/apps/MOC]]",
                 "",
                 "## 使用原则",
                 "",
                 "- 只按 appName 划分，不按新/旧系统或国家划分。",
-                "- 每个 app 的真实接口文档就是该 app 的实现依据。",
+                "- API 只放接口事实：path、method、request/response、header、响应码、baseURL 和 app-specific 原生字段。",
+                "- H5 进件、首复贷、App WebView 兼容、视觉还原、截图预算等工作实践知识归 `Work/H5`。",
+                "- 每个 app 的真实接口 contract 是该 app 的接口实现依据。",
                 "- 工作流先读 app 索引，再打开命中的接口 contract，不遍历全量内容。",
-                "- 服务端接口和全局 header 分开记录；只有检测到真实原生 bridge/callback 证据时才额外生成原生交互文档。",
+                "- App 入口页可以聚合相关 `Work/H5` 场景知识；单个接口 contract 不反向链接公共规范。",
+                "- 服务端接口和全局 header 分开记录；只有检测到真实原生 bridge/callback 证据时才额外生成 app-specific 原生交互文档。",
                 "",
             ]
         ),
     )
     app_index_row = {
         "appName": app_name,
-        "app_dir": f"API/apps/{app_name}",
-        "app_node": f"API/apps/{app_name}/{app_name}.md",
-        "readme": f"API/apps/{app_name}/README.md",
-        "global_config": f"API/apps/{app_name}/全局配置.md",
-        "contract_index": f"API/apps/{app_name}/_indexes/contracts.jsonl",
+        "app_dir": f"Work/API/apps/{app_name}",
+        "app_node": f"Work/API/apps/{app_name}/{app_name}.md",
+        "readme": f"Work/API/apps/{app_name}/README.md",
+        "global_config": f"Work/API/apps/{app_name}/全局配置.md",
+        "contract_index": f"Work/API/apps/{app_name}/_indexes/contracts.jsonl",
         "contract_count": len(contracts),
         "updated": today,
     }
     if has_native:
-        app_index_row["native_bridge"] = f"API/apps/{app_name}/原生交互.md"
+        app_index_row["native_bridge"] = f"Work/API/apps/{app_name}/原生交互.md"
+    if scene_knowledge:
+        app_index_row["scene_knowledge"] = [item["path"] + ".md" for item in scene_knowledge]
     app_index_path = app_root / "_app-index.jsonl"
     app_index_rows: dict[str, dict[str, Any]] = {}
     if app_index_path.exists():
@@ -1514,7 +1535,7 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
     app_index_rows[app_name] = app_index_row
     sorted_app_rows = [app_index_rows[key] for key in sorted(app_index_rows)]
     write_text(app_index_path, "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in sorted_app_rows))
-    app_links = [f"- [[API/apps/{row['appName']}/README|{row['appName']}]]" for row in sorted_app_rows]
+    app_links = [f"- [[Work/API/apps/{row['appName']}/README|{row['appName']}]]" for row in sorted_app_rows]
     write_text(
         app_root / "MOC.md",
         "\n".join(
@@ -1528,8 +1549,8 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "  - app-index",
                 f"created: {today}",
                 f"updated: {today}",
-                "summary: 所有按 appName 归档的接口知识入口。",
-                "next_action: 使用 _app-index.jsonl 快速定位 app 目录。",
+                "summary: 所有按 appName 归档的接口 contract 入口，H5 工作实践知识由 app 入口聚合到 Work/H5。",
+                "next_action: 使用 _app-index.jsonl 快速定位 app 目录，再按 app README 读取命中 contract 或相关 Work/H5 场景。",
                 "---",
                 "",
                 "# API App 索引",
@@ -1540,11 +1561,13 @@ def write_app_docs(kb_root: Path, app_name: str, contracts: list[dict[str, Any]]
                 "",
                 "- 先读 `_app-index.jsonl` 定位 appName。",
                 "- 再读对应 app 的 `_indexes/contracts.jsonl` 定位接口。",
+                "- 只打开命中的 contract；不要遍历全量接口内容。",
+                "- 进件、首复贷、App WebView、视觉还原和截图预算等公共规范读取 `Work/H5`，不写入 API contract。",
                 "",
             ]
         ),
     )
-    legacy = api_root / "新系统接口"
+    legacy = kb_root / "API"
     if clean_legacy and legacy.exists():
         shutil.rmtree(legacy)
     return {"app_dir": str(app_dir), "contract_count": len(contracts), "file_by_path": file_by_path}
