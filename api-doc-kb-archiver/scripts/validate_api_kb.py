@@ -19,6 +19,14 @@ def has_chinese(value: str) -> bool:
     return bool(re.search(r"[\u4e00-\u9fff]", value))
 
 
+def hard_codes_source_value(text: str) -> bool:
+    patterns = [
+        r"当前\s*H5\s*内嵌\s*App.{0,20}取\s*`?\d+`?",
+        r"(来源|source|sourceType|h5Source).{0,40}当前.{0,30}取\s*`?\d+`?",
+    ]
+    return any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
+
+
 def find_app_index_row(path: Path, app_name: str) -> dict:
     for row in read_jsonl(path):
         if row.get("appName") == app_name:
@@ -73,6 +81,8 @@ def main() -> int:
         text = contract.read_text(encoding="utf-8")
         if "## Request Fields" not in text or "## Response Fields" not in text:
             errors.append(f"contract missing request/response sections: {contract.name}")
+        if hard_codes_source_value(text):
+            errors.append(f"contract hard-codes App/H5 source value: {contract.name}")
         if row.get("request_field_count", 0) <= 0 or row.get("response_field_count", 0) <= 0:
             errors.append(f"index missing field counts: {contract.name}")
 

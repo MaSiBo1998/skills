@@ -68,6 +68,7 @@ Work/
    - `contracts/<中文接口作用>.md`：接口独立 contract。
      - 只保留一处指向 `<appName>.md` 的双链。
      - 不直接双链 `全局配置.md` 或 `原生交互.md`，需要时用普通文字提示从 app 节点进入。
+     - 来源类字段只记录字段语义、枚举值和枚举含义，不写死“当前项目固定取某值”；App/H5 运行形态判断归 `Work/H5/公共规范/App WebView兼容.md`。
    - `_indexes/*`：工作流快速定位索引。
 5. 清理旧结构时，只处理本 app 的旧生成物；不要删除其他 app 或用户手写笔记。
 6. 写入后运行 `scripts/validate_api_kb.py` 校验索引和 contract。

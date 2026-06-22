@@ -32,6 +32,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 - 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `Work/API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
 - 使用 KB 全局配置时，“环境地址”只代表后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 不能当正式地址，正式地址只信任 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production`。
 - 目标项目中真实调用但 KB 未覆盖的接口，必须交给 `api-doc-kb-archiver` 入库或沉淀为待补 contract 清单，不得忽略。
+- 遇到还款来源、`source`、`sourceType`、`h5Source` 或等价混淆字段时，不把单个项目的“当前取值”写死成全局默认；先按目标项目是否存在原生交互证据判断 App 内嵌还是独立 H5，再使用 contract 中对应枚举值。若同一路由可被 App 和浏览器同时打开，优先复用项目已有运行态判断；没有稳定判断点时标记需确认。
 - 不做无差别全局字符串替换。
 - API base URL、后端接口地址、固定请求头值、国家/产品差异等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。
