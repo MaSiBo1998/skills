@@ -98,6 +98,7 @@
 - **调试/辅助能力**：vConsole、监控 SDK、埋点、音频、复制、权限探测等能力必须在页面渲染后初始化，并有 try/catch 或能力检测；失败只能降级记录，不能导致白屏或主流程不可用。
 - **调试分支策略**：`master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole；`test` 相关分支中用户要求加 vConsole 时，表示本地运行和线上打包都要启用 vConsole。
 - **原生通道范围**：用户或联调文档未主动说明 Android、iOS WKWebView 或普通 Web 通道时，默认只考虑 Flutter 交互，不主动添加额外通道。
+- **滚动条与滚动层**：只要有原生方法、bridge 或 window 回调等联调证据，就判定为 App 内嵌 H5，并默认检查 WebView 原生滚动条处理。根文档 `html/body/#root` 不应成为可滚动层，应固定为视口高度并 `overflow: hidden`；页面滚动应收敛到 App 内部统一滚动容器，且该容器显式隐藏 `::-webkit-scrollbar`、`scrollbar-width` 和 `-ms-overflow-style`，保留触摸滚动能力。若只能由原生 WebView 关闭滚动条，交付中必须列为原生待配合项（如 Android `verticalScrollBarEnabled`、iOS `showsVerticalScrollIndicator`）。
 - **CSS 兼容**：关键布局不依赖 `gap/row-gap/column-gap`、无 fallback 的 `aspect-ratio`、低版本不稳定的 `100dvh`、复杂 `filter/clip-path`；安全区 padding 先写固定值，再分层写 `constant()`、`env()`。
 - **真实 WebView 待验**：无法用桌面浏览器证明的原生桥接、返回拦截、键盘遮挡、复制、音频播放、资源协议、vConsole 展示必须列为真实 App WebView 人工待验项。
 

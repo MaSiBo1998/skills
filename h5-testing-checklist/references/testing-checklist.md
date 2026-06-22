@@ -150,6 +150,8 @@
   - 局部按钮如相机拍摄按钮是否有 `:focus`、`:focus-visible`、`:active` 兜底，点击后不出现额外系统线框
   - 若本次涉及原生交互，native bridge 必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议；不得分散直连原生全局对象
   - 只要有原生方法交互，就判定为 App 内嵌 H5；必须执行真实 WebView/低版本浏览器风险检查，并考虑键盘遮挡风险
+  - 只要有原生方法、bridge 或 window 回调等联调证据，就按 App 内嵌 H5 检查滚动层：`html/body/#root` 不应承担页面滚动，应固定为视口高度并 `overflow: hidden`；页面滚动应收敛到 App 内部统一滚动容器，并隐藏 WebKit/Firefox/旧 Edge 滚动条，同时保留触摸滚动
+  - 当本次问题或改动涉及滚动条、滚动层、根节点高度、`overflow`、页面外壳或 App WebView 视口时，交付前必须给出运行态证据，不能只凭 CSS diff 判断通过：至少检查 `html/body/#root` 的 computed `overflow-x/overflow-y`、`clientHeight/scrollHeight`，并在强制执行 `window.scrollTo(...)`、设置 `document.documentElement.scrollTop` 和 `document.body.scrollTop` 后确认 `window.scrollY`、`documentElement.scrollTop`、`body.scrollTop` 仍为 `0`；同时检查真实内部滚动容器的 computed `overflow-y`、`scrollbar-width` / `-ms-overflow-style` 以及 `::-webkit-scrollbar` 隐藏结果。若当前环境无法启动页面或浏览器运行态检查，必须在交付中标记为人工待验或阻塞，不能写成通过。
   - 若本次涉及原生入参 / 出参 AES 加密，必须检查加解密是否沉到独立工具函数，调用原生前只做 payload 加密，接收原生回调或 window 注入数据后先解密再解析
   - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须优先来自 `.env*`，已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装，不应硬编码在业务 hook 中
   - URL query 承载 AES/Base64 值时，必须检查 `+` 不会被 `URLSearchParams` 解析为空格：App 侧应传 `%2B`，或 H5 侧读取后对指定字段执行空格还原 `+`
@@ -296,6 +298,7 @@
   - token、登录过期、退出登录、用户信息刷新复用现有拦截器、storage、native bridge 或 auth 工具；页面内没有第二套登录判断或重复跳转
   - 只要有原生方法交互，就判定为 App 内嵌 H5；App 内嵌页面若新增返回、弹窗拦截、外链、支付跳转或表单离开逻辑，已复用统一 bridge/返回入口，且全局回调在卸载时清理
   - 原生通信未主动说明 Android、iOS WKWebView 或普通 Web 通道时，默认只考虑 Flutter 交互
+  - App 内嵌页面的滚动条处理已按统一外壳实现：根文档不滚动、内部容器滚动且隐藏滚动条；若真实 WebView 仍显示系统滚动条，已列出原生侧待关闭项
   - 既有页面停留、按钮点击、接口结果和业务节点埋点未被误删；新增埋点使用项目事件模型，不硬编码临时事件结构
   - 多语言项目新增文案已补齐当前启用语言；金额、日期、手机号、证件号、银行卡和币种展示使用项目格式化/脱敏工具
   - 用户已提供准确数据结构和类型、KB contract 或现有类型已明确结构时，代码按固定结构直接取值或解析，未新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底；接口返回格式已确定时只读取约定字段，例如错误提示只返回 `msg` 时不得额外兜底读取 `message`、旧字段或本地业务文案

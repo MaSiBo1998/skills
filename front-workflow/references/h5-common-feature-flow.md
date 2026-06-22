@@ -32,6 +32,7 @@
 - 登录态、token 过期、退出登录和用户信息刷新复用项目已有拦截器、storage、native bridge 或 auth 工具；不要在页面里新增第二套登录判断。
 - App 内嵌 H5 页面如果新增自定义返回、弹窗拦截、支付/外链/表单返回，必须收敛到项目统一返回入口，并在卸载时清理全局回调。
 - 只要本次涉及原生方法交互，就判定为 App 内嵌 H5：必须考虑真实 WebView、低版本浏览器和键盘遮挡风险；若用户没有主动指定 Android、iOS 或 Web 通道，默认只实现 Flutter 交互，不主动补 Android/iOS/WKWebView 分支。
+- App 内嵌 H5 必须默认避免 WebView 原生根滚动条：不要让 `html/body/#root` 成为可滚动层，应把根文档固定为视口高度并 `overflow: hidden`，再由 App 内部滚动容器承接页面滚动；滚动容器需显式隐藏 WebKit/Firefox/旧 Edge 滚动条（如 `::-webkit-scrollbar`、`scrollbar-width: none`、`-ms-overflow-style: none`），同时保留 `-webkit-overflow-scrolling: touch` 或项目等价触摸滚动能力。若项目已有 `AppLayout`、`PageShell`、`Layout` 等入口，优先在该统一外壳收敛滚动，不在每个页面散写。
 - 新增或调整埋点前先搜索现有事件模型；保留已有页面停留、按钮点击、接口结果和业务节点上报。设计图或接口改动不等于可以删除既有埋点。
 - 多语言项目新增文案必须补齐当前启用语言；金额、日期、手机号、证件号、银行卡等展示使用项目格式化/脱敏工具，不把币种、日期格式或遮罩规则写死在页面。
 - 样式要按项目既有 `base/layout/components/pages` 或等价层级拆分；关键布局严禁依赖 `gap/row-gap/column-gap`、无 fallback 的 `aspect-ratio`、`100dvh` 等低版本不稳定能力。
