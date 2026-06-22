@@ -2,6 +2,8 @@
 
 本清单用于 `release-precheck`。目标是判断“现在是否适合进入正式发布”，不是执行发布。
 
+说明性知识维护在 `personal-ai-kb/Work/H5/公共规范/发版前检查与vConsole策略.md`。本清单只保留执行项、检查方法和失败/待确认标准。
+
 ## 0. 项目与范围
 
 | 检查项 | 方法 | 失败 / 待确认标准 |
@@ -31,6 +33,8 @@
 | source map | 查产物 `.map`、构建配置 | 生产包暴露 sourcemap 且无理由时待确认或失败 |
 
 ## 3. vConsole 检查
+
+vConsole 判断依据见 KB：`Work/H5/公共规范/发版前检查与vConsole策略.md`。这里仅执行源码和产物检查。
 
 ### 源码检查
 
@@ -65,6 +69,8 @@ rg -n "vConsole|VConsole|vconsole|eruda" dist
 
 ## 4. App WebView 与 H5 发布风险
 
+WebView 兼容和发版风险背景见 KB：`Work/H5/公共规范/App WebView兼容.md` 与 `Work/H5/公共规范/发版前检查与vConsole策略.md`。
+
 | 检查项 | 方法 | 失败 / 待确认标准 |
 | --- | --- | --- |
 | legacy / 旧 WebView | 查 `@vitejs/plugin-legacy`、`nomodule`、polyfill、构建产物 | App 内嵌且只产现代包时待确认 |
@@ -74,6 +80,8 @@ rg -n "vConsole|VConsole|vconsole|eruda" dist
 | 真实 WebView 待验 | 列出返回、键盘、复制、支付、外链、原生 bridge | 未实测不得标为通过 |
 
 ## 5. 日志、隐私和调试残留
+
+敏感日志和调试残留的风险说明见 KB：`Work/H5/公共规范/发版前检查与vConsole策略.md`。
 
 | 检查项 | 方法 | 失败 / 待确认标准 |
 | --- | --- | --- |

@@ -16,19 +16,17 @@ description: 发版前检查 / 发布前检查。用于用户要求“发版检�
 ## 执行方式
 
 1. 确认项目根目录；未提供时先用当前目录和最近项目证据判断，只有找不到 `package.json`、`release-env` 或构建配置时才问最小阻塞问题。
-2. 加载 `references/pre-release-checklist.md`。
+2. 加载 `references/pre-release-checklist.md`；H5/App WebView 发版检查的说明性知识读取 `personal-ai-kb/Work/H5/公共规范/发版前检查与vConsole策略.md`。
 3. 先做只读检查：项目类型、git 状态、分支、release-env、package scripts、构建配置、vConsole 源码/产物、环境开关、WebView 风险、敏感日志和人工待验项。
 4. 能安全执行的命令按项目事实执行；默认可执行 `git status --short`、`git branch --show-current`、`npm run build` 或项目等价构建命令。执行前不修改文件、不暂存、不提交。
 5. 输出检查表：`通过 / 失败 / 待确认 / 跳过`，失败项要说明证据、风险和建议修复位置。
 6. 若用户确认继续发布，再交给 `release-tag`；本 skill 不直接发布。
 
-## vConsole 检查原则
+## 知识边界
 
-- `master`、`master-co`、`master-ng` 等生产主分支产物不得包含 vConsole。
-- `test` 相关分支若用户要求测试包带 vConsole，应确认本地运行和线上测试包都能启用。
-- vConsole 必须被环境、分支、host 或显式开关控制，不得生产默认启用。
-- vConsole 初始化应在页面首屏渲染后或非关键路径执行，且失败不能阻塞页面渲染。
-- 不得通过 vConsole、console、query、错误上报泄露 token、authorization、cookie、手机号、证件号、银行卡号、联系人号码、完整请求体或完整响应体。
+- 本 skill 只保留 readiness 检查、阻塞判定和输出格式。
+- vConsole、release-env、sourcemap、敏感日志、App WebView 待验等判断依据沉淀到 `personal-ai-kb/Work/H5/公共规范/发版前检查与vConsole策略.md`。
+- 发现新的发版常见坑或可信标准时，优先输出 KB 沉淀提案；只有触发、调度或硬性失败标准变化才沉淀回 workflow。
 
 ## 边界
 

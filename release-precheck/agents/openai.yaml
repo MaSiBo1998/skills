@@ -1,4 +1,4 @@
 interface:
   display_name: "Release Precheck"
   short_description: "发版前检查，重点检查 vConsole、release-env、构建产物和发布风险"
-  default_prompt: "使用 release-precheck 处理发版检查、发布前检查、上线前检查、提测前检查、检查能不能发版、检查 vConsole 或生产包调试面板等请求。该 skill 只做 readiness 检查，不提交、不打 tag、不推送；正式发布仍交给 release-tag。执行时先读取 references/pre-release-checklist.md，检查项目根目录、git 分支和状态、release-env、package scripts、构建命令、vConsole 源码和产物、生产禁用策略、WebView 兼容、敏感日志、构建产物和人工待验项。输出通过/失败/待确认/跳过表格，并给出可发版、暂不建议发版或需要确认后再发版的结论。"
+  default_prompt: "使用 release-precheck 处理发版检查、发布前检查、上线前检查、提测前检查、检查能不能发版、检查 vConsole 或生产包调试面板等请求。该 skill 只做 readiness 检查，不提交、不打 tag、不推送；正式发布仍交给 release-tag。执行时先读取 references/pre-release-checklist.md；H5/App WebView 发版检查的说明性知识读取 personal-ai-kb/Work/H5/公共规范/发版前检查与vConsole策略.md。检查项目根目录、git 分支和状态、release-env、package scripts、构建命令、vConsole 源码和产物、生产禁用策略、WebView 兼容、敏感日志、构建产物和人工待验项。输出通过/失败/待确认/跳过表格，并给出可发版、暂不建议发版或需要确认后再发版的结论。"

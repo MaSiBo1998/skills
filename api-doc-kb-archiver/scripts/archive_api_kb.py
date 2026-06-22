@@ -57,18 +57,33 @@ PURPOSE_BY_SYMBOL = {
     "saveWorkInfo": "保存工作信息",
     "saveContactInfo": "保存联系人信息",
     "savePersonalInfo": "保存个人信息",
+    "validOcr": "身份证 OCR 识别",
     "idcardOcr": "身份证 OCR 识别",
+    "saveUserIdInfo": "保存身份信息",
     "saveIdInfo": "保存身份信息",
+    "saveUpdateUserIdInfo": "修改身份信息",
     "saveRejectIdInfo": "被拒后保存身份信息",
+    "saveUserSelfInfo": "保存人脸信息",
     "saveFaceInfo": "保存人脸信息",
+    "saveUpdateUserSelfInfo": "修改人脸信息",
     "saveRejectFaceInfo": "被拒后保存人脸信息",
+    "validHeadByPerson": "个人中心人脸校验",
+    "validHeadByHome": "首页人脸校验",
+    "validChangeBankSelfHead": "换卡人脸校验",
     "getBankList": "银行列表",
+    "saveUserBankInfo": "保存银行卡信息",
     "saveBankInfo": "保存银行卡信息",
+    "saveChangeBankInfo": "修改银行卡信息",
     "updateBankInfo": "修改银行卡信息",
     "switchPayoutBank": "切换打款银行卡",
     "removeBankInfo": "移除银行卡",
     "getBankInfo": "查询银行卡信息",
     "getBankCardInfo": "查询银行卡回填信息",
+    "submitNewOrder": "提交申贷",
+    "submitOrder": "提交申贷",
+    "getUserInfo": "用户信息",
+    "pushCommonStatistic": "通用埋点上报",
+    "incomingStepToDot": "进件步骤埋点",
     "sendEmailCode": "邮箱验证码",
     "sendFeishuAlert": "飞书前端监控告警",
     "getProblemTypes": "客服问题分类",
@@ -84,6 +99,9 @@ MODULE_BY_FILE = {
     "apply.ts": "进件",
     "monitor.ts": "飞书告警",
     "feedback.ts": "客服反馈",
+    "steps.js": "进件步骤",
+    "data.js": "用户/订单",
+    "dot.js": "埋点",
 }
 
 HEADER_SEMANTICS = {
@@ -102,7 +120,7 @@ HEADER_SEMANTICS = {
 
 
 def read_text(path: Path) -> str:
-    for encoding in ("utf-8", "utf-8-sig", "gb18030"):
+    for encoding in ("utf-8-sig", "utf-8", "gb18030"):
         try:
             return path.read_text(encoding=encoding)
         except UnicodeDecodeError:
@@ -266,11 +284,64 @@ def clean_comment(comment: str) -> str:
     return " ".join(lines)
 
 
+def collect_string_constants(text: str) -> dict[str, str]:
+    constants: dict[str, str] = {}
+    for match in re.finditer(r"(?:export\s+)?const\s+([A-Z][A-Z0-9_]*)\s*=\s*['\"]([^'\"]+)['\"]", text):
+        constants[match.group(1)] = match.group(2)
+    return constants
+
+
+def extract_request_url(block: str, constants: dict[str, str]) -> str:
+    direct = re.search(r"\burl\s*:\s*['\"]([^'\"]+)['\"]", block)
+    if direct:
+        return direct.group(1)
+    expr_match = re.search(r"\burl\s*:\s*([^\n,}]+)", block)
+    if not expr_match:
+        return ""
+    for name in re.findall(r"\b[A-Z][A-Z0-9_]+\b", expr_match.group(1)):
+        if name in constants:
+            return constants[name]
+    return ""
+
+
+def collect_direct_request_records(root: Path, records: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    export_re = re.compile(
+        r"export\s+const\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*(?:request2?|http\.post)\s*\(\s*{",
+        re.S,
+    )
+    for path in iter_source_files(root):
+        text = read_text(path)
+        constants = collect_string_constants(text)
+        for match in export_re.finditer(text):
+            symbol = match.group(1)
+            block = surrounding_export_block(text, match.start())
+            path_value = extract_request_url(block, constants)
+            if not path_value:
+                continue
+            record = records.setdefault(
+                symbol,
+                {
+                    "symbol": symbol,
+                    "path": "",
+                    "method": "POST",
+                    "semantic_hint": "",
+                    "module_hint": "",
+                    "files": [],
+                },
+            )
+            record["path"] = record.get("path") or path_value
+            record["method"] = infer_method(block)
+            rel = relative_to_project(path, root)
+            if rel not in record["files"]:
+                record["files"].append(rel)
+    return records
+
+
 def parse_api_config(root: Path) -> dict[str, dict[str, Any]]:
     config = root / "src" / "services" / "api" / "config.ts"
-    if not config.exists():
-        return {}
     records: dict[str, dict[str, Any]] = {}
+    if not config.exists():
+        return collect_direct_request_records(root, records)
     section = ""
     previous_comment = ""
     api_re = re.compile(r"^\s*([A-Za-z_$][\w$]*)\s*:\s*['\"]([^'\"]+)['\"]")
@@ -296,7 +367,7 @@ def parse_api_config(root: Path) -> dict[str, dict[str, Any]]:
                 "files": [relative_to_project(config, root)],
             }
             previous_comment = ""
-    return records
+    return collect_direct_request_records(root, records)
 
 
 def collect_api_usage(root: Path, records: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -609,7 +680,7 @@ def infer_method(block: str) -> str:
 
 
 def parse_body_literal(block: str) -> list[dict[str, Any]]:
-    body_match = re.search(r"body\s*:\s*{", block)
+    body_match = re.search(r"\b(?:body|data)\s*:\s*{", block)
     if not body_match:
         body_match = re.search(r"\b(?:const|let)\s+body\s*=\s*{", block)
     if not body_match:
@@ -640,27 +711,38 @@ def parse_body_literal(block: str) -> list[dict[str, Any]]:
     return fields
 
 
+def context_from_block(block: str, path: Path, root: Path) -> dict[str, Any]:
+    return {
+        "block": block,
+        "body_fields": parse_body_literal(block),
+        "request_type": infer_request_type(block),
+        "response_type": infer_response_type(block),
+        "method": infer_method(block),
+        "service_file": relative_to_project(path, root),
+        "service_name": infer_export_name(block),
+        "description": infer_description(block),
+    }
+
+
 def extract_service_context(root: Path) -> dict[str, dict[str, Any]]:
     context: dict[str, dict[str, Any]] = {}
     usage_re = re.compile(r"\bAPI\.([A-Za-z_$][\w$]*)\b")
+    direct_export_re = re.compile(
+        r"export\s+const\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*(?:request2?|http\.post)\s*\(\s*{",
+        re.S,
+    )
     for path in iter_source_files(root):
         text = read_text(path)
+        for match in direct_export_re.finditer(text):
+            symbol = match.group(1)
+            block = surrounding_export_block(text, match.start())
+            context.setdefault(symbol, {})
+            context[symbol].update(context_from_block(block, path, root))
         for match in re.finditer(usage_re, text):
             symbol = match.group(1)
             block = surrounding_export_block(text, match.start())
             context.setdefault(symbol, {})
-            context[symbol].update(
-                {
-                    "block": block,
-                    "body_fields": parse_body_literal(block),
-                    "request_type": infer_request_type(block),
-                    "response_type": infer_response_type(block),
-                    "method": infer_method(block),
-                    "service_file": relative_to_project(path, root),
-                    "service_name": infer_export_name(block),
-                    "description": infer_description(block),
-                }
-            )
+            context[symbol].update(context_from_block(block, path, root))
     return context
 
 
@@ -1004,7 +1086,7 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
         f"- 模块：{contract['module']}",
         f"- API symbol：{', '.join(f'`{symbol}`' for symbol in contract['symbols'])}",
         f"- Method / Path：`{contract['method']} {contract['path']}`",
-        "- 鉴权：默认走全局请求头；具体是否带 token 以调用处 `withAuth` 为准。",
+        "- 鉴权：默认走全局请求头；业务接口的 token 以调用处 `token` 参数为准，埋点接口不发送 token。",
         f"- 文档状态：{doc_status}",
         "",
         "## 用途",
@@ -1030,13 +1112,13 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
     lines.extend(
         [
             "",
-            "## 状态码和业务判断",
-            "",
-            "- `S1566C`：请求成功，业务层读取响应 `data`。",
-            "- `Q3394V`：token 过期，触发退出登录/原生退出。",
-            "- 其他 code：按接口错误信息提示并中断当前流程。",
-            "",
-            "## 关键词",
+        "## 状态码和业务判断",
+        "",
+            "- 成功：请求层 resolve 解密后的响应对象，具体字段以正式接口文档校准。",
+            "- `301`：当前项目请求层会延迟调用原生 `goBackToLogin`，常见含义是登录态失效。",
+            "- 其他 code/status：以正式接口文档或业务调用处判断为准，当前项目代码未完整声明。",
+        "",
+        "## 关键词",
             "",
             ", ".join(f"`{keyword}`" for keyword in contract["keywords"]),
             "",
@@ -1047,9 +1129,16 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
 
 def build_global_config(root: Path, app_name: str) -> str:
     envs = parse_env_files(root)
-    http = root / "src" / "services" / "http.ts"
-    text = read_text(http) if http.exists() else ""
-    header_keys = sorted(set(re.findall(r"headers\[['\"]([^'\"]+)['\"]\]", text)))
+    request_files = [
+        root / "src" / "services" / "http.ts",
+        root / "src" / "utils" / "request.ts",
+        root / "src" / "utils" / "request.js",
+    ]
+    text = "\n".join(read_text(path) for path in request_files if path.exists())
+    header_keys = sorted(
+        set(re.findall(r"headers\[['\"]([^'\"]+)['\"]\]", text))
+        | set(re.findall(r"['\"]([^'\"]+)['\"]\s*:", text))
+    )
     today = date.today().isoformat()
     lines = [
         "---",
@@ -1077,19 +1166,13 @@ def build_global_config(root: Path, app_name: str) -> str:
     for values in envs.values():
         merged.update(values)
     app_fields = [
-        ("appName", merged.get("VITE_APP_NAME", "ConfiQ"), "VITE_APP_NAME"),
-        ("appVersion", merged.get("VITE_APP_VERSION", "1.0.0"), "VITE_APP_VERSION"),
-        ("businessLine", merged.get("VITE_APP_BUSINESS_LINE", "5"), "VITE_APP_BUSINESS_LINE"),
-        ("platformType", "1", "请求头固定值 x0665g"),
-        ("token", merged.get("VITE_NATIVE_TOKEN_QUERY_KEY", ""), "VITE_NATIVE_TOKEN_QUERY_KEY / 本地缓存"),
-        ("loginId", merged.get("VITE_NATIVE_LOGIN_ID_QUERY_KEY", ""), "VITE_NATIVE_LOGIN_ID_QUERY_KEY / 本地缓存"),
-        ("device", merged.get("VITE_NATIVE_DEVICE_QUERY_KEY", ""), "VITE_NATIVE_DEVICE_QUERY_KEY"),
-        ("ip", "device.yapese.returned", "Native 设备信息，本机 IP"),
-        ("deviceId", "device.yapese.toughy", "Native 设备信息，设备 deviceId"),
-        ("drmid", "device.smds.tarlatan", "Native 设备信息，DRM ID"),
-        ("afid", "", "当前项目 header r1408o 为空字符串"),
-        ("adid", "", "当前项目 header u7495s 为空字符串"),
-        ("gaid", "appInfo.gaid", "Native appInfo.gaid"),
+        ("appName", merged.get("VITE_APP_NAME", app_name), "VITE_APP_NAME"),
+        ("appVersion", merged.get("VITE_APP_VERSION", "1.0.0"), "VITE_APP_VERSION / 默认值"),
+        ("requestAesKey", merged.get("VITE_REQUEST_AES_KEY", ""), "VITE_REQUEST_AES_KEY，用于业务接口请求体加密和响应解密"),
+        ("trackingAesKey", merged.get("VITE_TRACKING_AES_KEY", ""), "VITE_TRACKING_AES_KEY，用于埋点接口请求体加密和响应解密"),
+        ("privacyUrl", merged.get("VITE_PRIVACY_URL", ""), "VITE_PRIVACY_URL"),
+        ("loanAgreementUrl", merged.get("VITE_LOAN_AGREEMENT_URL", ""), "VITE_LOAN_AGREEMENT_URL"),
+        ("token", "options.token || ''", "src/utils/request.js 中 request() 透传调用参数 token"),
     ]
     lines.extend(f"| `{key}` | `{value}` | {source} |" for key, value, source in app_fields)
     lines.extend(
@@ -1110,24 +1193,29 @@ def build_global_config(root: Path, app_name: str) -> str:
             "",
             "## 响应码",
             "",
-            "| code | 含义 | 处理方式 |",
+            "| code/status | 含义 | 处理方式 |",
             "| --- | --- | --- |",
-            "| `S1566C` | 成功 | 返回 `record.data` 给业务层 |",
-            "| `Q3394V` | token 过期 | 调用原生退出登录并抛出 401 |",
-            "| 其他 code | 业务失败 | Toast 提示 `msg` 并抛出错误 |",
+            "| 成功响应 | 具体字段待正式文档校准 | 请求层 resolve 解密后的响应对象 |",
+            "| `301` | 登录态失效/需回登录页 | `request()` 延迟调用原生 `goBackToLogin` |",
+            "| 其他 code/status | 项目代码未统一声明 | 按正式接口文档或业务调用处判断 |",
             "",
             "## 请求头",
             "",
             "| Header key | 语义字段 | 说明 | 取值来源 |",
             "| --- | --- | --- | --- |",
-            "| `Accept` | accept | JSON 响应 | 固定 `application/json` |",
-            "| `Content-Type` | contentType | JSON 请求体，FormData 时删除 | 固定 `application/json;` |",
         ]
     )
     for key in header_keys:
         if key in {"Accept", "Content-Type"}:
             continue
-        semantic, desc, source = HEADER_SEMANTICS.get(key, ("unknown", "待确认", "项目代码"))
+        if key == "content-type":
+            semantic, desc, source = ("contentType", "JSON 请求体", "固定 `application/json`")
+        elif key == "token":
+            semantic, desc, source = ("token", "登录 token，仅 `request()` 按调用参数发送", "options.token || ''")
+        elif key == "appName":
+            semantic, desc, source = ("appName", "App 名称", "import.meta.env.VITE_APP_NAME")
+        else:
+            semantic, desc, source = HEADER_SEMANTICS.get(key, ("unknown", "待确认", "项目代码"))
         lines.append(f"| `{key}` | `{semantic}` | {desc} | {source} |")
     lines.extend(
         [
@@ -1164,6 +1252,28 @@ def collect_native_bridge(root: Path, extra_mapping: dict[str, str] | None = Non
     methods = extract_ts_object(text, "NATIVE_METHOD_CODES")
     callbacks = extract_ts_object(text, "NATIVE_CALLBACK_CODES")
     fields = extract_ts_object(text, "NATIVE_FIELD_CODES")
+    callback_allowlist = {
+        "getDataInfo",
+        "getDataInfoCallback",
+        "imageCallBack",
+        "openAlbumCallBack",
+        "openCameraCallBack",
+        "submitFirstStepCallBack",
+    }
+    for source_file in iter_source_files(root):
+        source_text = read_text(source_file)
+        constants = collect_string_constants(source_text)
+        for match in re.finditer(r"postAppMessage\(\s*['\"]([^'\"]+)['\"]", source_text):
+            method = match.group(1)
+            methods.setdefault(method, method)
+        for match in re.finditer(r"postAppMessage\(\s*([A-Z][A-Z0-9_]*)\b", source_text):
+            method = constants.get(match.group(1))
+            if method:
+                methods.setdefault(method, method)
+        for match in re.finditer(r"window\.([A-Za-z_$][\w$]*)\s*=", source_text):
+            callback = match.group(1)
+            if callback in callback_allowlist or callback.endswith("CallBack"):
+                callbacks.setdefault(callback, callback)
     extra_mapping = extra_mapping or {}
     method_names = set(methods)
     callback_names = set(callbacks)
