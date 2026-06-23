@@ -173,7 +173,7 @@
   - 原生混淆协议中的 AES key、URL query key、window 注入字段名等可变值必须优先来自 `.env*`，已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装，不应硬编码在业务 hook 中
   - URL query 承载 AES/Base64 值时，必须检查 `+` 不会被 `URLSearchParams` 解析为空格：App 侧应传 `%2B`，或 H5 侧读取后对指定字段执行空格还原 `+`
   - 原生通信通道只保留用户明确要求的 WebView 能力；用户或联调文档未主动说明通道时默认只考虑 Flutter，不得额外添加 Android / iOS WKWebView / 普通 Web 分支，但可保留 `window.flutter.postMessage` 和 `window.flutter_inappwebview.callHandler('flutter', ...)`
-  - vConsole、监控 SDK、埋点、音频、复制、权限探测等调试/辅助能力必须在页面首屏渲染后初始化，并有能力检测、try/catch 或降级路径；辅助能力失败不能阻塞 React/Vue 页面渲染、路由初始化或主业务请求
+  - vConsole、监控 SDK、普通埋点、音频、复制、权限探测等调试/辅助能力必须在页面首屏渲染后初始化，并有能力检测、try/catch 或降级路径；辅助能力失败不能阻塞 React/Vue 页面渲染、路由初始化或主业务请求。Meta Pixel 等第三方平台明确要求放入 `<head>` 的基代码不适用本条延后规则，应按平台说明直接插入 head
   - 用户要求删除临时联调组件或协议文档时，必须确认组件文件、样式文件、入口引用和文档引用均已移除
 - **失败判定**: 违反任一 H5 内嵌约束
 
@@ -185,7 +185,7 @@
 - **检查项**:
   - 任意 App 内嵌 H5 默认检查旧 WebView 兼容；即使用户未明确说“低版本”，也必须确认目标 App WebView 能执行生产包，或在交付中写明项目证据说明无需 legacy
   - 生产构建是否提供旧 WebView 可执行产物：Vite/现代构建项目不能只产 `type="module"` 主包，旧 Android/iOS WebView 场景需确认 `nomodule`/legacy chunk、SystemJS/polyfill 或等价构建链路，且 `dist/index.html` 中 legacy 入口和资源路径可访问
-  - App 内嵌加载慢、新语法不兼容或用户要求“只在问题机型加载兼容包”时，必须检查现代包和 legacy/polyfill 条件分离：现代入口走 `type="module"`，旧包走 `nomodule`；Vite 项目需确认 `@vitejs/plugin-legacy` 与 Vite 主版本匹配，且未通过 `modernPolyfills` 让现代机型默认加载 polyfill
+  - App 内嵌加载慢、新语法不兼容或用户要求“只在问题机型加载兼容包”时，必须检查现代包和 legacy/polyfill 条件分离：现代入口走 `type="module"`，旧包走 `nomodule`；legacy/polyfill 只能作为旧 WebView 兜底路径，不得通过 preload、普通 script、公共入口 import 或 `modernPolyfills` 让所有现代机型默认加载兼容包；Vite 项目需确认 `@vitejs/plugin-legacy` 与 Vite 主版本匹配
   - Babel 配置是否编译到 ES5（`@babel/preset-env` target）或通过 Vite legacy 等价方案生成旧包
   - CSS 是否包含必要的 `-webkit-` 前缀（Autoprefixer 配置）
   - 是否使用了 CSS Grid 等低版本不支持的布局方式（应优先 Flexbox）
@@ -193,7 +193,7 @@
   - 固定比例容器不得只依赖 `aspect-ratio`；旧 WebView 需有 `height/padding-top`、固定尺寸或图片自身占位等 fallback
   - `safe-area-inset-*` 不得直接写进 `padding` 简写；安全区 padding 应先有普通固定值，再按需追加 `constant(safe-area-inset-*)` 和 `env(safe-area-inset-*)`，使用 `max()` 时也必须提供固定值或 `calc()` 兜底
   - 渲染首屏、路由、query 解析、请求初始化不得无兜底依赖旧内核常缺 API；重点搜索 `URLSearchParams`、`AbortController`、`fetch`、`Promise.finally`、`Promise.allSettled`、`Array.from`、`Object.assign`、`Symbol`、`Map`、`Set`、可选链等是否已转译、polyfill 或降级
-  - vConsole、监控、埋点、音频等调试/辅助库如果必须线上默认启用，应确认其初始化在页面渲染后执行，并被 try/catch 保护；第三方库不兼容时页面仍可展示
+  - vConsole、监控、普通埋点、音频等调试/辅助库如果必须线上默认启用，应确认其初始化在页面渲染后执行，并被 try/catch 保护；第三方库不兼容时页面仍可展示。若是 Meta Pixel 等平台要求的 head 基代码，检查其位于现有 head 代码之后、`</head>` 之前，且未被改成 idle/dynamic import 延迟加载
   - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole；`test` 相关分支中用户要求加 vConsole 时，本地运行和线上打包都必须启用 vConsole
   - 图片格式是否包含 JPEG 回退（使用 `<picture>` 或 CSS fallback）
 - **失败判定**: 存在低版本浏览器不兼容的语法或特性
@@ -243,11 +243,11 @@
   - `vite.config.ts`（或 `vite.config.js`）是否配置了 `manualChunks` 分包策略
   - 是否实现了骨架屏（首屏加载完成前展示）
   - 图片是否配置了懒加载（`loading="lazy"` 或 IntersectionObserver）
-  - 若本次压缩图片，是否记录压缩前后体积、候选质量档或工具参数，并优先从未压缩源图或当前 Git 基准重新生成候选，避免在已损压图片上反复叠加压缩
+  - 若本次压缩图片，是否记录压缩前后体积、候选质量档或工具参数，并优先从未压缩源图或当前 Git 基准重新生成候选，避免在已损压图片上反复叠加压缩；压缩目标是减少首屏传输成本而不是追求极限体积，不能无限压缩
   - 加载优化需求必须检查图片资源归档：代码引用到的业务图片是否已放入 `src/assets` 或项目等价 assets 目录，只有确需稳定公开 URL 的资源才保留在 `public`
   - 加载优化需求必须检查无用图片清理：对 `public`、`src/assets` 和源码引用做交叉扫描，删除无引用且无外部入口证据的旧图片，保留项需说明原因
   - Vite 项目迁移图片到 assets 后，需检查 `assetsInlineLimit` 和构建产物，避免大量小图被内联进 JS chunk，或说明项目选择内联的性能理由
-  - 压缩后的关键图片是否通过视觉对比、页面截图或人工复核确认无明显失真；如需页面截图，必须遵守 0.5 的视觉验收预算；重点检查文字发糊、渐变色带、透明边污染、主体边缘锯齿、人物/图标细节丢失和品牌/设计稿观感下降
+  - 压缩后的关键图片是否通过视觉对比、页面截图或人工复核确认无明显失真；如需页面截图，必须遵守 0.5 的视觉验收预算；重点检查文字发糊、渐变色带、透明边污染、主体边缘锯齿、人物/图标细节丢失和品牌/设计稿观感下降；任一关键问题出现时应回退到上一档质量或保留原图
   - CSS/JS 是否配置了压缩（css-minimizer / terser）
   - 关键 CSS 是否内联在 index.html 中
   - 资源是否有 hash 指纹（强缓存利用）
@@ -270,13 +270,13 @@
   - 页面、接口、路由、工具和资源按项目目录职责归位；页面放页面目录，接口放 `services` 或等价 API 层，路由放 `router` 或等价路由层
   - 加载优化或资源路径改造时，业务图片、图标、背景和插画应优先归入 `src/assets` 或项目等价 assets 目录；`public` 仅保留需要稳定外部 URL、独立 HTML 入口或部署约定要求的静态文件
   - 新增图片、图标、背景和插画必须使用业务语义命名，避免 `image1`、`tmp`、`copy`、`final` 等不可维护名称
-  - 首屏关键内容、首屏请求和首屏样式优先加载；非关键图片、音频、vConsole、监控、埋点、复杂动画或重型依赖应延后、懒加载或有失败降级
-  - 构建后检查 JS/CSS chunk、图片资源、legacy/polyfill 体积和大包提醒；若大包为既有问题，需在交付中说明，不得默默忽略
-  - 若目标是 App 内加载提速，必须记录关键产物体积前后变化，至少覆盖首屏主包、框架/vendor 包、legacy/polyfill 包、首屏大图和拆出的动态 chunk；若涉及图片压缩，还必须记录被压缩图片的源体积、目标体积和质量参数，并说明已通过视觉对比、页面截图或人工复核确认无明显失真；如需页面截图，必须遵守 0.5 的视觉验收预算；若移除调试库，还要确认依赖、源码、构建产物和请求日志均无残留
+  - 首屏关键内容、首屏请求和首屏样式优先加载；非关键图片、音频、vConsole、监控、普通埋点、复杂动画或重型依赖应延后、懒加载或有失败降级；平台文档明确要求放入 `<head>` 的 Meta Pixel 基代码除外，不得为了首屏优化改成延迟加载
+  - 构建后检查 JS/CSS chunk、图片资源、legacy/polyfill 体积和大包提醒；若大包为既有问题，需在交付中说明，不得默默忽略；legacy/polyfill 应作为旧 WebView 兜底条件加载，不应进入现代首屏阻塞请求
+  - 若目标是 App 内加载提速，必须记录关键产物体积前后变化，至少覆盖首屏主包、框架/vendor 包、legacy/polyfill 包、首屏大图和拆出的动态 chunk；若涉及图片压缩，还必须记录被压缩图片的源体积、目标体积和质量参数，并说明已通过视觉对比、页面截图或人工复核确认无明显失真，且未在已损图片上继续叠加压缩；如需页面截图，必须遵守 0.5 的视觉验收预算；若移除调试库，还要确认依赖、源码、构建产物和请求日志均无残留
   - 若目标是 App 内加载提速，还必须记录图片资源治理结果：迁入 assets 的图片数量、删除的无用图片数量、保留在 public 的文件及原因、大图压缩前后体积和构建产物中是否仍存在未引用图片
   - 从设计图复原 H5 页面时，输出规格、切图和布局还原均以 375px 宽为基准；若设计稿不是 375 宽，需要先换算到 375 基准或说明缩放规则
   - 自动检查至少覆盖源码 CSS/SCSS 是否误写数值 `rem`、构建产物是否缺少 `rem` 转换、屏幕尺寸 `@media` 残留、`gap` 等旧 WebView 风险、首屏同步重依赖和样式入口引用；全局 rem 项目触及样式适配时，应执行 `rg -n "@media" src` 或等价搜索，结果必须为空或逐条说明保留理由
-- **失败判定**: 仍存在无理由的屏幕查询适配、源码直接手写大量 `rem` 且无项目规范依据、缺少 `px -> rem` 转换链路、动态 JS 尺寸未按同一基准转换、样式巨文件继续膨胀、首屏同步重依赖，图片压缩造成明显失真且未回退，或交付未说明大包/真机 WebView 待验边界
+- **失败判定**: 仍存在无理由的屏幕查询适配、源码直接手写大量 `rem` 且无项目规范依据、缺少 `px -> rem` 转换链路、动态 JS 尺寸未按同一基准转换、样式巨文件继续膨胀、首屏同步重依赖，图片压缩造成明显失真且未回退、无限追求体积导致清晰度不可接受，legacy/polyfill 被所有机型默认加载并阻塞现代首屏，或交付未说明大包/真机 WebView 待验边界
 - **注意**: `quick` 只检查本次 diff 是否破坏既有 375px 源码、setRem/rem 产物、样式拆分和首屏基线；不要求每个小改都重新扫描全项目构建产物
 
 ---
@@ -317,6 +317,7 @@
   - 原生通信未主动说明 Android、iOS WKWebView 或普通 Web 通道时，默认只考虑 Flutter 交互
   - App 内嵌页面的滚动条处理已按统一外壳实现：根文档不滚动、内部容器滚动且隐藏滚动条；若真实 WebView 仍显示系统滚动条，已列出原生侧待关闭项
   - 既有页面停留、按钮点击、接口结果和业务节点埋点未被误删；新增埋点使用项目事件模型，不硬编码临时事件结构
+  - 用户按 Meta 后台或等价平台截图要求插入 Pixel / tag 基代码时，基代码必须位于 `<head>` 内、现有代码之后、`</head>` 之前；构建后 `dist/index.html` 仍应包含平台脚本和初始化调用。Vite 项目如果使用平台标准 `<noscript><img ...>` 会触发 `disallowed-content-in-noscript-in-head`，应保留主 JS 基代码并采用项目可构建的 `noscript` 降级或在交付中说明；同时检查入口文件或工具函数中没有重复延迟初始化同一 `PageView`
   - 多语言项目新增文案已补齐当前启用语言；金额、日期、手机号、证件号、银行卡和币种展示使用项目格式化/脱敏工具
   - 用户已提供准确数据结构和类型、KB contract 或现有类型已明确结构时，代码按固定结构直接取值或解析，未新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底；接口返回格式已确定时只读取约定字段，例如错误提示只返回 `msg` 时不得额外兜底读取 `message`、旧字段或本地业务文案
   - 国家码、产品名、业务线、host、资源前缀、功能开关等优先来自 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装；缺失但不阻塞的配置已列为待确认

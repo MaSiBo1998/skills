@@ -35,9 +35,14 @@
 硬约束：
 
 - 页面、hook、组件、样式、API、路由和资源放置优先沿用目标项目既有模式，不为一次普通需求新建并行架构。
+- 普通 H5 项目需要收敛请求层时，请求底层封装和业务 API 模块统一放在 `src/services` 一个目录中管理；页面、hook、工具层统一从 `@/services/*` 引用，`services` 内部 API 模块引用请求封装时使用同目录 `./request`，不要把请求封装继续散落在 `utils/request` 或把业务接口单独放在并行 `api` 目录。
 - API base URL、固定请求头、环境值、国家/产品差异来自 `.env*`、现有配置层或 KB contract；除配置文件外不散落硬编码。
 - KB contract、用户确认示例或现有类型已经明确结构时，按固定结构直接取值或解析，不新增多层字段探测、旧字段兼容、复杂 helper 或本地文案兜底。
 - 登录态、token 过期、用户信息刷新、bridge、埋点、i18n/格式化和 toast 复用项目既有链路。
+- 页面样式组织优先遵循页面就近维护：页面私有样式应与 `pages`/`views` 下页面组件同目录、同名或清晰同源命名（如 `Home.jsx` + `Home.scss`、`apply/Bank.jsx` + `apply/Bank.scss`）；`styles` 目录只保留全局 reset/shell、设计 token、公共主题、共享组件/partial 和跨页面复用样式。重构集中样式时，先按选择器归属区分页面私有、共享组件和真正全局样式；同步更新页面 import、路由级动态样式加载、`@use` 入口和删除后的残留引用，避免把页面私有选择器继续留在公共包里，也不要把业务兜底或共享组件样式误删。
+- Meta Pixel 等第三方平台明确要求粘贴到 `<head>` 的基代码，应按平台说明插入现有 head 代码之后、`</head>` 之前；不要为了首屏优化改成 idle/dynamic import 延迟加载。若项目构建器不接受平台给出的完整 `noscript` 写法（例如 Vite/parse5 不允许 head 内 `noscript > img`），保留主 Pixel JS 基代码在 head 内，`noscript` 部分改成项目可构建的等价降级或在交付中说明取舍，并移除重复的延迟统计初始化以避免重复上报 `PageView`。
+- 首屏加载优化可以压缩首屏图片和大图，但必须以清晰可用为门槛：从源图或当前 Git 基准生成候选，记录压缩前后体积、质量参数和视觉确认结果；发现文字发糊、主体边缘明显劣化、透明边污染或品牌/设计观感下降时应回退或降低压缩强度，不在已损图片上反复叠加压缩。
+- legacy/polyfill/旧 WebView 兼容包应作为兜底路径条件加载，不能让所有现代机型默认加载兼容包或把 legacy 资源放进首屏阻塞链路；Vite 项目优先确认现代入口 `type="module"`、旧包 `nomodule`、`modernPolyfills=false` 或项目等价策略。
 - 出现原生方法、bridge 或 window callback 证据时，按 App WebView 场景处理；未明确通道时默认只考虑 Flutter，并把真实 WebView 行为列为人工待验。
 - 新增图片、图标、背景和插画必须语义化命名；图片压缩或设计图复原遵守 KB 截图预算，不无限截图微调。
 - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole。

@@ -89,6 +89,16 @@ WebView 兼容和发版风险背景见 KB：`Work/H5/公共规范/App WebView兼
 | debugger | `rg -n "debugger" src` | 任何生产代码 `debugger` 失败 |
 | 敏感 query / storage | 搜索 token、authorization、phone、idCard 等 | 明文输出或上报失败 |
 | 临时开关 | 搜索 `TODO release`、`mock`、`debug`、`testOnly` | 未解释的临时开关待确认 |
+| 工作流 / 模型生成产物 | 查项目根目录 `design/`、`qa-screenshots/`、`tmp-*`、`*.log`、临时截图、模型生成的验收图片或调试页 | 发版前仍存在明确无用的工作流截图、历史设计图、日志或模型临时产物时应清理；若文件可能是业务材料、接口文档、发布配置或人工仍需留存，先列为待确认 |
+| 未引用静态资源 | 枚举 `src/assets`、`public` 等静态目录，按文件名和导出入口反查 `src`、`public`、`index.html`、`package.json`、`README.md`、构建配置 | 确认 0 引用且非业务兜底、非 manifest/robots/favicon 等平台约定资源时可清理；仅靠文件名少见、动态拼接或运行时 URL 无法排除引用时待确认 |
+
+清理类检查的执行边界：
+
+- 删除前先确认目标解析路径仍在当前项目根目录内，避免递归删除误伤其他目录。
+- 可直接清理 `.gitignore` 已覆盖且证据明确的 `design/`、`qa-screenshots/`、日志和临时截图；已被 git 跟踪的临时产物也应作为本次变更列出。
+- 遇到文件被本项目本地 dev server 或预览进程占用时，只停止当前项目相关进程后重试；不要影响其他项目服务。
+- 不删除 `node_modules/`、`dist/`、release 配置、接口原始文档、业务兜底图片、协议文件、原生桥接依赖资源或无法证明无引用的动态资源。
+- 清理后必须重新执行构建，并复扫残留文件名、旧静态资源名和 `dist` 产物，确认无调试页、临时截图、历史设计图路径或旧图片引用残留。
 
 ## 6. 输出结论
 
