@@ -7,7 +7,7 @@
 | 等级 | 适用范围 | 必做检查 |
 | --- | --- | --- |
 | `quick` | 纯样式数值、文案、单文件 CSS、静态展示微调，且不触及 JS/TS 逻辑、接口、路由、原生桥、构建配置、样式入口、资源加载或发布 | 目标 diff 审查、相关静态搜索、局部 H5/WebView 风险抽查；不默认跑 type-check/build |
-| `focused` | 普通小交互、少量 JS/TS 改动、组件 import/export 变化、原生调用点、样式入口/适配策略/资源加载变化；也包含单页或单 hook 内的局部逻辑优化、初始化顺序调整和状态收口修正 | 与改动相关的最小命令和静态检查；TS/JS 改动跑 type-check，样式架构/入口/构建相关变化才跑 build；没有独立 type-check 脚本但 build 已覆盖 TS 编译时，可用 build 兜底 |
+| `focused` | 普通小交互、少量 JS/TS 改动、组件 import/export 变化、原生调用点、样式入口/适配策略/资源加载变化；也包含单页或单 hook 内的局部逻辑优化、初始化顺序调整和状态收口修正 | 与改动相关的最小命令和静态检查；TS/JS 改动优先跑 type-check/tsc/vue-tsc，样式架构、入口、资源加载或构建相关变化才跑 build；不能仅因为缺少独立 type-check 脚本就用 build 兜底 |
 | `full` | 默认业务开发、接口替换、首复贷/进件改动 | 完整通用检查 + 对应场景专项检查 |
 | `release` | 准备发布 | `full` + release-env、构建产物、人工 WebView 待验项说明 |
 
@@ -70,7 +70,7 @@
 □ 15. H5 基础质量检查 —— 375px 设计宽/rem 适配、首屏加载速度、样式拆分可维护性
 ```
 
-**命令执行原则**：只对当前验收等级要求的命令标记通过/失败；未被当前等级选中的命令标记为“按 quick/focused 范围跳过”，不能写成通过。`full/release` 仍必须执行对应命令；`quick` 不默认执行 type-check/build；`focused` 只执行和改动相关的最小命令。若项目没有独立 type-check 脚本，但现有 build 已覆盖 TS 编译，可在 `focused` 下用 build 作为兜底静态校验，并在交付中说明原因。启动 dev server、浏览器截图和生产构建只在视觉风险较高、交互风险较高、用户要求或发布前执行；截图必须遵守上方视觉验收预算。详细标准参考 `h5-testing-checklist/references/testing-checklist.md`。
+**命令执行原则**：只对当前验收等级要求的命令标记通过/失败；未被当前等级选中的命令标记为“按 quick/focused 范围跳过”，不能写成通过。`full/release` 仍必须执行对应命令；`quick` 不默认执行 type-check/build；`focused` 只执行和改动相关的最小命令。若项目没有独立 type-check 脚本，先检查能否直接运行 `tsc --noEmit` 或 `vue-tsc --noEmit`；若不可行，则记录为“缺少独立类型检查脚本，已做静态 diff/引用检查”，不能仅为替代 type-check 而跑生产构建。启动 dev server、浏览器截图和生产构建只在视觉风险较高、交互风险较高、用户要求、发布前，或本次改动触及样式入口、资源加载、构建配置、依赖/组件打包边界时执行；截图必须遵守上方视觉验收预算。详细标准参考 `h5-testing-checklist/references/testing-checklist.md`。
 
 **检查方式说明**：
 - **命令行自动化**（1/2/3/13/14/15，及 vendor 启用时的 3.5/12）：按验收等级选择执行；被当前等级跳过的命令必须说明跳过原因

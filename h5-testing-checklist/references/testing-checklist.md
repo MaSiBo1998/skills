@@ -39,7 +39,7 @@
 - **命令**: `npm run type-check` 或 `tsc --noEmit` 或 `vue-tsc --noEmit`
 - **期望**: 0 个类型错误
 - **失败判定**: 存在任何 TypeScript 类型报错
-- **注意**: `quick` 且未触及 TS/JS 时跳过；`focused` 触及 TS/JS、组件导入导出、工具函数或原生调用点时执行；`full/release` 必须执行。如果项目没有独立类型检查脚本，需先确认是否有 tsconfig.json，有则直接运行 tsc；若没有独立 type-check 命令但现有 build 已覆盖 TS 编译，可在 `focused` 下用 build 兜底，并在交付中说明原因
+- **注意**: `quick` 且未触及 TS/JS 时跳过；`focused` 触及 TS/JS、组件导入导出、工具函数或原生调用点时执行；`full/release` 必须执行。如果项目没有独立类型检查脚本，需先确认是否可直接运行 `tsc --noEmit` 或 `vue-tsc --noEmit`；若不可行，记录为“缺少独立类型检查脚本，已做静态 diff/引用检查”，不能仅为替代 type-check 而跑生产构建
 
 ---
 
@@ -58,7 +58,7 @@
 - **期望**: 构建成功，dist/ 目录产出符合预期
 - **失败判定**: 构建报错或产物缺失
 - **额外验证**: 检查 dist/ 中是否包含框架代码（如果已建立 vendor 架构则不应包含）
-- **注意**: `quick` 不默认执行构建；`focused` 只有触及样式入口、全局适配、资源加载、构建配置、组件导入导出风险、用户要求，或没有独立 type-check 命令但需用 build 兜底 TS 编译时执行构建；`full/release` 必须执行构建
+- **注意**: `quick` 不默认执行构建；`focused` 只有触及样式入口、全局适配、资源加载、构建配置、依赖或组件导入导出的打包风险、用户要求或发布前时执行构建；不能因为缺少独立 type-check 命令而自动用 build 兜底；`full/release` 必须执行构建
 
 ---
 
