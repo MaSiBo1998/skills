@@ -21,6 +21,12 @@
 | backend / Java 项目开发 | `README.md`、`Home.md`、`Work/MOC.md`；学习解释再读 `Java/MOC.md` |
 | workflow/meta | `README.md`、`Home.md`，必要时读取 `Work/Workflow/MOC.md` 中的工作流说明 |
 
+## 项目目录定位读取
+
+涉及项目名、App 名、后台名、官网、协议、投放、还款、H5、Flutter、后端服务、本地目录或项目别名时，在读取 `Work/MOC.md` 后继续读取 `Work/Projects/MOC.md`，再进入对应分类页定位代码路径。
+
+如果用户只给出 `co6`、`co4`、`mx1` 等 API app 别名，先从 `Work/API/apps/_app-index.jsonl` 解析出 appName，再回到 `Work/Projects/MOC.md` 或 `Work/Projects/H5.md` 结合页面类型定位本地项目。API 别名只能帮助识别产品，不能替代本地项目路径索引。
+
 ## H5 场景知识读取
 
 Work/H5 任务需要区分“接口事实”和“场景知识”：

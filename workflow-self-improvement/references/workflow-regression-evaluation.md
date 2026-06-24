@@ -37,6 +37,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 只读项目用到接口 | 用 Confiq 这类 H5 项目做接口替换，swaggerApi.json 是项目接口全集 | 先从 `src/services/api/config.ts`、`src/services/api/*.ts` 和 types 提取 used API manifest；若 swagger 未入库先归档到 KB，再只读取命中的 contract，不默认加载全量接口文档 |
 | 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；每个实际接口都生成中文 contract，并通过 `_indexes/contracts.jsonl`、`by-path.json`、`by-symbol.json` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
 | appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `Work/API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |
+| 项目别名定位 | co6投放项目帮我改一下落地页 | 先进入 `front-workflow`，读取 `Work/MOC` 后按项目名或别名定位读取 `Work/Projects/MOC` 和 `Work/Projects/H5`；`co6` 先由 `Work/API/apps/_app-index.jsonl` 映射为 `crediapoyo`，再定位到 `D:\code\H5\Crediapoyo\crediapoyo-placement-app`；接口字段另行使用 `api-kb-contract-reader` |
 | Flutter 共用接口契约 | Flutter App 也用每个 appName 的接口文档和混淆字段 | 调度 `api-kb-contract-reader` 提取 Dio/request wrapper、endpoint constants、repository/service/model 中实际接口；接口契约层共用，Flutter 实现不走 `h5-api-mapping` 的 H5 落地规则 |
 | 原生交互即 App 内嵌 | 普通 H5 页面要调用 getToken 和 goBack，但用户没说 Android/iOS，只说原生方法 | 判定为 App 内嵌 H5；默认只考虑 Flutter 通道，检查真实 WebView、低版本浏览器和键盘遮挡风险；不主动添加 Android/iOS/Web 分支 |
 | 业务场景不等于内嵌 | 首复贷或进件页面没有任何原生方法、bridge、window 回调证据，只是普通 H5 页面 | 不能仅凭“首复贷/进件”判定为 App 内嵌；按对应业务场景执行，只有出现原生交互证据时才追加 App WebView、键盘遮挡和 Flutter 通道规则 |
