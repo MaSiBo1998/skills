@@ -80,7 +80,7 @@ flowchart TD
 | A | 架构改造 | depend、vendor、static-app、本地资源、Vite external | `h5-vendor-architecture` -> `h5-testing-checklist` |
 | B | 功能/API 开发 | 普通功能、新接口、字段适配 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-testing-checklist` |
 | C | 首复贷开发 | 首贷、复贷、状态流、订单、还款、额度确认 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-first-reloan-flow` -> `h5-testing-checklist` |
-| D | 进件开发 | Apply、Entry、步骤页、原生交互、国家差异 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
+| D | 进件开发 | Apply、Entry、步骤页、原生交互、app 文档差异 | 涉及接口时 `api-kb-contract-reader` -> 必要时 `h5-api-mapping` -> `h5-apply-flow` -> `h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 | 官网、协议 HTML、App 内嵌协议、客服问答 | `h5-official-site` -> `h5-testing-checklist` |
 | F | 设计图复原 | design 图片解析、照图实现、切图命名 | `design-image-analysis` -> `design-image-restore` -> `h5-testing-checklist` |
 | G | 发版检查 / 国家发布 | 发版检查、发布前检查、vConsole、发布、发版、打 tag、mx/co/ng | `release-precheck`；确认正式发布后 `release-tag` |
@@ -189,7 +189,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 
 `workflow-self-improvement` 把沉淀过程做成一个闭环：
 
-1. 发现：识别重复人工修正、遗漏验收、新国家差异、新接口模式、未知需求兜底判断等可复用经验。
+1. 发现：识别重复人工修正、遗漏验收、新 app 文档规则、新接口模式、未知需求兜底判断等可复用经验。
 2. 归属：判断这条经验应该写入主工作流、业务子 skill、验收模块，还是只作为项目特例保留。
 3. 修改：只更新对应位置，不把所有细节都塞回主工作流。
 4. 校验：检查 diff，运行 skill 校验，必要时做工作流回归评估。
@@ -205,7 +205,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 | API contract 落地模式 | `h5-api-mapping` | 属于 H5 service/types/model/hook/page 的字段落地方法 |
 | 单项目事实 | 默认不沉淀 | 避免把一次性情况写成通用规则 |
 
-为什么要有自我沉淀？因为前端业务变化快，今天遇到的新国家、新接口模式、新后台权限规则，明天可能就会重复出现。如果每次都靠人提醒，工作流不会变强；如果不加归属控制地乱记，又会把流程写乱。自我沉淀的价值，就是在“能学习”和“不乱学”之间建立边界。
+为什么要有自我沉淀？因为前端业务变化快，今天遇到的新 app 文档规则、新接口模式、新后台权限规则，明天可能就会重复出现。如果每次都靠人提醒，工作流不会变强；如果不加归属控制地乱记，又会把流程写乱。自我沉淀的价值，就是在“能学习”和“不乱学”之间建立边界。
 
 ## 5. 关键设计原则
 
@@ -219,7 +219,7 @@ A-J 是稳定场景，K 是未知或复合需求兜底。这里保留 K 很重�
 
 `front-workflow` 只保存“如何判断”和“如何调度”，不维护大段业务实现细节。业务细节放到对应子 skill，例如：
 
-- 进件流程和国家差异归 `h5-apply-flow`。
+- 进件流程归 `h5-apply-flow`，app-specific 字段、配置和原生协议从 `Work/API/apps/<appName>` 读取。
 - 首复贷状态流归 `h5-first-reloan-flow`。
 - 后台功能归 `admin-management-flow`。
 - 发版前检查归 `release-precheck`；正式发布规则归 `release-tag`；`h5-release-tag` 只作为旧 H5 引用的兼容入口。

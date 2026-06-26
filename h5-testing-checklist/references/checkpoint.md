@@ -121,7 +121,7 @@
 | A | `{ vendor_enabled, build_script }` |
 | ordinary-h5 | `{ vendor_enabled, appName, api_contract_paths, project_config, target_route, constraint_areas, validation_scope }` |
 | C | `{ product_name, country, appName, vendor_enabled, api_contract_paths, project_config, constraint_areas, validation_scope }` |
-| D | `{ product_name, country, appName, country_profile, release_country_code, vendor_enabled, api_contract_paths, project_config, constraint_areas, validation_scope }` |
+| D | `{ product_name, appName, vendor_enabled, api_contract_paths, project_config, constraint_areas, validation_scope }` |
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |

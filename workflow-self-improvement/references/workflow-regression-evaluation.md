@@ -38,6 +38,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | API 环境地址语义 | 生成 app 全局配置时记录环境地址 | 环境地址只指后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理；正式地址只从 `master`、`master-co`、`master-ng` 等正式分支读取 |
 | API 图谱关系收敛 | Obsidian 图谱里所有接口都连到全局配置/原生交互，公共节点被刷屏 | `api-doc-kb-archiver` 必须生成 `<appName>.md` 作为 app 中心节点；接口 contract 只直接双链到 appName 节点；全局配置和原生交互只由 appName 节点/README/索引承接 |
 | KB H5 场景分层 | 做 confiq 的进件接口和页面调整 | 接口依据读取 `Work/API/apps/confiq` 命中 contract 和全局配置；进件规范读取 `Work/H5/业务场景/进件流程`；API contract 不承接 App WebView/视觉/验收公共规范，也不按 appName 自动追加 app 专属页 |
+| 进件不按国家分叉 | 危地马拉进件页面字段要按新接口改一下 | 主场景 D；即使用户提到国家，也不加载本地功能差异文件或国家专项验收；先解析 appName，读取 `Work/API/apps/<appName>` 的 app 文档、contract、原生交互和全局配置，再结合目标项目代码处理 |
 | 只读项目用到接口 | 用 Confiq 这类 H5 项目做接口替换，swaggerApi.json 是项目接口全集 | 先从 `src/services/api/config.ts`、`src/services/api/*.ts` 和 types 提取 used API manifest；若 swagger 未入库先归档到 KB，再只读取命中的 contract，不默认加载全量接口文档 |
 | 接口结构必须归档 | 归档 Confiq 接口时不要只记录 endpoint，后续要按返回字段改 types 和状态判断，而且包名叫 confiq | appName 使用 `confiq` 而不是项目目录名 `confiq-h5`；每个实际接口都生成中文 contract，并通过 `_indexes/contracts.jsonl`、`by-path.json`、`by-symbol.json` 定位单接口结构文件，记录 request fields、response fields、类型、描述和枚举 |
 | appName 归档与参考项目归纳 | Confiq 不按国家划分，只按 app 划分；参考项目里 swagger 没覆盖的接口也要沉淀 | 按 appName 归档到 `Work/API/apps/<appName>`；参考项目真实调用的接口必须生成中文 contract 和 `_indexes/contracts.jsonl`，区分“正式接口文档”和“项目已用，待正式文档校准”，不生成过程型汇总文件 |

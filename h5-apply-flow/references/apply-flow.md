@@ -1,16 +1,14 @@
 # 进件申请流程参考
 
-场景 D（进件功能开发）的领域知识参考。开发时按此规范执行。
-
-> 国家差异例外：当 checkpoint 中存在 `country_profile` 时，先加载 `references/country-profile-index.md` 再加载对应 `country-*.md`。危地马拉使用 `country_profile=guatemala`，步骤顺序、entry、原生返回、API 字段和数据处理以 `references/country-guatemala.md` 为准。
+场景 D（进件功能开发）的领域知识参考。开发时按此规范执行。app-specific 字段、配置、原生混淆、步骤配置和功能差异从 `Work/API/apps/<appName>` 与目标项目代码读取，不按国家判断。
 
 ---
 
 ## 典型触发示例
 
 - “进件新增键盘遮挡处理，不换字段”：场景 D，复用现有 API，只修改 Apply 页面交互和样式约束，不调用 `h5-api-mapping`。
-- “危地马拉进件换新接口 contract，业务流程不变”：场景 D 业务归属，先用 `api-kb-contract-reader` 读取 KB contract；若只有本地 swagger/api 文档，先用 `api-doc-kb-archiver` 入库；需要 H5 字段落地时再调用 `h5-api-mapping` 做同结构字段/API 替换，最后按 `country_profile=guatemala` 执行专项验收。
-- “调整 Apply 步骤顺序或 Entry 跳转”：场景 D，优先加载国家 profile，避免复制整套进件流程。
+- “某 app 进件换新接口 contract，业务流程不变”：场景 D 业务归属，先用 `api-kb-contract-reader` 读取对应 appName 的 KB contract；若只有本地 swagger/api 文档，先用 `api-doc-kb-archiver` 入库；需要 H5 字段落地时再调用 `h5-api-mapping` 做同结构字段/API 替换，最后按命中公共区域和进件业务专项验收。
+- “调整 Apply 步骤顺序或 Entry 跳转”：场景 D，优先读取目标项目代码和 `Work/API/apps/<appName>` 的 app 文档，避免复制整套进件流程。
 
 ---
 

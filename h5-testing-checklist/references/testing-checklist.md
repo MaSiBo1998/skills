@@ -329,7 +329,7 @@
 - **适用范围**: 普通 H5 功能/API 开发、单页交互调整、通用 hook/组件改造、新接口字段展示、非首复贷/非进件/非官网的 App 内嵌 H5 页面开发
 - **检查项**:
   - 新增页面、hook、组件、样式和 API 调用沿用目标项目已有路由、目录、状态管理、组件库、样式入口和请求封装，未新建并行架构
-  - API path 来自项目 API 配置层，header、环境值、国家/产品差异优先来自 `.env*`；除配置文件外没有硬编码接口 URL、业务线、国家码或 host
+  - API path 来自项目 API 配置层，header、环境值、app/product/env-specific 配置优先来自 `.env*`；除配置文件外没有硬编码接口 URL、业务线、发布国家码或 host
   - API base URL、后端接口地址和固定请求头值优先来自 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时未新增只 re-export env 的 `src/config/app.js` 薄封装
   - loading、empty、error、retry 或项目等价状态完整；接口失败不伪造成成功，后端 toast/systemToast 按现有规则展示
   - token、登录过期、退出登录、用户信息刷新复用现有拦截器、storage、native bridge 或 auth 工具；页面内没有第二套登录判断或重复跳转
@@ -346,31 +346,6 @@
   - 调试日志、告警、query、埋点和错误信息不明文输出 token、authorization、cookie、手机号、证件号、银行卡号、联系人号码、完整请求体或完整响应体
   - 页面会被 App 打开时，已按当前验收等级执行 App WebView 兼容专项；真实原生返回、键盘、复制、音频、外链、资源协议和低版本兼容未实测时列为人工待验
 - **失败判定**: 本次适用检查项任一不满足即失败；`focused` 小改可只检查 diff 涉及项，但必须说明跳过完整专项的原因
-
----
-
-## 进件国家差异专项检查（危地马拉）
-
-- **适用范围**: 场景 D 且国家为 Guatemala / GT / 危地马拉
-- **检查项**:
-  - 已在 checkpoint 或交付说明中记录产品名、国家、接口 base URL、成功码、token 过期码
-  - 若业务国家为危地马拉且 `release-env=mx`，已记录“危地马拉进件走 mx 发布”；其他不一致已提示并记录用户确认
-  - KB contract / H5 落地清单覆盖 header、endpoint、request、response 四类字段
-  - 接口只替换 URL、endpoint、请求头字段、请求入参字段、响应字段和配置值
-  - 目标项目 API path 与命中 KB contract 已对齐；若与目标业务语义不一致，已标注差异并获得确认
-  - 未增删字段、未改变字段类型、未改变数组/对象层级、未改变枚举业务语义
-  - `src/` 中旧混淆字段无残留；如保留在映射文档或注释中，需明确标注为旧字段对照
-  - 原生方法名和 H5 全局回调字段未随服务端混淆字段一起改名
-  - `entry=home/profile/firstLoan/reLoan` 四种提交后去向正确
-  - Confiq-H5 步骤顺序为 `work -> personal -> id -> face -> contacts -> bank`
-  - `getUserDetail` 与 `getHomeInfo` 不混用：步骤状态来自 `/jocosely/pivot`，完件返回原生前首页信息来自 `/puruloid/grim`
-  - `id-capture`、`face-capture-camera` 作为拍摄子流程已注册路由，且能带 draft/state 返回主表单页
-  - `entry=home` 主流程返回触发留存弹窗；`profile/firstLoan/reLoan` 不弹留存，直接走原生 `goBack`
-  - 联系人、设备、权限、登录态、用户信息刷新仍通过 native bridge；证件和自拍拍摄使用页面内 `getUserMedia`，不得退回旧 `openCamera` 协议
-  - 包含真实输入框的页面已接入 `useKeyboardFocusScroll()`，根节点挂 `pageRef`，输入外层保留 `input-wrapper`，底部按钮保留 `submit-bar`
-  - 移动端聚焦底部输入框时，页面在 100ms/220ms/360ms 多次滚动校正后输入框仍完整露出，且不被键盘或固定提交按钮遮挡
-  - 输入字体保持 16px 级别，打开选择器/通讯录/弹层前已 blur 当前输入框，避免 iOS 聚焦放大或键盘残留
-- **失败判定**: 任一项不满足即失败；若接口结构与基准不一致，必须暂停并要求用户确认差异
 
 ---
 

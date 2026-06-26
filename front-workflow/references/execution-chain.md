@@ -24,7 +24,7 @@
 ## 执行链规则
 
 - 修改任何需求时默认先走最小改动：优先沿已有数据流、调用点、接口层和配置层就地接入，减少修改文件和跨模块耦合。
-- 小范围代码修改中，明确、局部、不会变化且语义自明的业务限制值可直接内联，不为了形式感抽常量；只有复用多处、含义不明显、来自配置/API/国家 profile、可能变化，或命名能明显提升可读性时再抽常量。
+- 小范围代码修改中，明确、局部、不会变化且语义自明的业务限制值可直接内联，不为了形式感抽常量；只有复用多处、含义不明显、来自配置/API/KB app 文档、可能变化，或命名能明显提升可读性时再抽常量。
 - 没有专属 skill 的普通功能/API 开发，默认直接在目标项目实现。
 - 普通 H5 功能/API 开发若触及页面、路由、hook、组件、API、登录态、原生返回、埋点、i18n/格式化、环境配置或 App WebView 行为，先读取 `references/h5-common-feature-flow.md`，再直接实现。
 - H5 需求执行前按 `references/h5-constraint-areas.md` 判定 `form-input`、`interaction`、`webview`、`visual-layout`、`assets-performance`、`api-data`。`quick/focused` 默认只验命中区域，`full/release` 可覆盖全部区域但仍要记录命中依据。

@@ -112,7 +112,7 @@ H5 验收先按业务证据确定普通 H5、首复贷、进件、官网、设�
 **场景 A（架构改造）**: 重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）
 **普通 H5 / 首复贷 / 进件（含接口或页面修改）**: 按本次 diff 风险选择 `quick/focused/full`；业务场景只决定业务专项范围，不自动升级为完整通用检查。普通 H5 功能/API 开发额外执行“普通 H5 功能专项”，`quick/focused` 只检查本次命中的 `constraint_areas` 和对应业务风险，`full/release` 执行完整专项。本次涉及接口/字段替换时命中 `api-data` 并额外执行 API contract 落地校验。同结构混淆字段替换需确认只替换接口地址、请求头、请求入参、响应字段和全局配置字段，业务流程未被重构。若涉及原生方法新增入参混淆字段，需确认业务调用仍传语义字段、统一 bridge 映射表包含该字段、payload 会经过统一编码，且页面组件中没有散落混淆 key。其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
 **场景 C（首复贷开发）**: 按风险执行首复贷状态流专项，`quick/focused` 只抽查本次影响的状态分支和命中公共区域；`full/release` 执行完整通用检查 + 首复贷状态流专项检查。业务重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期和首复贷 banner 展示/轮播/跳转。涉及 `toEditStepInfo`、风控上传、借款协议等原生方法参数时命中 `webview`；还款/支付输入命中 `form-input`；接口字段或 contract 落地命中 `api-data`；设计图或状态页布局命中 `visual-layout`。KB contract、用户示例或现有类型已明确字段结构时，还要确认页面按固定结构直接取值或解析，未引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案。按设计图改首复贷状态页时，还要确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点没有因截图缺失被删除，且结构或样式变更只影响目标状态分支。本次未涉及接口 contract 或字段替换时，不要求完成项目适配映射。
-**场景 D + 国家差异**: 需按风险执行对应 country profile 的业务验收补充，`quick/focused` 只抽查本次影响的 Apply 步骤和命中公共区域；`full/release` 执行完整进件专项。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。输入、原生、接口、视觉等公共风险分别写入 `form-input`、`webview`、`api-data`、`visual-layout` 后再展开区域验收。
+**场景 D（进件开发）**: 需按风险执行进件业务验收，`quick/focused` 只抽查本次影响的 Apply 步骤和命中公共区域；`full/release` 执行完整进件专项。app-specific 字段、配置、原生协议、步骤配置和接口结构以 `Work/API/apps/<appName>`、用户确认材料和目标项目代码为准，不按国家分叉规则额外展开。输入、原生、接口、视觉等公共风险分别写入 `form-input`、`webview`、`api-data`、`visual-layout` 后再展开区域验收。
 **场景 E（官网/协议/挂载 H5）**: 协议 HTML 需检查输出文件、文档结构、移动端可读性、链接入口和 WebView 打开方式；官网协议入口、iframe、App 内嵌问答或客服问答需额外检查路由、资源路径、交互状态、异常态和真实设备待验项。
 **场景 G（release-precheck / release-tag）**: 用户要求“发版检查/发布前检查/检查 vConsole/检查能不能发版”时先使用 `release-precheck`，只做 readiness 检查，不提交、不打 tag、不推送；用户确认正式发布后才进入 `release-tag`，并必须使用 `release`，在 `full` 基础上确认 `release-env` 或等价发布配置有效、构建产物已生成、vConsole 策略符合目标环境、真实 App WebView 待验项已列出。
 **workflow/meta（工作流自我更新）**: 先确认本轮属于 `规则补丁`、`流程调优` 还是 `全量巡检`，再按级别验收。
@@ -144,7 +144,7 @@ H5 验收先按业务证据确定普通 H5、首复贷、进件、官网、设�
 - 检查首屏关键内容、非关键资源延后、图片体积、legacy/polyfill、同步初始化逻辑是否因本次改动变差；图片压缩必须以清晰可用为门槛，不能无限压缩；legacy/polyfill 应作为旧 WebView 兜底条件加载，不能阻塞现代首屏。
 - 检查页面、接口、路由、公共工具和资源是否按项目既有目录职责归位。
 - KB contract、用户示例或现有类型明确结构时，代码必须按固定结构取值，不写多层探测和旧字段兜底。
-- 环境、host、资源前缀、固定 header、国家/产品差异优先来自 `.env*`、项目配置层或 KB contract。
+- 环境、host、资源前缀、固定 header、app/product/env-specific 配置优先来自 `.env*`、项目配置层或 KB contract。
 - 视觉、图片压缩、拍照质量和旧 WebView 兼容细节读取对应 KB 页；无法自动证明时列为真机 WebView 或设计走查待验。
 
 ## 普通 H5 功能专项

@@ -9,7 +9,7 @@
 | A | vendor / depend / static-app / 本地资源架构 | `h5-vendor-architecture` | `h5-testing-checklist` |
 | ordinary-h5 | 普通功能/API 开发、同结构字段替换、新接口适配 | 直接在目标项目实现；普通 H5 横切点按 `h5-common-feature-flow.md` 兜底 | `api-kb-contract-reader`、`h5-api-mapping`、`h5-vendor-architecture`、`h5-testing-checklist` |
 | C | 首贷/复贷/状态流/订单/还款/额度 | `h5-first-reloan-flow` | `api-kb-contract-reader`、`h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
-| D | Apply / Entry / 进件步骤 / 国家差异 / 原生交互 | `h5-apply-flow` | `api-kb-contract-reader`、`h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
+| D | Apply / Entry / 进件步骤 / app 文档差异 / 原生交互 | `h5-apply-flow` | `api-kb-contract-reader`、`h5-api-mapping`、`h5-vendor-architecture`、`h5-feishu-alert`、`h5-testing-checklist` |
 | E | 官网/协议/挂载 H5 / App 内嵌协议或客服 | `h5-official-site` | 设计图能力、`h5-testing-checklist` |
 | F | 设计图复原 / 视觉还原 / 切图规范化 | `design-image-restore` | `design-image-analysis`、主业务场景、`h5-testing-checklist` |
 | G | release-precheck / release-tag / 发版检查 / 发布 / tag / 国家发布 | `release-precheck` 只做发版前检查；用户确认正式发布后使用 `release-tag` | `h5-testing-checklist` |

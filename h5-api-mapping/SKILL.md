@@ -22,7 +22,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 4. 若 contract 与现有类型同构，优先改 types/model 字段名，再用 TypeScript 报错逐处修复消费点；禁止新增未在 contract 中定义的旧字段兜底。
 5. 若接口文档、KB contract、用户确认样例或目标项目既有类型已经给出具体返回结构，直接按该结构读取和解析；不要再额外写多层字段探测、旧项目字段 fallback、`fallbackData`、多格式兼容 helper 或启发式字段猜测。
 6. 若 contract 与现有类型层级、数组结构、类型或枚举不一致，标记“结构不一致，需确认”，暂停自动替换。
-7. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口落地只负责 API 差异，不决定业务流程分叉。
+7. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 负责 Apply 流程，app-specific 差异从 `Work/API/apps/<appName>` 和目标项目代码读取。接口落地只负责 API 差异，不决定业务流程分叉。
 8. 如果由 `admin-management-flow` 调用，只输出后台接口字段依据、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
 
 ## 约束
@@ -37,7 +37,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 - 目标项目中真实调用但 KB 未覆盖的接口，必须交给 `api-doc-kb-archiver` 入库或沉淀为待补 contract 清单，不得忽略。
 - 遇到还款来源、`source`、`sourceType`、`h5Source` 或等价混淆字段时，不把单个项目的“当前取值”写死成全局默认；先按目标项目是否存在原生交互证据判断 App 内嵌还是独立 H5，再使用 contract 中对应枚举值。若同一路由可被 App 和浏览器同时打开，优先复用项目已有运行态判断；没有稳定判断点时标记需确认。
 - 不做无差别全局字符串替换。
-- API base URL、后端接口地址、固定请求头值、国家/产品差异等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。
+- API base URL、后端接口地址、固定请求头值、app/product/env-specific 配置值等必须优先收敛到 `.env*`；已有 `.env*` 或 Vite `import.meta.env` 时，不要新增只 re-export 环境变量的 `src/config/app.js` 薄封装。只有项目既有配置层承担校验、解析、组合或环境映射等真实职责时，才复用配置层；不要把这些值散落硬编码在页面、hook 或 service 调用点。
 - 不擅自改变字段层级、数组结构、类型或枚举语义。
 - 同结构混淆字段替换模式不改业务流程、不增删字段、不改变字段类型、不改变数组/对象层级、不改变枚举业务含义。
 - 同结构混淆字段替换必须保持结构同构：字段名可以变化，路径深度、数组位置、对象父级和同级字段关系不能凭推断变化；如果实际文档显示结构变化，必须标记为“结构不一致”并停止按同结构模式迁移。

@@ -32,7 +32,7 @@
 Work/H5 任务需要区分“接口事实”和“场景知识”：
 
 - 涉及接口 path、header、request/response、响应码、baseURL 或 app-specific 原生混淆字段：读取 `Work/API/apps/<appName>`。
-- 涉及进件流程：读取 `Work/H5/业务场景/进件流程.md`；不要按 appName 自动追加 app 专属页，app-specific 接口、header、baseURL 和原生混淆字段从 `Work/API/apps/<appName>` 读取。
+- 涉及进件流程：读取 `Work/H5/业务场景/进件流程.md`；app-specific 字段、配置、原生混淆、步骤配置和功能差异从 `Work/API/apps/<appName>` 的 app 文档、contract、原生交互和全局配置读取。
 - 涉及首贷、复贷、状态流、还款、支付过渡、首复贷 banner：读取 `Work/H5/业务场景/首复贷状态流.md`。
 - 涉及 App WebView、原生返回、键盘遮挡、复制、音频、外链、滚动容器、低版本兼容，或接口字段需要区分 App/H5 运行来源：读取 `Work/H5/公共规范/App WebView兼容.md`。
 - 涉及设计图复原、视觉还原、图片压缩或截图验收：读取 `Work/H5/公共规范/视觉还原与截图预算.md`。

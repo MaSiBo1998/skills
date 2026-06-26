@@ -13,7 +13,7 @@
 - `eval_cases`、`eval_results`：由 `llm-evaluation` 维护和执行的回归样例、指标、失败项。
 - `automation_memory`：自动化续跑时记录已读取的 memory 路径、本轮写回状态、剩余外部阻塞和下一轮关注点。
 
-运行中发现重复人工修正、遗漏检查、新国家差异、新接口模式、发布规则变化、未知需求兜底判断时，先写入 `learning_candidates`。
+运行中发现重复人工修正、遗漏检查、新 app 文档规则、新接口模式、发布规则变化、未知需求兜底判断时，先写入 `learning_candidates`。
 
 若候选项明确、可复用且归属清晰，应在本轮输出沉淀提案卡并写入 `learning_candidates`；只有用户确认后才继续完成 skill 修改和校验。未确认前不得把候选写入 workflow 文件。
 
