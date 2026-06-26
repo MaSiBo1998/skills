@@ -105,10 +105,10 @@ getNextStep():
 
 ## 表单选择器与提交值规范
 
-- 输入框限制与键盘遮挡要分开处理：
-  - 限制空格、长度、数字等输入规则时，必须覆盖回显初始化、`onChange` 清洗、`onBeforeInput`/键盘事件拦截、粘贴和提交前兜底清洗；不要只依赖 `maxLength` 或单个 `onChange`。
-  - App WebView 内嵌页面处理软键盘遮挡时，只在输入框 `focus` 后做一次延迟滚动，把当前输入项滚入可视窗口即可。不要把滚动绑定到输入值变化、候选列表变化、校验错误变化或 `visualViewport` 的连续 `resize/scroll` 事件上，否则用户输入过程中会持续跳动。
-  - 页面使用内部滚动容器时，仍要定位最近真实可滚动父容器；底部固定确认按钮遮挡时可以加临时底部占位，但失焦后要清理。
+- 输入框限制与键盘遮挡属于 `form-input` 公共约束区域：
+  - Apply 页只负责识别业务触发点：真实 `input`、`textarea`、固定底部按钮、弹层选择器、输入清洗、粘贴和提交前兜底。
+  - 命中后在 checkpoint 写入 `constraint_areas=["form-input"]`，并读取 `Work/H5/公共规范/移动端表单与交互约束.md`；具体键盘避挡、滚动容器、16px 字号和选择器 blur 验收由 `h5-testing-checklist` 执行。
+  - 限制空格、长度、数字等输入规则时，仍必须覆盖回显初始化、`onChange` 清洗、`onBeforeInput`/键盘事件拦截、粘贴和提交前兜底清洗；不要只依赖 `maxLength` 或单个 `onChange`。
 - 进件页面的选项类字段必须先确认是否来自“获取实时配置参数 / 步骤配置”接口：
   - 只要对应 app 的 API contract 已标注配置 code 和含义，就按 contract 中的 code 从实时配置接口读取选项，不从设计图或参考项目静态文案推断。
   - 配置项 code、枚举值和字段含义必须严格按照当前 app API contract；不得因为参考项目、历史代码、运行时展示错位或临时联调返回现象而反向调换 contract 中的 code。若出现选项错位，先排查解码后的真实配置、页面提取函数、回显值和本地缓存；真实返回与 contract 冲突时标记后端/文档需确认，不做前端 code 兜底互换。
@@ -129,16 +129,12 @@ getNextStep():
 
 ---
 
-## 移动端点击态与焦点框规范
+## 公共约束触发点
 
-- 全局样式应统一去除移动端默认点击高亮和浏览器 focus 线框，覆盖范围至少包含 `button`、`a`、`[role='button']`、`[tabindex]`：
-  - `-webkit-tap-highlight-color: transparent`
-  - `outline: none`
-  - `:focus`、`:focus-visible`、`:active` 不出现额外系统线框或黄色/蓝色点击框。
-- 证件拍照页 `IdCapture` 和自拍页 `FaceCaptureCamera` 的拍摄按钮必须单独检查点击后状态：
-  - 点击拍摄按钮后不出现额外边框、黄色框、蓝色框或系统 focus ring。
-  - 禁用态只保留业务设计的 opacity，不应引入新的 outline。
-- 如果项目已有局部按钮样式，可以保留局部兜底；但优先在全局样式沉淀通用规则，减少每个按钮重复补样式。
+- 证件拍照页 `IdCapture`、自拍页 `FaceCaptureCamera` 或其他 Apply 按钮出现点击高亮、focus 线框、布局溢出、滚动容器或设计图还原需求时，命中 `visual-layout`，公共视觉规则读取 `Work/H5/公共规范/视觉还原与截图预算.md`。
+- Apply 步骤涉及按钮点击、弹窗/Sheet、返回拦截、toast、loading/empty/error、复制或全局 callback 清理时，命中 `interaction`。
+- Apply 步骤涉及 bridge、相册/联系人/拍照、原生返回、App 内跳、权限或真实 WebView 待验时，命中 `webview`，桥接协议仍以 `references/native-methods.md` 为准。
+- Apply 步骤涉及接口 path/header/baseURL、步骤配置 code、请求/响应字段、固定结构取值、错误提示或旧字段残留时，命中 `api-data`，先读取 `Work/API/apps/<appName>`。
 
 ---
 

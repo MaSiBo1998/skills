@@ -46,7 +46,7 @@
 8. 更新共享状态组件，例如未确认、审核中、审核拒绝、放款中、放款失败、还款、App 列表。
 9. 若本次涉及 banner，统一接入接口、展示组件、页面展示位、轮播和原生/外链跳转。
 10. 更新原生桥接和风控埋点。
-11. 执行首复贷专项验收和通用 14 项验收。
+11. 交给 `h5-testing-checklist` 按验收等级和 `constraint_areas` 执行首复贷专项验收；`quick/focused` 只验本次影响的业务分支和命中公共区域，`full/release` 再执行完整通用检查。
 
 ## 按需 API Contract 落地
 
@@ -154,13 +154,13 @@
 - Transfiya、Nequi、Bre-B、Efecty、PSE 等渠道不能只按一个固定支付名判断；应封装渠道识别工具，兼容支付编码后缀和展示名称。
 - 还款方式含服务费字段时，例如 `indri` 或目标项目等价字段，还款页展示和支付过渡页展示都必须取“当前选中/当前提交”的支付方式，不得固定取列表第一个支付方式。进入支付过渡页时应携带服务费参数，并仅在金额大于 0 时展示，避免无手续费渠道出现空行。
 - 支付提交到跳转之间存在异步过程时，应保存本次提交使用的支付方式对象或稳定参数；后续处理接口返回、渠道识别、手续费传递时使用该快照，不依赖可能已变化的 React state。
-- 支付过渡页的复制按钮必须兼容 App WebView：`navigator.clipboard.writeText` 可能因非安全上下文或 WebView 权限失败，必须 `try/catch` 后降级到隐藏 `textarea` + `document.execCommand('copy')` 等兜底方案；复制成功和失败都要 toast，toast 文案使用当前项目页面语言，例如西语项目使用 `Copiado exitosamente` / `No se pudo copiar`。
+- 支付过渡页涉及复制、toast 或反馈状态时命中 `interaction`；如果页面在 App WebView 中打开，同时命中 `webview`，复制兜底和真实设备待验由公共区域清单承接。
 - 支付过渡页的返回能力必须同时覆盖 H5 顶部返回、页面内返回按钮和 App 原生返回：抽出同一个 `handleBack`，顶部导航用 `backDirect={false}` 接入该方法，页面按钮也调用该方法，挂载时注册 `window.onNativeBack = handleBack`，卸载时清理。不能只验证顶部按钮能 `navigate(-1)`，否则原生滑动返回或物理返回会因未注册 H5 回调而无法回到上一页。
 - 如果用户、设计稿或 assets 提供了 Bre-B、Transfiya、Efecty、Nequi 等渠道图标，支付过渡页标题区、指引区和安全提示区应优先使用真实图片资源，不保留灰色占位块；新增图片资源后必须跑构建确认能被 Vite 打包。
 - 还款页如果需要回显用户手机号、邮箱、证件号或银行账户，数据入口必须来自目标项目真实还款用户资料节点；从 App 列表跳详情时可通过路由 state 传递，但详情页刷新后也必须能从产品详情数据本身读取，不能只依赖历史页面 state。
 - 银行选择弹层回调后要使用稳定的当前支付方式引用或参数，不依赖尚未同步完成的 React state。
 - 支付过渡页路由必须在路由配置中注册，并保持懒加载；未知渠道至少有兜底说明，避免用户点击还款方式后无反馈。
-- 还款页若含金额编辑、钱包手机号、PSE 邮箱、Bre-B key、银行卡等真实输入框，必须接入键盘防遮挡。不要只照搬进件页的 `window.scrollTo`：先确认首复贷外层状态页是否存在 `height: 100vh; overflow-y: auto` 的内部滚动容器；如存在，hook 必须滚动最近的真实可滚动父容器，并给页面根节点按键盘高度增加底部占位，否则 App WebView 中会表现为“没有任何滚动”。App WebView 可能不触发 `visualViewport` 高度变化，必须提供移动端兜底键盘高度或等价机制，并在聚焦后多延迟校正；不能只声明“已加 hook”而不检查实际遮挡链路。
+- 还款页若含金额编辑、钱包手机号、PSE 邮箱、Bre-B key、银行卡等真实输入框，命中 `form-input`；如果它位于 App 内嵌状态页或支付页，再追加 `webview`。键盘避挡、内部滚动容器和真实设备待验按公共区域验收执行。
 
 ## 状态展示样式规则
 
@@ -168,15 +168,15 @@
 
 - 当设计稿要求放款中、放款失败、审核中、审核拒绝等状态作为整页展示时，不要给最外层状态容器套 `border-radius: 12px/24px`、阴影或浮动卡片背景；外层应更接近完整页面或无框布局。
 - 明细、提示、进度条、支付信息等内部信息块如果设计稿仍是卡片，可以保留小圆角和边框；不要因为去外层卡片而误删内部业务卡片结构。
-- 移动端关键布局不要依赖兼容性差的 `flex gap`，尤其是进度提示、底部提示、图标+文字这类旧 Android WebView 可能失效的区域；优先使用 `margin-left/right/top` 或相邻选择器来表达固定间距。
+- 移动端关键布局如果涉及旧 Android / Flutter WebView 兼容风险，命中 `webview`；具体 `gap`、safe-area、legacy 等检查交给公共区域验收。
 - 用户明确“其他区域不要动”时，只调整目标状态组件的外层或指定区域，避免顺手重构还款页、弹窗、产品列表等无关卡片样式。
 
-## 旧 WebView CSS 兼容规则
+## 公共约束触发点
 
-- 面向旧 Android / Flutter WebView 的样式修改，不能只看现代浏览器效果；交付前必须全文搜索 `gap`、`row-gap`、`column-gap`，关键页面和状态组件不要保留这些低兼容间距声明，改用 `margin`、相邻兄弟选择器或稳定的 flex 子项间距。
-- `safe-area-inset-*` 不能直接写进 `padding` 简写中，例如 `padding: 72px 0 calc(... env(...))`，旧 WebView 不认识 `env()` 时可能丢弃整条声明，导致上/左右 padding 一起失效。
-- 安全区 padding 使用分层兜底：先写普通固定值，再写 `constant(safe-area-inset-*)` 兼容旧 iOS，最后写 `env(safe-area-inset-*)`；如果使用 `max()`，必须先提供不含 `max()` 的固定值或 `calc()` 兜底。
-- 全局安全区 CSS 变量必须先给 `0px` 默认值，再用 `@supports (padding-top: constant(...))` 和 `@supports (padding-top: env(...))` 覆盖，避免不支持安全区函数的机型得到无效变量。
+- 首复贷状态页、还款页、支付过渡页如果修改旧 Android / Flutter WebView 相关 CSS、legacy/polyfill、safe-area、vConsole 或 bridge，命中 `webview`，具体兼容规则读取 `Work/H5/公共规范/App WebView兼容.md`。
+- 状态页视觉、布局溢出、滚动容器、点击高亮、focus 线框或设计图还原命中 `visual-layout`，按截图预算验收。
+- 渠道图标、banner 图片、压缩图、首屏资源、构建产物体积或无用资源清理命中 `assets-performance`。
+- 接口 contract、还款用户资料字段、banner 字段、支付方式服务费、错误提示或旧字段残留命中 `api-data`。
 
 ## 首复贷 Banner 规则
 
@@ -220,8 +220,8 @@
 - 还款方式选择后的支付接口返回处理已检查：外链打开、非 URL 凭证进入支付过渡页、Nequi/Transfiya 空字符串仍进入支付过渡页、渠道识别、银行选择后继续支付和兜底提示均可用。
 - 支付过渡页已检查：非 URL 凭证或线下参考号能复制实际展示内容，App WebView 中 Clipboard API 失败时有 textarea 兜底，复制成功/失败 toast 使用当前页面语言；顶部返回、页面内返回按钮和 `window.onNativeBack` 使用同一个返回入口，组件卸载时清理全局回调；当前支付方式服务费能随跳转参数展示；Bre-B、Transfiya、Efecty 等渠道图标使用真实 assets 而非占位块。
 - 还款用户资料字段已使用目标项目真实字段，路由 state、类型定义、页面读取和刷新兜底一致；参考项目字段已搜索清理，无业务代码残留。
-- 还款页真实输入框已在 App WebView 中手动验收：金额、手机号、邮箱、Bre-B key 等输入框聚焦后能滚到键盘和固定提交栏上方；若页面使用内部滚动容器，已确认滚动目标不是 `window` 而是最近可滚动父容器。
-- 状态展示样式已检查：外层状态容器未残留设计不需要的 12px/24px 圆角卡片感；旧 WebView 兼容场景下关键间距未依赖不兼容的 `flex gap`，安全区 padding 已按固定值、`constant()`、`env()` 分层兜底且未把 `env()` 写进 padding 简写。
+- 命中 `form-input/webview` 时，还款页真实输入框、固定提交栏、内部滚动容器和真实设备待验已按公共区域清单处理。
+- 命中 `visual-layout/webview` 时，状态展示样式、旧 WebView CSS、safe-area 和截图预算已按公共区域清单处理。
 - 接口结构明确的字段取值已检查：按接口固定结构直接取值或解析，没有引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案；若做格式兼容，仅限真实崩溃所需的最小修正。
 - 放款中、放款失败、审核中、审核拒绝等状态的数据读取。
 - 真实 App WebView 中原生回调、权限、风控上传、协议跳转和返回拦截。

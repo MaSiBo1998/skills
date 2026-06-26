@@ -34,7 +34,7 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 
 1. 确认产品、国家、项目根目录和本次需求类型，并自动判断是否启用 vendor 架构；vendor 默认为不执行，只有用户明确要求、checkpoint 已启用或项目现有约束需要时才启用。
 2. 判断本次是否涉及接口 contract / 新字段 / 新接口地址 / 新项目迁移；若涉及，先交给 `api-kb-contract-reader` 读取命中 contract，KB 缺失则交给 `api-doc-kb-archiver` 入库，需要 H5 字段落地时再交给 `h5-api-mapping`；若不涉及则跳过接口字段迁移。
-3. 读取个人知识库的 H5 场景知识：首复贷读 `Work/H5/业务场景/首复贷状态流.md`；涉及 App WebView 时读 `Work/H5/公共规范/App WebView兼容.md`；涉及设计图或截图时读 `Work/H5/公共规范/视觉还原与截图预算.md`。
+3. 读取个人知识库的 H5 场景知识：首复贷读 `Work/H5/业务场景/首复贷状态流.md`；涉及表单输入、键盘或移动端交互时读 `Work/H5/公共规范/移动端表单与交互约束.md`；涉及 App WebView 时读 `Work/H5/公共规范/App WebView兼容.md`；涉及设计图或截图时读 `Work/H5/公共规范/视觉还原与截图预算.md`。
 4. 加载 `references/flow-variants.md`，先判断旧流程还是新流程；参考项目不可用时按抽象合同和目标项目证据执行，不阻断。
 5. 加载 `references/first-reloan-flow.md`，按首复贷场景执行，优先复用目标项目现有流程。
 6. 加载 `references/status-flow.md`，对照目标项目真实状态码、字段和组件补充或校验本次业务改动。
@@ -45,15 +45,15 @@ description: H5 首复贷状态流开发。用于首贷、复贷、首复贷、�
 ## 场景边界
 
 - 属于本 skill：Home 状态、Status 产品详情、App 列表、LoanUnconfirmed、LoanInProgress、LoanFailed、Payment、审核状态、借款协议、申贷确认、还款支付、首复贷 banner、风控上传、首贷成功原生回调、复贷返回挽留。
-- 不属于本 skill：Apply 步骤页、进件 Entry、工作/联系人/个人/证件/人脸/银行卡步骤、进件国家差异 profile。首复贷状态中出现“未授信/继续进件/编辑资料”时，本 skill 只负责状态展示和入口跳转，不实现 Apply 表单步骤；Apply 页面键盘遮挡基础模式归属 `h5-apply-flow`，但首复贷还款页、支付页等本场景页面一旦包含真实输入框，必须复用同类防遮挡规则并在本 skill 内完成适配。
+- 不属于本 skill：Apply 步骤页、进件 Entry、工作/联系人/个人/证件/人脸/银行卡步骤、进件国家差异 profile。首复贷状态中出现“未授信/继续进件/编辑资料”时，本 skill 只负责状态展示和入口跳转，不实现 Apply 表单步骤；首复贷还款页、支付页等本场景页面一旦包含真实输入框，写入 `constraint_areas=["form-input"]` 并在本业务页面内完成适配。
 - 首贷和复贷优先复用状态组件；差异通过数据源、路径、状态分支、埋点 code 和原生方法表达，不复制两套页面。
 - 状态分发、数据源、提交后原生回调、风控上传和返回拦截必须一起检查，不能只改接口或只改页面。
 - 首复贷是业务场景，不等于一定 App 内嵌；独立 H5 也可能有首贷/复贷状态流。若代码或需求出现首贷成功回调、风控上传、借款协议、App 列表、外链/支付跳转、返回拦截、`toEditStepInfo` 等原生方法或 bridge 证据，才判定为 App 内嵌 H5，并必须遵守 `h5-apply-flow/references/native-methods.md` 的统一桥接协议。
 - 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter 交互，不主动添加 Android、iOS WKWebView 或普通 Web 分支。
 - 首复贷状态流里若原生方法新增业务入参的混淆字段，例如 `toEditStepInfo` 需要把 `orderId` 转成 App 指定字段，先检查项目是否已有统一原生字段映射和 payload 编码；有则只在映射层补字段，页面和 hook 调用继续使用语义参数，不把混淆 key 写进状态组件。
 - 还款页或支付过渡页存在返回入口时，必须把顶部返回、底部返回按钮和原生 `window.onNativeBack` 收敛到同一个 H5 `handleBack`；不能只依赖 `HeaderNav` 默认 `navigate(-1)`，因为 App 原生返回只会调用 H5 暴露的全局回调。页面挂载时注册、卸载时清理，特殊挽留弹窗等业务分支也必须挂在这个统一入口上。
-- 只要首复贷需求涉及原生方法交互，就要考虑键盘遮挡风险；页面如还款 Payment、支付补充信息、银行/钱包账号等表单包含真实 `input` / `textarea` / `contentEditable`，必须检查键盘遮挡：根节点 ref、`input-wrapper`、`submit-bar`、16px 输入字体、打开选择器前 blur、多延迟校正；如果页面被 `Status` 或业务容器包在 `height: 100vh; overflow-y: auto` 的内部滚动区域里，不能只调用 `window.scrollTo`，必须滚动最近的真实可滚动父容器，并按键盘高度补足底部可滚动空间。若本次原生交互链路没有任何输入或键盘入口，也要在交付中说明不涉及键盘遮挡。
-- 首复贷状态页、还款页和支付过渡页需要兼容旧 Android / Flutter WebView：关键间距不要依赖 `gap`，安全区 padding 必须有普通固定值、`constant()` 和 `env()` 分层兜底，且不要把 `env()` 写进 `padding` 简写导致整条声明被丢弃。
+- 首复贷还款 Payment、支付补充信息、银行/钱包账号等表单包含真实 `input` / `textarea` / `contentEditable` 时，命中 `form-input`；涉及原生方法、App 列表、借款协议、支付外链、风控上传、原生返回或全局 callback 时，命中 `webview`；涉及状态页视觉、滚动容器、点击高亮、focus 线框或设计图还原时，命中 `visual-layout`。具体公共验收由 `h5-testing-checklist` 的区域清单承接，业务交付中说明未命中的区域为什么跳过。
+- 首复贷状态页、还款页和支付过渡页如需兼容旧 Android / Flutter WebView，写入 `constraint_areas=["webview"]`；`gap`、safe-area、legacy/polyfill 等公共细节由 `Work/H5/公共规范/App WebView兼容.md` 和验收区域承接。
 - 首复贷 banner 内跳参数应按接口原值透传给统一 bridge；除非 KB contract 或用户明确要求转换，不要在 H5 层自行解析、过滤枚举范围或改变字符串/数字格式。
 - 当 KB contract、用户示例或现有类型已经明确字段结构时，按固定结构直接取值或解析；不要预设复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案。接口返回格式已确定时只读取约定字段，例如错误提示只返回 `msg` 时不得额外兜底读取 `message`、旧字段或本地业务文案。只有真实接口格式已证明会导致页面崩溃时，才做最小格式修正和错误隔离，例如处理 JSON 字符串中的转义引号。
 - 首复贷状态页按设计图改样式时，设计图只作为主体视觉还原依据，不能因为截图未展示就删除项目已有业务模块、banner、轮询、bridge 跳转、按钮回调、刷新逻辑或埋点；原来代码中存在的 `BannerRail`、状态轮询、`toEditStepInfo`、`setBackHandler` 等行为必须保留，除非用户明确要求删除该既有行为。

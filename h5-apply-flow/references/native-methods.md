@@ -7,7 +7,7 @@ H5 与 App 原生端的交互方法协议，用于约束进件场景中的原生
 - 页面层不要直接调用原生全局对象，必须统一走项目 bridge hook / utility，例如 `src/hooks/useAppBridge.ts` 与 `src/utils/nativeBridge.ts`。
 - H5 调用原生时，默认传空对象 `{}`，除非方法明确要求参数。
 - 回调型能力请严格使用本文档中的 H5 全局回调名，大小写和字段结构必须保持一致。
-- 只要需求或代码涉及原生方法交互，就可以判定该页面会内嵌到 App WebView；后续验收必须考虑真实 WebView、低版本浏览器能力和键盘遮挡风险，未实测时列为人工待验。
+- 只要需求或代码涉及原生方法交互，就可以判定该页面会内嵌到 App WebView，并写入 `constraint_areas=["webview"]`；若同一改动包含真实输入项，再追加 `form-input`。真实设备或低版本 WebView 未实测时列为人工待验。
 - 原生交互通道未被用户或联调文档主动说明时，默认只考虑 Flutter 交互；不要主动补 Android、iOS WKWebView 或普通 Web 分支。
 - Flutter App WebView bridge：
   - 有 `window.flutter.postMessage` 时，调用 `window.flutter.postMessage(JSON.stringify({ method: action, value: payload ?? {} }))`

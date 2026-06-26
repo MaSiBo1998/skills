@@ -52,22 +52,25 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
    - frontend：`references/frontend-scene-map.md`
    - workflow/meta：`references/workflow-meta-scene-map.md`
    - 普通 H5 功能/API 开发：按需读取 `references/h5-common-feature-flow.md`
-5. `references/execution-chain.md`
-6. `references/learning-gate.md`
-7. 相关子 skill / 验收 reference / checkpoint / automation memory
+5. H5 需求按需读取 `references/h5-constraint-areas.md`，在业务场景之外判定公共约束区域。
+6. `references/execution-chain.md`
+7. `references/learning-gate.md`
+8. 相关子 skill / 验收 reference / checkpoint / automation memory
 
 ## 编排流程
 
 1. 读取用户输入、当前目录、项目结构、材料、checkpoint、automation memory，并按 `knowledge-layer.md` 判断是否读取个人知识库入口。
 2. 先判 `primary_direction`，并保留 `candidate_directions`。
 3. 再判 `primary_scene`，并保留 `candidate_scenes` 与 `supporting_capabilities`。
-4. 按 `execution-chain.md` 拼出最小可行 `execution_chain`。
-5. 只有缺少当前无法继续的最小信息时才问用户。
-6. 交付前按 `learning-gate.md` 判断 KB / workflow 沉淀候选；用户确认前不写知识库或 workflow 文件。
+4. H5 相关需求继续判定 `constraint_areas`、`constraint_area_reason` 和 `validation_scope`。
+5. 按 `execution-chain.md` 拼出最小可行 `execution_chain`。
+6. 只有缺少当前无法继续的最小信息时才问用户。
+7. 交付前按 `learning-gate.md` 判断 KB / workflow 沉淀候选；用户确认前不写知识库或 workflow 文件。
 
 ## 不变量
 
 - 方向先于场景，场景先于 supporting capability；触发词只是候选信号。
+- H5 业务场景先于公共约束区域；`constraint_areas` 只裁剪公共验收范围，不抢进件、首复贷、官网等主场景。
 - 普通 H5 横切规则只读 `h5-common-feature-flow.md`，不新增独立业务 skill。
 - 接口实现以 `personal-ai-kb/Work/API/apps/<appName>` 的 KB contract 为准；本地 swagger/api 文档只能先入库。
 - 标准规范、场景知识和已确认可信经验按场景写入 `personal-ai-kb/Work`；本工作流只保留触发、路由、执行链、硬性验收门槛和确认式沉淀流程。
@@ -83,6 +86,7 @@ description: 主编排骨架和工作类请求默认入口。用于代码、项�
 
 - 输入和 checkpoint：`h5-testing-checklist/references/input-collection.md`
 - 验收：`h5-testing-checklist/references/testing-workflow.md`
+- H5 公共约束区域：`references/h5-constraint-areas.md`
 - 普通 H5 功能基线：`references/h5-common-feature-flow.md`
 - 交付：`h5-testing-checklist/references/delivery.md`
 - 工作流指导：`skill-workflow-advisor`

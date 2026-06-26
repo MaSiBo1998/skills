@@ -59,9 +59,8 @@ Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`�
 - 主步骤顺序固定为 `workInfo -> personalInfo -> identityInfo -> faceInfo -> contactInfo -> bankInfo`，展示为 5 阶段进度：work、personal、id/face、contacts、bank。
 - 各步骤保存成功统一先 `updateUserInfo(response)`；`entry=home` 继续 `getNextStepFromUserDetail()`，`entry=profile/firstLoan/reLoan` 交给原生 `goBack()`；若保存响应 `dilly===1`，先请求首页信息 `getHomeInfo()` 并透传给 `goBack(homeInfo)`。
 - 原生返回统一走 `window.onNativeBack()` → `ApplyLayout.requestBack()`；仅 home 入口主流程页弹 `RetentionModal`，`id-capture` / `face-capture-camera` 子流程返回到对应主页面。
-- 包含真实输入框的 Apply 页面必须接入 `useKeyboardFocusScroll()`，根节点挂 `pageRef`，保留 `input-wrapper`、`submit-bar`、16px 输入字体和 `page-container` 底部 padding，确保键盘弹起后输入框不会被键盘或固定提交按钮遮挡。
-- 如果页面或父级布局是内部滚动容器（例如 `height: 100vh; overflow-y: auto`），防遮挡 hook 必须滚动最近的真实可滚动父容器，并按键盘高度给页面根节点增加底部占位；只执行 `window.scrollTo` 会在 App WebView 中出现聚焦后完全不滚动。
-- 打开选择器、级联选择器、通讯录、弹层前先 blur 当前输入框；不要用移动 `submit-bar` 的方式处理键盘遮挡。
+- 包含真实输入框、固定底部提交区、选择器 blur、输入清洗、粘贴或提交兜底时，写入 `constraint_areas=["form-input"]`；若页面在 App WebView 内或涉及原生能力，再追加 `webview`。
+- 危地马拉项目已有 `useKeyboardFocusScroll()` 等最终态能力时优先复用；具体键盘避挡、内部滚动容器、16px 字号、底部占位和真实设备待验按 `form-input/webview` 区域验收。
 
 开发时结合 Step 3 的命中 KB contract 和 H5 落地清单（如有）进行接口适配。
 
@@ -71,7 +70,7 @@ Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`�
 
 ## Step 6. 自动测试验收
 
-完整步骤见 `h5-testing-checklist/references/testing-workflow.md`。执行 14 项通用测试 + 进件专项检查；vendor 相关检查仅在 `vendor_enabled=true` 时执行：
+完整步骤见 `h5-testing-checklist/references/testing-workflow.md`。按验收等级和 `constraint_areas` 执行进件专项检查；`quick/focused` 只验本次影响步骤和命中公共区域，`full/release` 再执行完整通用检查。vendor 相关检查仅在 `vendor_enabled=true` 时执行：
 
 ```
 □ 6 个步骤路由正确、顺序完整
@@ -80,7 +79,7 @@ Contract 读取规则见 `api-kb-contract-reader/references/contract-reader.md`�
 □ 原生/页面能力正常触发（证件和自拍为页面内 getUserMedia，相册为 openAlbum，通讯录为 openContact）
 □ Entry 参数正确处理（home/profile/firstLoan/reLoan；非 home 入口统一走 goBack）
 □ 步骤条展示正确（危地马拉为 5 阶段：work、personal、id/face、contacts、bank）
-□ 输入框聚焦后页面滚动正确，底部输入框不被键盘和固定 submit-bar 遮挡
+□ 命中 `form-input/webview` 时，输入框聚焦、固定提交栏、选择器 blur 和真实设备待验已按公共区域清单处理
 □ 退出拦截留存弹窗正常
 □ API contract 落地正确、风险埋点集成
 □ 危地马拉项目：产品/国家已确认，接口仅替换 URL、endpoint 与混淆字段名，header/endpoint/request/response 落地完整

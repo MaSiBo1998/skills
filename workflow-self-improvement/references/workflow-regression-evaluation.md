@@ -28,6 +28,10 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 外层规则回写 skill | 把上述 AGENTS.md 里的全局工作流门禁记录到工作流对应 skill 里面 | 进入 workflow/meta；将工作类请求强制入口、状态条、确认式沉淀和 KB/Workflow 分流规则沉淀到 `front-workflow`、`agents/openai.yaml`、交付模板或对应子 skill，而不是只依赖目录级 AGENTS.md |
 | 最小执行链 | 普通页面补一个接口返回字段展示，仓库里没有接口 contract / 字段替换证据也没启用 vendor | 主场景为普通 H5 功能/API 开发；涉及接口字段时先用 `api-kb-contract-reader` 读取对应 appName 的命中 contract，再在目标项目实现并按风险验收；不强行串 `h5-vendor-architecture` |
 | 普通 H5 横切基线 | 给 App 内嵌 H5 普通活动页加接口字段、登录态判断和埋点，不是首复贷也不是进件 | 主场景为普通 H5 功能/API 开发；读取普通 H5 功能基线，复用现有 API/auth/bridge/埋点/i18n/格式化规则，验收执行普通 H5 功能专项和 WebView 风险检查；不误进 C/D/J/F |
+| 普通表单只验 form-input | H5 普通表单页的输入框被软键盘遮住，帮我修一下 | 主场景为普通 H5 功能/API 开发；公共约束只命中 `constraint_areas=["form-input"]`，读取 `Work/H5/公共规范/移动端表单与交互约束`，按 focused 只验输入、键盘、固定底部按钮、选择器 blur 和真实设备待验，不展开进件/首复贷/WebView/API 全量规则 |
+| 首复贷还款输入只验 form-input + webview | 首复贷还款页金额输入框被键盘挡住，App 里打开 | 主场景 C；还款业务只检查目标还款分支，公共区域命中 `form-input` 和 `webview`，不因首复贷命中而自动跑完整状态流；验收说明未命中的 `api-data`、`assets-performance`、`visual-layout` 跳过原因 |
+| 纯文案不触发公共区域 | 把 H5 页面按钮文案从确认改成提交 | 自动触发 front-workflow，按 quick 验收；主场景按目标页面归属，但 `constraint_areas=[]`，公共区域专项全部标记跳过，不启动 dev server、截图或 WebView/键盘/API 检查 |
+| 接口字段只验 api-data | 普通 H5 页面接口返回字段名换了，按 KB contract 改展示 | 主场景为普通 H5 功能/API 开发；先由 `api-kb-contract-reader` 读取命中 contract，公共区域只命中 `api-data`，验收只检查字段路径、header/baseURL、固定结构取值、错误提示和旧字段残留，不展开表单、视觉、资源或 WebView 公共检查 |
 | API KB contract 即准绳 | 不保留 mx-api/co-api 源文档，所有涉及接口的都从知识库里对应产品取 | 入库调度 `api-doc-kb-archiver`；读取调度 `api-kb-contract-reader`；项目真实 path/header/request/response 字段必须来自 `Work/API/apps/<appName>` 的命中 contract，不维护全局源文档基准 |
 | 本地接口文档先入库 | 项目根目录有 swaggerApi.json，帮我接这个接口 | 不能直接用本地 swagger/api 文档改代码；先用 `api-doc-kb-archiver` 入库到 `Work/API/apps/<appName>`，再用 `api-kb-contract-reader` 读取命中 contract，最后交给对应业务 skill 实现 |
 | API 入库按 appName | 用户要求“把接口文档记录到知识库、整理项目所有接口 contract” | 调度 `api-doc-kb-archiver`，写入 `personal-ai-kb/Work/API/apps/<appName>`，生成 `全局配置.md`、`原生交互.md`、中文 contract 和 `_indexes`；不按新/旧系统或国家拆分 |

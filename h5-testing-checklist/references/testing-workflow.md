@@ -22,8 +22,30 @@
 - 场景 K 先按最终回落场景选择验收等级；无法稳定回落但修改了代码时使用 `full`，未改代码且只做分析时使用 `focused`。
 - workflow/meta 工作流自我更新默认使用 `focused`；先区分 `规则补丁 / 流程调优 / 全量巡检`：规则补丁做定向验收，流程调优做相关链路验收，全量巡检才执行完整元能力巡检。若修改主工作流、共享 checkpoint、交付出口、确认式沉淀、运行时同步或验收规则，至少按 `流程调优` 验收。
 - 发布前必须使用 `release`。
-- 任意 App 内嵌 H5、App WebView 入口、官网域名挂载给 App 打开的 H5 都要考虑 WebView 兼容；只要有原生方法交互，就判定为 App 内嵌 H5，同时考虑键盘遮挡风险。`quick` 小改只检查本次 diff 是否引入新的 WebView 风险点，`focused/full/release` 才执行对应范围的 WebView 兼容专项。不能只在用户明确说“低版本手机”或“Flutter WebView”时才意识到风险。
+- 任意 App 内嵌 H5、App WebView 入口、官网域名挂载给 App 打开的 H5 都要写入 `constraint_areas=["webview"]`；若同时涉及键盘输入，再追加 `form-input`。`quick` 小改只检查本次 diff 是否引入新的 WebView 风险点，`focused/full/release` 才执行对应范围的 WebView 兼容专项。不能只在用户明确说“低版本手机”或“Flutter WebView”时才意识到风险。
+- 任意 H5 页面改动只要涉及真实 `input`、`textarea`、`contentEditable`、固定底部按钮、弹层选择器、内部滚动容器或键盘输入，就要写入 `constraint_areas=["form-input"]` 并把软键盘遮挡纳入本轮检查；`quick` 只做 diff 风险确认，`focused/full/release` 必须检查实现链路或列出真实设备待验，不能因为页面不是进件/首复贷而跳过。
 - `quick/focused` 到达选定检查预算后必须停止；已通过 diff 审查、静态搜索或最小命令时，不再继续追加 build、全量 lint、dev server、浏览器重试或截图 fallback，除非出现新的阻塞风险或用户明确要求。
+
+## 公共约束区域
+
+H5 验收先按业务证据确定普通 H5、首复贷、进件、官网、设计图、发布等主场景，再按本次 diff 命中的公共约束区域裁剪公共检查范围。公共区域只影响验收范围和 checkpoint，不抢占业务场景。
+
+| 区域 | 触发证据 | 验收子集 | 跳过条件 |
+| --- | --- | --- | --- |
+| `form-input` | `input`、`textarea`、`contentEditable`、固定底部按钮、选择器前 blur、键盘遮挡、输入清洗、粘贴、提交兜底 | 输入链路、键盘遮挡、滚动容器、16px 字号、选择器 blur、粘贴/清洗/提交兜底、真实设备待验 | 纯文案/纯展示且无真实输入项 |
+| `interaction` | 按钮点击、弹窗/Sheet、返回拦截、复制兜底、toast、loading/empty/error、全局回调清理 | 点击闭环、弹层关闭、toast/loading/empty/error、复制降级、返回入口、callback 清理 | 未改交互逻辑和反馈状态 |
+| `webview` | bridge、原生返回、旧 WebView API/CSS、legacy/polyfill、safe-area、vConsole、真实设备待验 | bridge 协议、旧内核 API/CSS、safe-area、vConsole、真实 WebView 待验 | 非 App 内嵌且无原生/WebView 证据 |
+| `visual-layout` | 设计图还原、布局溢出、点击高亮/focus 线框、滚动容器、截图预算 | 视觉预算、布局溢出、滚动容器、点击高亮、focus 线框、必要截图/设计走查 | 非视觉布局改动 |
+| `assets-performance` | 图片命名、压缩质量、首屏资源、懒加载、构建产物体积、无用资源清理 | 资源命名、压缩清晰度、懒加载、首屏体积、无用资源和产物影响 | 未改资源/加载/构建产物 |
+| `api-data` | KB contract、字段路径、header/baseURL、固定结构取值、错误提示、旧字段残留 | contract 字段、endpoint/header/baseURL、固定结构取值、错误提示、旧字段搜索 | 未改接口、字段、数据结构或配置 |
+
+执行规则：
+
+- `constraint_areas` 优先读取 checkpoint 或主工作流判定；缺失时根据用户需求、diff 和 `front-workflow/references/h5-constraint-areas.md` 推断。
+- `quick/focused` 只验命中的区域，未命中的区域在结果中标记“跳过：未命中公共约束区域”。例如普通表单只验 `form-input`，接口字段替换只验 `api-data`。
+- `full/release` 可以覆盖全部区域，但交付仍要写明本次实际命中区域、升级原因和无法自动证明的人工待验项。
+- 业务专项只验业务流程本身；键盘、WebView、视觉、资源、接口字段等公共检查必须按区域命中后再展开，避免小改被进件/首复贷整套规则拖慢。
+- 纯文案或纯静态展示且没有输入、交互、WebView、布局、资源、接口证据时，`constraint_areas=[]`，公共区域专项全部跳过。
 
 ## 验收升级规则
 
@@ -83,12 +105,14 @@
 - **增强方式**（如当前 agent 环境中有 **webapp-testing skill**）：按视觉验收预算启动 dev server，调用 webapp-testing skill 在浏览器中实际验证页面渲染、交互流程、异常态和 H5 内嵌规范；只有本轮风险需要视觉证据时才输出截图
   - 选择条件：项目可正常 `npm run dev`、无特殊安全限制，且本次风险无法仅靠静态检查或构建命令证明
 
+**区域执行原则**：`quick/focused` 按 `constraint_areas` 选择 0.6 区域清单和相关专项；未命中区域必须写明跳过原因。`full/release` 按完整专项执行时，也要保留区域命中记录，方便交付说明和续跑。
+
 ## 场景额外检查
 
 **场景 A（架构改造）**: 重点检查 1/2/3/3.5/10/11/12/13/14，跳过 4-9（未改业务逻辑）
-**普通 H5 / 首复贷 / 进件（含接口或页面修改）**: 按本次 diff 风险选择 `quick/focused/full`；业务场景只决定要抽查哪些专项，不自动升级为完整通用检查。普通 H5 功能/API 开发额外执行“普通 H5 功能专项”，`quick/focused` 只检查本次 diff 涉及的 API/auth/bridge/埋点/i18n/格式化/异常态和 WebView 风险，`full/release` 执行完整专项。本次涉及接口/字段替换时额外执行 API contract 落地校验。同结构混淆字段替换需确认只替换接口地址、请求头、请求入参、响应字段和全局配置字段，业务流程未被重构。若涉及原生方法新增入参混淆字段，需确认业务调用仍传语义字段、统一 bridge 映射表包含该字段、payload 会经过统一编码，且页面组件中没有散落混淆 key。其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
-**场景 C（首复贷开发）**: 需执行完整通用检查 + 首复贷状态流专项检查。重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期、首复贷 banner 展示/轮播/跳转、旧 WebView CSS 兼容和真实 WebView 原生交互；涉及 `toEditStepInfo`、风控上传、借款协议等原生方法参数时，还要检查语义参数到混淆字段的统一映射。KB contract、用户示例或现有类型已明确字段结构时，还要确认页面按固定结构直接取值或解析，未引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案。按设计图改首复贷状态页时，还要确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点没有因截图缺失被删除，且结构或样式变更只影响目标状态分支。本次未涉及接口 contract 或字段替换时，不要求完成项目适配映射。
-**场景 D + 国家差异**: 需额外执行对应 country profile 的验收补充。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。必须重点验证 `getUserDetail=/jocosely/pivot`、`getHomeInfo=/puruloid/grim`、完件后 `goBack(homeInfo)`、`id-capture`/`face-capture-camera` 子路由、home 入口留存弹窗、非 home 入口直接原生返回、输入框聚焦后的键盘遮挡滚动修正。
+**普通 H5 / 首复贷 / 进件（含接口或页面修改）**: 按本次 diff 风险选择 `quick/focused/full`；业务场景只决定业务专项范围，不自动升级为完整通用检查。普通 H5 功能/API 开发额外执行“普通 H5 功能专项”，`quick/focused` 只检查本次命中的 `constraint_areas` 和对应业务风险，`full/release` 执行完整专项。本次涉及接口/字段替换时命中 `api-data` 并额外执行 API contract 落地校验。同结构混淆字段替换需确认只替换接口地址、请求头、请求入参、响应字段和全局配置字段，业务流程未被重构。若涉及原生方法新增入参混淆字段，需确认业务调用仍传语义字段、统一 bridge 映射表包含该字段、payload 会经过统一编码，且页面组件中没有散落混淆 key。其中 3.5 和 12 仅在 `vendor_enabled=true` 时执行，未启用 vendor 时跳过且不得标为失败
+**场景 C（首复贷开发）**: 按风险执行首复贷状态流专项，`quick/focused` 只抽查本次影响的状态分支和命中公共区域；`full/release` 执行完整通用检查 + 首复贷状态流专项检查。业务重点验证 Home 顶层状态分发、Status 产品详情分发、首贷/复贷数据源切换、未确认申贷、首贷成功原生回调、复贷风控上传、App 列表、还款期和首复贷 banner 展示/轮播/跳转。涉及 `toEditStepInfo`、风控上传、借款协议等原生方法参数时命中 `webview`；还款/支付输入命中 `form-input`；接口字段或 contract 落地命中 `api-data`；设计图或状态页布局命中 `visual-layout`。KB contract、用户示例或现有类型已明确字段结构时，还要确认页面按固定结构直接取值或解析，未引入复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案。按设计图改首复贷状态页时，还要确认既有 banner、轮询、bridge 跳转、按钮回调、刷新逻辑和埋点没有因截图缺失被删除，且结构或样式变更只影响目标状态分支。本次未涉及接口 contract 或字段替换时，不要求完成项目适配映射。
+**场景 D + 国家差异**: 需按风险执行对应 country profile 的业务验收补充，`quick/focused` 只抽查本次影响的 Apply 步骤和命中公共区域；`full/release` 执行完整进件专项。危地马拉使用 `h5-apply-flow/references/country-guatemala.md`：产品/国家确认、header/endpoint/request/response 映射完整、旧混淆字段无残留、接口结构未重构、原生回调协议未改、entry 四种模式正确、Confiq-H5 步骤顺序正确。输入、原生、接口、视觉等公共风险分别写入 `form-input`、`webview`、`api-data`、`visual-layout` 后再展开区域验收。
 **场景 E（官网/协议/挂载 H5）**: 协议 HTML 需检查输出文件、文档结构、移动端可读性、链接入口和 WebView 打开方式；官网协议入口、iframe、App 内嵌问答或客服问答需额外检查路由、资源路径、交互状态、异常态和真实设备待验项。
 **场景 G（release-precheck / release-tag）**: 用户要求“发版检查/发布前检查/检查 vConsole/检查能不能发版”时先使用 `release-precheck`，只做 readiness 检查，不提交、不打 tag、不推送；用户确认正式发布后才进入 `release-tag`，并必须使用 `release`，在 `full` 基础上确认 `release-env` 或等价发布配置有效、构建产物已生成、vConsole 策略符合目标环境、真实 App WebView 待验项已列出。
 **workflow/meta（工作流自我更新）**: 先确认本轮属于 `规则补丁`、`流程调优` 还是 `全量巡检`，再按级别验收。
@@ -108,6 +132,7 @@
 
 - `quick` 小改只检查本次 diff 是否新增 WebView 风险；未触及时记录跳过原因，不重跑全量专项。
 - `focused/full/release` 按风险检查构建产物、旧内核 API、条件兼容加载、辅助能力初始化、原生通道范围、滚动层、CSS fallback 和真实 WebView 待验。
+- 涉及键盘输入时，必须检查根节点或最近真实滚动容器、输入外层稳定 class、固定底部按钮占位、16px 输入字体、选择器/弹层打开前 blur、`focus` 后延迟滚动策略；内部滚动容器场景不能只依赖 `window.scrollTo`。未做真机或真实 App WebView 验证时，必须把底部输入框聚焦、切换输入框、键盘动画后是否仍可见列为人工待验。
 - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole。
 - 未做真机或真实 App WebView 验证时，原生桥、返回、键盘、复制、音频、外链、资源协议和 vConsole 展示必须列为人工待验。
 
@@ -130,6 +155,7 @@
 - API 与异常态：接口路径来自集中配置或 KB contract；loading、empty、error、retry 或项目等价状态完整，接口失败不伪造成成功。
 - 登录态与用户状态：token、登录过期、退出登录、用户信息刷新复用项目既有链路。
 - 原生返回与 bridge：出现原生方法交互时执行 App WebView 兼容专项，新增全局 callback 必须卸载清理。
+- 输入框与键盘遮挡：普通 H5 表单、登录页、活动页、还款/支付页等只要包含真实输入项，就检查软键盘遮挡；固定底部按钮、弹层选择器和内部滚动容器是重点风险，不把该检查限定在 Apply 页面。
 - 埋点、监控、i18n、格式化和隐私日志：复用项目既有模型，不误删已有业务节点，不明文输出敏感信息。
 - WebView、视觉、图片、截图预算等标准知识从 KB 读取；本文件只判定本轮是否必须验收、通过或列人工待验。
 

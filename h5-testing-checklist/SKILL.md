@@ -10,7 +10,7 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 ## 维护边界
 
 - `SKILL.md` 只保留验收入口、等级定义、跨场景强约束和高频防错规则。
-- 验收流程、等级选择和 workflow/meta 巡检细节写入 `references/testing-workflow.md`。
+- 验收流程、等级选择、公共约束区域和 workflow/meta 巡检细节写入 `references/testing-workflow.md`。
 - 具体通用检查和各业务专项检查写入 `references/testing-checklist.md`。
 - 输入收集、checkpoint 和交付模板分别写入 `references/input-collection.md`、`references/checkpoint.md`、`references/delivery.md`。
 - 验收背后的说明性知识、案例复盘和 H5 公共场景背景写入 `personal-ai-kb/Work/H5`；本 skill 保留会影响通过/失败/跳过的硬规则。
@@ -18,9 +18,9 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 
 ## 执行方式
 
-1. 加载 `references/testing-workflow.md`，确认当前场景应执行哪些检查。
-2. 加载 `references/testing-checklist.md`，按当前验收等级执行对应通用检查和专项清单。
-3. 先确定验收等级：`quick`、`focused`、`full`、`release`。
+1. 加载 `references/testing-workflow.md`，确认当前业务场景、验收等级和 H5 公共约束区域。
+2. 加载 `references/testing-checklist.md`，按当前验收等级和 `constraint_areas` 执行对应通用检查、区域清单和专项清单。
+3. 先确定验收等级：`quick`、`focused`、`full`、`release`；再确定公共约束区域：`form-input`、`interaction`、`webview`、`visual-layout`、`assets-performance`、`api-data`。
 4. 命令能执行就必须实际执行，未执行不能标为通过。
 5. 移动端键盘遮挡等真实 WebView 行为必须列为人工验收项，不能只靠桌面静态判断。
 6. 输入收集和交付说明遵守 `references/input-collection.md`、`references/checkpoint.md`、`references/delivery.md`，记录自动推断、假设、阻塞问题和跳过原因。
@@ -30,6 +30,8 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 
 - 每项输出通过、失败或跳过；失败和跳过都必须说明原因，未执行的命令或截图不能标为通过。
 - 验收等级先看本次 diff 的风险差量；业务场景只决定专项检查范围，不自动把小改升级为 `full`。
+- H5 公共约束区域只决定公共验收范围，不改变进件、首复贷、普通 H5、官网等业务场景归属；`quick/focused` 默认只验命中的 `constraint_areas`，未命中的区域必须明确标记跳过，`full/release` 可覆盖全部区域但仍需说明本次实际命中区域和原因。
+- checkpoint 未提供 `constraint_areas` 时，先根据 diff、用户需求和 `front-workflow/references/h5-constraint-areas.md` 推断；纯文案、纯静态展示且无输入/交互/WebView/布局/资源/API 证据时，记录为空数组并跳过公共区域专项。
 - `quick` 用于纯样式数值、文案、单文件 CSS、静态展示微调，且不涉及 JS/TS 逻辑、接口、路由、原生桥、构建配置、样式入口、资源加载或发布；只执行目标文件 diff 审查、相关静态搜索和必要专项抽查，不默认跑 type-check/lint/build/browser。
 - `focused` 用于普通小交互、少量 JS/TS 改动、组件 import/export 变化、原生方法调用点、样式入口/适配策略/资源加载变化；执行与改动相关的最小命令和静态检查，例如 TS 改动优先跑 type-check，样式架构或入口变化才跑 build；通过选定检查后停止，不继续追加全量命令。
 - `full` 用于默认业务开发中的主流程、跨模块、接口替换、高风险首复贷/进件/后台改动；执行完整通用检查 + 场景专项。
@@ -37,7 +39,7 @@ description: 测试验收与公共交付模块。用于先查再问地收集输�
 - 视觉验收必须按预算执行：非视觉、非布局、非交互展示类改动不默认启动 dev server 或截图；`quick` 默认 0 轮截图，`focused` 最多 1 轮目标页面/目标视口截图，`full` 默认最多 1 轮，设计图复原、图片压缩或复杂布局重构最多 2 轮。超过预算仍有细微差异时，交付中记录差异和人工待验，除非用户明确要求继续截图迭代。
 - 每次截图前必须说明本轮要验证的具体风险点。截图只用于验证明确的视觉、布局、资源或交互展示风险，不能把“反复截图直到看起来更像”当成默认收口方式。
 - 未指定验收等级时，普通 H5 功能/API、首复贷、进件、设计图复原、管理后台先按 diff 风险分级；只有触及主流程、接口契约、路由、权限、原生桥、公共工具、构建配置、发布产物或跨模块影响时才使用 `full`。单页、单组件或单 hook 内的局部逻辑优化、初始化顺序调整、状态收口修正、文案或样式微调，且不涉及上述风险时，可使用 `quick/focused`；官网/协议若只是协议 HTML/纯文档生成可用专项检查，若涉及页面、路由、iframe 或客服问答交互则使用 `full`；发布前必须使用 `release`。
-- 普通 H5 功能/API 开发必须执行普通 H5 功能专项检查；`focused` 小改只检查本次 diff 涉及的 API、auth、bridge、埋点、i18n/格式化、异常态和 WebView 风险，`full/release` 执行完整专项。
+- 普通 H5 功能/API 开发必须执行普通 H5 功能专项检查；`focused` 小改只检查本次 diff 命中的公共区域和业务风险，例如 `api-data`、`form-input`、`interaction`、`webview`、`visual-layout` 或 `assets-performance`，未命中的 API/auth/bridge/埋点/i18n/格式化/异常态/WebView 风险不强行展开；`full/release` 执行完整专项。
 - vendor 完整性和构建架构检查只在场景 A 或 `vendor_enabled=true` 时执行；未启用 vendor 时必须标记为跳过，不能判失败。
 - 本次调用 `h5-feishu-alert` 或涉及飞书告警、前端监控、白屏监控、线上异常告警时，必须执行飞书前端告警专项检查。
 - 任意涉及原生交互的场景都必须检查 `h5-apply-flow/references/native-methods.md` 的统一桥接协议；只要有原生方法交互，就判定为 App 内嵌 H5，必须考虑真实 WebView、低版本浏览器和键盘遮挡风险，未实测时列为人工待验；未主动说明原生通道时默认只考虑 Flutter，不额外补 Android/iOS/Web 分支。

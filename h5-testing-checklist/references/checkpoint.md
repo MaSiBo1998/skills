@@ -68,6 +68,13 @@
     "blocking_questions": [],
     "scene_confidence": "high",
     "selected_scene_reason": "需求为接口字段替换且没有首复贷/进件证据，归入 B",
+    "constraint_areas": [
+      "api-data"
+    ],
+    "constraint_area_reason": {
+      "api-data": "本次修改涉及 KB contract、接口字段路径和旧字段残留检查"
+    },
+    "validation_scope": "focused：仅执行 api-data 区域和普通 H5 功能/API 相关检查",
     "skipped_skills": [
       { "skill": "h5-vendor-architecture", "reason": "未发现 vendor 架构需求" }
     ]
@@ -98,6 +105,9 @@
 | `selected_scene_reason` | 选择当前场景的证据说明 |
 | `candidate_scenes` | 复合或未知需求时的候选场景、证据和置信度 |
 | `skipped_skills` | 被跳过的可选子 skill 及原因 |
+| `constraint_areas` | H5 公共约束区域数组，可为空；允许值为 `form-input`、`interaction`、`webview`、`visual-layout`、`assets-performance`、`api-data` |
+| `constraint_area_reason` | 每个命中区域的证据说明，用于续跑时恢复为什么只验这些区域 |
+| `validation_scope` | 本轮验收范围说明，记录 `quick/focused/full/release` 与区域裁剪关系 |
 | `workflow_improvement_spec` | workflow/meta 巡检时由 `spec-driven-development` 产出的轻量规格：目标、范围、边界、成功标准、阻塞问题 |
 | `orchestration_audit` | workflow/meta 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
 | `eval_cases` | workflow/meta 巡检时由 `llm-evaluation` 维护的回归样例 |
@@ -109,9 +119,9 @@
 | 场景 | 推荐 context 字段 |
 |------|-------------------|
 | A | `{ vendor_enabled, build_script }` |
-| ordinary-h5 | `{ vendor_enabled, appName, api_contract_paths, project_config, target_route }` |
-| C | `{ product_name, country, appName, vendor_enabled, api_contract_paths, project_config }` |
-| D | `{ product_name, country, appName, country_profile, release_country_code, vendor_enabled, api_contract_paths, project_config }` |
+| ordinary-h5 | `{ vendor_enabled, appName, api_contract_paths, project_config, target_route, constraint_areas, validation_scope }` |
+| C | `{ product_name, country, appName, vendor_enabled, api_contract_paths, project_config, constraint_areas, validation_scope }` |
+| D | `{ product_name, country, appName, country_profile, release_country_code, vendor_enabled, api_contract_paths, project_config, constraint_areas, validation_scope }` |
 | E | `{ agreement_docs, public_dir, output_files, target_route, agreement_links, mount_path, webview_entry }` |
 | F | `{ design_dir, design_files, target_route, restored_pages, asset_candidates }` |
 | G | `{ project_root, release_env_path, country_code, country_name }` |

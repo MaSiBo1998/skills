@@ -16,21 +16,29 @@
 - API 和错误处理：HTTP 封装、API 配置层、响应拦截器、后端 toast/systemToast 处理。
 - 登录态和用户状态：token 存储、登录过期处理、原生 `getToken/logOut` 或项目已有等价能力。
 - 原生桥接和返回：统一 bridge hook/utility、`window.onNativeBack` 或项目既有返回注册方式。
+- 输入与键盘风险：页面是否包含真实 `input`、`textarea`、`contentEditable`、固定底部按钮、弹层选择器、内部滚动容器或 App WebView 入口。
 - 埋点和监控：现有事件码、上报工具、页面停留/按钮点击/接口结果的既有模式。
 - 国际化和格式化：i18n 目录、币种/金额/日期/手机号/证件号脱敏工具、国家/产品环境配置。
 - 样式与适配：375px 基准、setRem/px-to-rem、全局样式入口、旧 WebView/低版本浏览器兼容约束；若项目已使用全局 rem 适配链路，普通移动端布局不再新增或保留 `@media (max-width/min-width/max-height/min-height)` 这类屏幕查询样式。
 - 项目规范：页面、接口、路由、图片和公共工具的目录约定，例如 `pages`、`services`、`router`、`assets`。
 
-如本轮需要知识库背景，按 `knowledge-layer.md` 读取 `Work/H5` 公共场景知识：接口事实读 `Work/API/apps/<appName>`；App WebView、视觉还原、进件和首复贷公共规范读 `Work/H5`，不要把这些公共规范写入 API contract。
+如本轮需要知识库背景，按 `knowledge-layer.md` 和 `h5-constraint-areas.md` 读取 `Work/H5` 公共场景知识：接口事实读 `Work/API/apps/<appName>`；App WebView、表单交互、视觉还原、进件和首复贷公共规范读 `Work/H5`，不要把这些公共规范写入 API contract。
 
 ## 实现基线
 
 本文件只保留普通 H5 的执行骨架和硬约束；标准规范、可信经验和长解释按场景读取 KB：
 
 - 接口字段、path、header、baseURL、request/response：读 `Work/API/apps/<appName>`。
-- App WebView、原生返回、键盘遮挡、滚动容器、vConsole、旧 WebView：读 `Work/H5/公共规范/App WebView兼容.md`。
+- 表单输入、软键盘、复制、弹窗、toast、返回拦截：读 `Work/H5/公共规范/移动端表单与交互约束.md`。
+- App WebView、原生返回、滚动容器、vConsole、旧 WebView：读 `Work/H5/公共规范/App WebView兼容.md`。
 - 视觉还原、图片压缩、截图预算、拍照图片质量：读 `Work/H5/公共规范/视觉还原与截图预算.md`。
 - 进件和首复贷场景知识：读 `Work/H5/业务场景/进件流程.md` 或 `Work/H5/业务场景/首复贷状态流.md`。
+
+公共约束区域：
+
+- 按 `h5-constraint-areas.md` 写入 `constraint_areas`。普通 H5 常见区域是 `form-input`、`interaction`、`webview`、`visual-layout`、`assets-performance`、`api-data`。
+- `quick/focused` 只验命中区域；未命中的区域在交付中说明跳过原因。
+- 业务流程、接口字段和公共约束要分开：例如普通表单页只改输入框时，主场景仍是普通 H5，公共区域通常只命中 `form-input`。
 
 硬约束：
 
@@ -44,6 +52,7 @@
 - 首屏加载优化可以压缩首屏图片和大图，但必须以清晰可用为门槛：从源图或当前 Git 基准生成候选，记录压缩前后体积、质量参数和视觉确认结果；发现文字发糊、主体边缘明显劣化、透明边污染或品牌/设计观感下降时应回退或降低压缩强度，不在已损图片上反复叠加压缩。
 - legacy/polyfill/旧 WebView 兼容包应作为兜底路径条件加载，不能让所有现代机型默认加载兼容包或把 legacy 资源放进首屏阻塞链路；Vite 项目优先确认现代入口 `type="module"`、旧包 `nomodule`、`modernPolyfills=false` 或项目等价策略。
 - 出现原生方法、bridge 或 window callback 证据时，按 App WebView 场景处理；未明确通道时默认只考虑 Flutter，并把真实 WebView 行为列为人工待验。
+- 普通 H5 页面只要包含真实输入项、固定底部操作区、弹层选择器或内部滚动容器，就写入 `constraint_areas=["form-input"]`；若存在 App WebView 或原生证据，再追加 `webview`。具体实现和验收读取公共规范，不因页面不是进件/首复贷而跳过。
 - 新增图片、图标、背景和插画必须语义化命名；图片压缩或设计图复原遵守 KB 截图预算，不无限截图微调。
 - `master`、`master-co`、`master-ng` 等主分支产物不得包含 vConsole。
 

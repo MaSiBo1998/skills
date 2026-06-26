@@ -35,6 +35,25 @@
 
 ---
 
+## 0.6. 公共约束区域确认
+
+- **方法**: 读取 checkpoint/context 中的 `constraint_areas`、`constraint_area_reason` 和 `validation_scope`；缺失时按用户需求、diff 和 `front-workflow/references/h5-constraint-areas.md` 推断。
+- **区域清单**:
+  - `form-input`：检查真实输入框、textarea、contentEditable、固定底部按钮、选择器前 blur、键盘遮挡、输入清洗、粘贴、提交兜底；未做真机或真实 App WebView 验证时列人工待验。
+  - `interaction`：检查按钮点击、弹窗/Sheet、返回拦截、复制兜底、toast、loading/empty/error、全局回调清理。
+  - `webview`：检查 bridge、原生返回、旧 WebView API/CSS、legacy/polyfill、safe-area、vConsole、真实设备待验。
+  - `visual-layout`：检查设计图还原、布局溢出、点击高亮/focus 线框、滚动容器和截图预算。
+  - `assets-performance`：检查图片命名、压缩质量、首屏资源、懒加载、构建产物体积和无用资源清理。
+  - `api-data`：检查 KB contract、字段路径、header/baseURL、固定结构取值、错误提示和旧字段残留。
+- **执行要求**:
+  - `quick/focused` 只展开命中的区域；未命中的区域写成“跳过：未命中本次公共约束区域”，不能隐式套用完整公共清单。
+  - `full/release` 可展开全部区域，但必须说明本次实际命中区域、升级原因和人工待验项。
+  - 业务专项只验证业务流程；公共约束按区域命中后再检查。例如普通表单只验 `form-input`，首复贷还款输入可验 `form-input + webview`，接口字段替换只验 `api-data`。
+  - 纯文案或纯静态展示且无输入、交互、WebView、布局、资源、接口证据时，`constraint_areas=[]`，公共区域全部跳过。
+- **失败判定**: 未记录公共区域就展开或跳过验收；`quick/focused` 对未命中区域执行全量公共检查；命中输入/WebView/API 等风险却没有列入区域和对应待验项。
+
+---
+
 ## 1. 类型检查
 
 - **命令**: `npm run type-check` 或 `tsc --noEmit` 或 `vue-tsc --noEmit`
