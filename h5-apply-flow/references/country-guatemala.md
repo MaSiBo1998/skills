@@ -72,6 +72,7 @@ Confiq-H5 最终态通过 `src/hooks/useKeyboardFocusScroll.ts` 处理移动端�
 
 - 选择器自动步进延迟保持 350ms，避免当前 Sheet 关闭动画和下一 Sheet 打开动画重叠。
 - 打开选择器前必须 blur 当前输入框，避免键盘和 Sheet 同时占用底部区域。
+- 本小节记录的是 Confiq-H5 最终态基线。迁移到 CreditoMax 或其他新 app 时，步骤配置字段名、code、兜底策略和提交字段必须重新读取当前 app 的 KB contract；不要沿用 Confiq 的旧字段别名或静态兜底。
 - 选择器选项来自 `applyStepConfig`，接口异常或为空时必须走 `FALLBACK_STEP_CONFIG`，不能让页面空白。
 - 邮箱后缀、地址/邮箱等通用配置来自 `commonConfig`，接口异常或为空时必须走 `FALLBACK_COMMON_CONFIG`。
 
@@ -311,7 +312,7 @@ H5 稳定封装在 `src/hooks/useAppBridge.ts`：
 - 图片压缩目标为 JPEG，默认最大 300KB，提交前去掉 DataURL 前缀。
 - 证件拍照使用页面内 `getUserMedia`，环境摄像头优先，写入 `idInfo` 草稿后回到 `/id` 触发 OCR。
 - 自拍使用 `/face-capture-camera` 页面内摄像头，提交 `hammock=1`、`gravelly=''`，成功后按 entry 与完件状态跳转或返回原生。
-- BankInfo 从配置项 `coffie=13` 取账户类型；账号本地校验为纯数字 10-20 位，提交字段为 `sunblind`、`instruct`、`trueborn`、`poof`、`drawn`、`lwop`。
+- Confiq BankInfo 从配置项 `coffie=13` 取账户类型；账号本地校验为纯数字 10-20 位，提交字段为 `sunblind`、`instruct`、`trueborn`、`poof`、`drawn`、`lwop`。该条是 Confiq 事实，不是新 app 通用规则；新 app 必须以当前 app 的实时配置 contract 和保存银行卡 contract 为准。
 
 ---
 

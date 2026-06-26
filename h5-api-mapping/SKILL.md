@@ -20,14 +20,17 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 2. 加载 `references/api-mapping.md`，按 H5 API Contract 落地顺序执行。
 3. 先列 H5 落地清单，说明命中 contract、API symbol、path/header/request/response/config 变化、触达文件和风险，再改代码。
 4. 若 contract 与现有类型同构，优先改 types/model 字段名，再用 TypeScript 报错逐处修复消费点；禁止新增未在 contract 中定义的旧字段兜底。
-5. 若 contract 与现有类型层级、数组结构、类型或枚举不一致，标记“结构不一致，需确认”，暂停自动替换。
-6. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口落地只负责 API 差异，不决定业务流程分叉。
-7. 如果由 `admin-management-flow` 调用，只输出后台接口字段依据、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
+5. 若接口文档、KB contract、用户确认样例或目标项目既有类型已经给出具体返回结构，直接按该结构读取和解析；不要再额外写多层字段探测、旧项目字段 fallback、`fallbackData`、多格式兼容 helper 或启发式字段猜测。
+6. 若 contract 与现有类型层级、数组结构、类型或枚举不一致，标记“结构不一致，需确认”，暂停自动替换。
+7. 如果是首复贷项目，由 `h5-first-reloan-flow` 负责状态流；如果是进件项目，由 `h5-apply-flow` 根据国家加载 country profile。接口落地只负责 API 差异，不决定业务流程分叉。
+8. 如果由 `admin-management-flow` 调用，只输出后台接口字段依据、请求/响应类型和需修改文件建议；后台路由、权限、Element UI 页面和业务交互仍由管理后台 skill 实现。
 
 ## 约束
 
 - 接口字段名必须严格按 KB contract。
 - H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应 KB contract；缺 contract 或缺字段时标记需确认。
+- 接口文档、KB contract、用户确认样例或既有类型已明确具体数据结构时，必须完全按该结构落地；除最小空值/异常隔离外，不新增旧字段兼容、多路径结构探测、宽松解析或本地静态兜底。结构冲突时输出“接口返回与 contract 不一致，需确认”，不要在前端静默猜测。
+- base64 解码、JSON 解析或二次字段展开后的数据结构仍以 KB contract 的解码字段为准；不得把当前 app 的解码结果重新组装成旧项目字段名或参考项目别名。若真实接口样例与 contract 的字段 code、枚举或层级不一致，先标记“接口返回与 contract 不一致，需确认”，不要静默按样例覆盖文档规则。
 - 不直接消费项目内接口文档作为实现依据；KB 中缺 app、缺 contract、缺 response fields 或结构不一致时，暂停落地并输出“需入库/需确认”。
 - 涉及响应解析、TypeScript 类型、状态枚举或业务判断时，必须通过 `Work/API/apps/<appName>/_indexes/contracts.jsonl`、`by-path.json` 或 `by-symbol.json` 定位对应单接口 contract，并读取其中的 response fields，不能只看入口索引。
 - 使用 KB 全局配置时，“环境地址”只代表后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 不能当正式地址，正式地址只信任 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production`。
