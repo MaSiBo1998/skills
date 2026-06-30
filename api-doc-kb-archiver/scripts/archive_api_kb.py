@@ -141,6 +141,121 @@ def clean_inline(value: Any) -> str:
     return clean(value).replace("\n", " ").replace("|", "\\|")
 
 
+def clean_description(value: Any) -> str:
+    text = clean(value)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def extract_actual_response_description(description: str) -> str:
+    text = clean_description(description)
+    match = re.search(r"实际返回字段名为【([^】]+)】", text)
+    if match:
+        return match.group(1).strip()
+    match = re.search(r"实际返回字段名为\s*([^，。；;、]+?)\s*结构", text)
+    return match.group(1).strip() if match else ""
+
+
+def parent_field_path(field: str) -> str:
+    normalized = field.replace("[]", "")
+    if "." not in normalized:
+        return ""
+    return normalized.rsplit(".", 1)[0]
+
+
+def field_depth(field: str) -> int:
+    return field.replace("[]", "").count(".")
+
+
+def same_parent_direct_field(candidate: str, alias_field: str) -> bool:
+    return parent_field_path(candidate) == parent_field_path(alias_field) and field_depth(candidate) == field_depth(alias_field)
+
+
+def replace_field_prefix(field: str, alias_field: str, actual_field: str) -> str:
+    if field == alias_field:
+        return actual_field
+    array_prefix = f"{alias_field}[]"
+    if field == array_prefix:
+        return f"{actual_field}[]"
+    if field.startswith(f"{array_prefix}."):
+        return f"{actual_field}[]{field[len(array_prefix):]}"
+    if field.startswith(f"{alias_field}."):
+        return f"{actual_field}{field[len(alias_field):]}"
+    return field
+
+
+def field_identity(field: dict[str, Any]) -> tuple[str, str, str, str]:
+    enum_value = field.get("enum", [])
+    enum_text = json.dumps(enum_value, ensure_ascii=False, sort_keys=True) if isinstance(enum_value, list) else clean(enum_value)
+    return (
+        clean(field.get("field", "")),
+        clean(field.get("type", "")),
+        clean_description(field.get("description", "")),
+        clean(field.get("enumDesc", "")) + enum_text,
+    )
+
+
+def normalize_response_shape_aliases(fields: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """Merge documentation-only response aliases back into their real wire fields."""
+
+    aliases: list[dict[str, str]] = []
+    alias_to_actual: dict[str, str] = {}
+    for field in fields:
+        alias_field = clean(field.get("field", ""))
+        actual_description = extract_actual_response_description(clean(field.get("description", "")))
+        if not alias_field or alias_field.endswith("[]") or not actual_description:
+            continue
+        actual_field = ""
+        for candidate in fields:
+            candidate_field = clean(candidate.get("field", ""))
+            if candidate_field == alias_field or candidate_field.endswith("[]"):
+                continue
+            if not same_parent_direct_field(candidate_field, alias_field):
+                continue
+            if clean_description(candidate.get("description", "")) == actual_description:
+                actual_field = candidate_field
+                break
+        if not actual_field:
+            continue
+        alias_to_actual[alias_field] = actual_field
+        aliases.append(
+            {
+                "alias_field": alias_field,
+                "actual_field": actual_field,
+                "actual_description": actual_description,
+                "description": clean_description(field.get("description", "")),
+            }
+        )
+
+    if not alias_to_actual:
+        return fields, []
+
+    normalized: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for field in fields:
+        field_path = clean(field.get("field", ""))
+        owning_alias = next(
+            (
+                alias
+                for alias in sorted(alias_to_actual, key=len, reverse=True)
+                if field_path == alias or field_path == f"{alias}[]" or field_path.startswith(f"{alias}[].") or field_path.startswith(f"{alias}.")
+            ),
+            "",
+        )
+        if owning_alias and field_path in {owning_alias, f"{owning_alias}[]"}:
+            continue
+        output = dict(field)
+        if owning_alias:
+            output["field"] = replace_field_prefix(field_path, owning_alias, alias_to_actual[owning_alias])
+        identity = field_identity(output)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        normalized.append(output)
+    return normalized, aliases
+
+
 def iter_source_files(root: Path) -> list[Path]:
     src = root / "src"
     if not src.exists():
@@ -988,6 +1103,15 @@ def ensure_response_fields(fields: list[dict[str, Any]]) -> list[dict[str, Any]]
     ]
 
 
+def contract_keywords(contract: dict[str, Any]) -> list[str]:
+    field_keywords = [
+        clean(field.get("field", ""))
+        for field in [*contract.get("request_fields", []), *contract.get("response_fields", [])]
+        if clean(field.get("field", ""))
+    ]
+    return unique_keywords([contract["title"], contract["module"], contract["path"], *contract["symbols"], *field_keywords])
+
+
 def build_contracts(root: Path, app_name: str, swagger_path: Path | None) -> list[dict[str, Any]]:
     records_by_symbol = collect_api_usage(root, parse_api_config(root))
     type_map = parse_exported_types(root)
@@ -1017,8 +1141,8 @@ def build_contracts(root: Path, app_name: str, swagger_path: Path | None) -> lis
                 context = contexts_by_symbol.get(symbol, {})
                 request_fields.extend(context.get("body_fields") or flatten_type(context.get("request_type", ""), type_map))
                 response_fields.extend(flatten_type(context.get("response_type", "unknown"), type_map))
-        contracts.append(
-            {
+        normalized_response_fields, response_shape_aliases = normalize_response_shape_aliases(unique_fields(response_fields))
+        contract = {
                 "appName": app_name,
                 "module": module,
                 "title": title,
@@ -1027,10 +1151,11 @@ def build_contracts(root: Path, app_name: str, swagger_path: Path | None) -> lis
                 "source_type": source_type,
                 "symbols": symbols,
                 "request_fields": ensure_request_fields(unique_fields(request_fields)),
-                "response_fields": ensure_response_fields(unique_fields(response_fields)),
-                "keywords": unique_keywords([title, module, path_value, *symbols]),
+                "response_fields": ensure_response_fields(normalized_response_fields),
+                "response_shape_aliases": response_shape_aliases,
             }
-        )
+        contract["keywords"] = contract_keywords(contract)
+        contracts.append(contract)
     return sorted(contracts, key=lambda item: (item["module"], item["title"], item["path"]))
 
 
@@ -1054,6 +1179,28 @@ def field_row(field: dict[str, Any]) -> str:
         enum_text=clean_inline(enum_text),
         enum_desc=clean_inline(field.get("enumDesc", "")),
     )
+
+
+def response_shape_notes_markdown(aliases: list[dict[str, str]]) -> list[str]:
+    if not aliases:
+        return []
+    lines = [
+        "",
+        "## Response Shape Notes",
+        "",
+        "| Actual Field | Documentation Alias | Matched Description | Alias Description |",
+        "| --- | --- | --- | --- |",
+    ]
+    for alias in aliases:
+        lines.append(
+            "| `{actual}` | `{alias}` | {matched} | {desc} |".format(
+                actual=clean_inline(alias.get("actual_field", "")),
+                alias=clean_inline(alias.get("alias_field", "")),
+                matched=clean_inline(alias.get("actual_description", "")),
+                desc=clean_inline(alias.get("description", "")),
+            )
+        )
+    return lines
 
 
 def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
@@ -1109,16 +1256,17 @@ def contract_markdown(contract: dict[str, Any], app_name: str) -> str:
         ]
     )
     lines.extend(field_row(field) for field in contract["response_fields"])
+    lines.extend(response_shape_notes_markdown(contract.get("response_shape_aliases", [])))
     lines.extend(
         [
             "",
-        "## 状态码和业务判断",
-        "",
+            "## 状态码和业务判断",
+            "",
             "- 成功：请求层 resolve 解密后的响应对象，具体字段以正式接口文档校准。",
             "- `301`：当前项目请求层会延迟调用原生 `goBackToLogin`，常见含义是登录态失效。",
             "- 其他 code/status：以正式接口文档或业务调用处判断为准，当前项目代码未完整声明。",
-        "",
-        "## 关键词",
+            "",
+            "## 关键词",
             "",
             ", ".join(f"`{keyword}`" for keyword in contract["keywords"]),
             "",
@@ -1386,6 +1534,7 @@ def write_indexes(app_dir: Path, app_name: str, contracts: list[dict[str, Any]],
             "keywords": contract["keywords"],
             "request_field_count": len(contract["request_fields"]),
             "response_field_count": len(contract["response_fields"]),
+            "response_shape_aliases": contract.get("response_shape_aliases", []),
             "doc_status": "正式接口文档" if contract["source_type"] == "swagger" else "项目已用，待正式文档校准",
             "source_type": contract["source_type"],
         }

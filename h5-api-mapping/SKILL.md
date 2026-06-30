@@ -28,6 +28,7 @@ description: H5 接口字段落地与迁移。用于根据 api-kb-contract-reade
 ## 约束
 
 - 接口字段名必须严格按 KB contract。
+- KB contract 中 `Response Shape Notes` 记录的是接口文档结构别名，只能帮助理解状态场景；H5 落地时禁止为这些别名新增兼容读取、多字段 fallback 或类型字段，只能读取 `Response Fields` 中的真实 wire key。
 - H5 项目真实 path、header、request key、response key 必须来自项目/appName 对应 KB contract；缺 contract 或缺字段时标记需确认。
 - 接口文档、KB contract、用户确认样例或既有类型已明确具体数据结构时，必须完全按该结构落地；除最小空值/异常隔离外，不新增旧字段兼容、多路径结构探测、宽松解析或本地静态兜底。结构冲突时输出“接口返回与 contract 不一致，需确认”，不要在前端静默猜测。
 - base64 解码、JSON 解析或二次字段展开后的数据结构仍以 KB contract 的解码字段为准；不得把当前 app 的解码结果重新组装成旧项目字段名或参考项目别名。若真实接口样例与 contract 的字段 code、枚举或层级不一致，先标记“接口返回与 contract 不一致，需确认”，不要静默按样例覆盖文档规则。

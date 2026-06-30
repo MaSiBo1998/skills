@@ -27,6 +27,20 @@ def hard_codes_source_value(text: str) -> bool:
     return any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
 
 
+def response_fields_section(text: str) -> str:
+    match = re.search(r"^## Response Fields\s*$", text, re.MULTILINE)
+    if not match:
+        return ""
+    next_match = re.search(r"^##\s+", text[match.end() :], re.MULTILINE)
+    end = match.end() + next_match.start() if next_match else len(text)
+    return text[match.end() : end]
+
+
+def has_response_shape_alias_row(text: str) -> bool:
+    section = response_fields_section(text)
+    return any(line.startswith("|") and "实际返回字段名为" in line for line in section.splitlines())
+
+
 def find_app_index_row(path: Path, app_name: str) -> dict:
     for row in read_jsonl(path):
         if row.get("appName") == app_name:
@@ -83,6 +97,8 @@ def main() -> int:
             errors.append(f"contract missing request/response sections: {contract.name}")
         if hard_codes_source_value(text):
             errors.append(f"contract hard-codes App/H5 source value: {contract.name}")
+        if has_response_shape_alias_row(text):
+            errors.append(f"contract response fields contain documentation-only shape alias: {contract.name}")
         if row.get("request_field_count", 0) <= 0 or row.get("response_field_count", 0) <= 0:
             errors.append(f"index missing field counts: {contract.name}")
 

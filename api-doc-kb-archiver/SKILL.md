@@ -69,13 +69,17 @@ Work/
      - 只保留一处指向 `<appName>.md` 的双链。
      - 不直接双链 `全局配置.md` 或 `原生交互.md`，需要时用普通文字提示从 app 节点进入。
      - 来源类字段只记录字段语义、枚举值和枚举含义，不写死“当前项目固定取某值”；App/H5 运行形态判断归 `Work/H5/公共规范/App WebView兼容.md`。
+     - Response 字段中若 description 写有 `实际返回字段名为【X】` 或 `实际返回字段名为 X 结构`，当前字段是文档结构别名，不是 wire key；必须清洗 HTML 后用 `X` 匹配同级真实字段的 description，只把真实字段写入 `Response Fields`，把别名、用途和原始备注写入 `Response Shape Notes`。
+     - 结构别名的子字段要合并回真实字段路径，例如 `data.slogger[].xxx` 归一为 `data.abuse[].xxx`；如果找不到同级真实字段，标记需确认，不猜测、不静默改路径。
    - `_indexes/*`：工作流快速定位索引。
+     - `contracts.jsonl` 的 response keywords 只能包含真实 wire key，不收录结构别名路径；如需追溯文档来源，用 `response_shape_aliases` 元数据。
 5. 清理旧结构时，只处理本 app 的旧生成物；不要删除其他 app 或用户手写笔记。
 6. 写入后运行 `scripts/validate_api_kb.py` 校验索引和 contract。
 
 ## 可用脚本
 
 - `scripts/archive_api_kb.py`：从项目和 Swagger 生成 KB app 目录。
+- `scripts/repair_response_shape_aliases.py`：回填已有 contract 中的文档结构别名，归一化 `Response Fields` 并更新 `_indexes`。
 - `scripts/extract_app_global_config.py`：只提取全局配置预览。
 - `scripts/extract_native_bridge.py`：只提取原生交互映射预览。
 - `scripts/validate_api_kb.py`：校验 MOC、索引和 contract 文件。

@@ -26,6 +26,8 @@ description: API KB contract 读取/定位。用于 H5、Flutter、管理后台�
 - 命中后只读取对应 `contracts/<中文接口作用>.md`；需要 baseURL/header/响应码时再读 `全局配置.md`，需要 app-specific Native 方法、callback 或混淆字段时再读 `原生交互.md`。
 - 本 skill 不读取 H5 公共业务规范；进件、首复贷、App WebView 兼容、视觉还原和截图预算由主 workflow 或 H5 子 skill 从 `personal-ai-kb/Work/H5` 读取。
 - 读取到“来源”类接口字段时，只输出 contract 中的枚举定义；具体取 App 枚举还是 H5 枚举由 H5 场景根据 `Work/H5/公共规范/App WebView兼容.md` 的运行形态判断决定。
+- 读取旧 contract 时，如果 `Response Fields` 或字段描述中出现 `实际返回字段名为【X】`、`实际返回字段名为 X 结构`，当前字段应视为文档结构别名，不得当作真实 response key 输出给实现层；先按同级字段 description 匹配 `X` 定位真实 wire key，无法定位时标记“需确认/需回填 KB”。
+- 已归一化 contract 中的 `Response Shape Notes` 只用于说明文档来源和状态场景，不作为落地字段依据；实现层只消费 `Response Fields` 的真实 wire key。
 - KB 图谱关系以 `<appName>.md` 为中心；接口 contract 只应直接链接 appName 节点，不应直接链接公共的全局配置或原生交互节点。
 - app 入口页可以聚合相关 H5 场景知识，单个接口 contract 不反向链接公共规范，避免图谱刷屏。
 - `全局配置.md` 的环境地址只表示后端 API 访问地址，只分测试/正式；测试分支里的 `.env.production` 仍按测试地址处理，正式地址只从 `master`、`master-co`、`master-ng` 等正式分支的 `.env.production` 读取。
