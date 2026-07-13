@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 
-EVIDENCE_GRADES = {"authorized_text", "user_summary", "public_signal"}
+EVIDENCE_GRADES = {"authorized_text", "user_summary", "public_signal", "public_chapter"}
 DIMENSIONS = {
     "story_engine",
     "click_promise",

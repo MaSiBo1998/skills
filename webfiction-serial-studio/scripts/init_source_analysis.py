@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 
 RIGHTS_STATUSES = ("owned", "licensed", "public_domain")
-MATERIAL_SCOPES = ("full_text", "selected_chapters", "summary")
+SOURCE_KINDS = ("user_file", "public_web")
+MATERIAL_SCOPES = ("full_text", "selected_chapters", "summary", "sampled_public_chapters")
 ANALYSIS_DIMENSIONS = (
     "story_engine",
     "click_promise",
@@ -31,12 +33,19 @@ ANALYSIS_DIMENSIONS = (
 )
 
 
-def craft_template(source_label: str, rights_status: str, materials_scope: str) -> str:
+def craft_template(
+    source_label: str,
+    source_kind: str,
+    rights_status: str | None,
+    materials_scope: str,
+    source_url: str | None,
+) -> str:
+    source_line = f"公开网页（{source_url}）" if source_kind == "public_web" else f"用户提供材料（{rights_status}）"
     return f"""# 热门拆书报告：{source_label}
 
-- 证据级别：用户授权材料
+- 来源模式：{source_line}
+- 证据级别：`public_chapter` / `authorized_text` / `user_summary`
 - 材料范围：{materials_scope}
-- 权利状态：{rights_status}
 - 结论边界：只记录抽象创作技法；本文件不保存原文、连续摘录、句式库或可复刻的章节事件清单。
 
 ## 拆解证据索引
@@ -143,7 +152,9 @@ def main() -> int:
     )
     parser.add_argument("--project-dir", required=True, type=Path)
     parser.add_argument("--source-label", required=True, help="A user-facing source identifier; do not paste prose here.")
-    parser.add_argument("--rights-status", required=True, choices=RIGHTS_STATUSES)
+    parser.add_argument("--source-kind", choices=SOURCE_KINDS, default="user_file")
+    parser.add_argument("--source-url", help="Required for public_web; use a public fanqienovel.com page or reader URL.")
+    parser.add_argument("--rights-status", choices=RIGHTS_STATUSES)
     parser.add_argument("--materials-scope", required=True, choices=MATERIAL_SCOPES)
     parser.add_argument("--force", action="store_true", help="Replace only the metadata/template files, never a source file.")
     args = parser.parse_args()
@@ -153,6 +164,18 @@ def main() -> int:
         parser.error("--source-label cannot be empty")
     if len(source_label) > 160:
         parser.error("--source-label must be 160 characters or fewer")
+    source_url = (args.source_url or "").strip() or None
+    if args.source_kind == "public_web":
+        if args.rights_status:
+            parser.error("--rights-status is not needed for public_web")
+        if not source_url or not re.fullmatch(r"https://fanqienovel\.com/(?:page|reader)/\d+", source_url):
+            parser.error("public_web requires --source-url with a public fanqienovel.com/page/<id> or /reader/<id> URL")
+        if args.materials_scope != "sampled_public_chapters":
+            parser.error("public_web must use --materials-scope sampled_public_chapters")
+    elif not args.rights_status:
+        parser.error("user_file requires --rights-status owned|licensed|public_domain")
+    elif args.materials_scope == "sampled_public_chapters":
+        parser.error("sampled_public_chapters is only valid for --source-kind public_web")
 
     analysis_dir = args.project_dir / "reference-analysis"
     manifest_path = analysis_dir / "source-manifest.json"
@@ -168,6 +191,8 @@ def main() -> int:
         "schema_version": 1,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source_label": source_label,
+        "source_kind": args.source_kind,
+        "source_url": source_url,
         "rights_status": args.rights_status,
         "materials_scope": args.materials_scope,
         "source_text_stored": False,
@@ -178,12 +203,15 @@ def main() -> int:
         "schema_version": 1,
         "source_label": source_label,
         "source_text_stored": False,
-        "allowed_evidence_grades": ["authorized_text", "user_summary", "public_signal"],
+        "allowed_evidence_grades": ["authorized_text", "user_summary", "public_signal", "public_chapter"],
         "required_dimensions": list(ANALYSIS_DIMENSIONS),
         "chunks": [],
     }
     ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    craft_path.write_text(craft_template(source_label, args.rights_status, args.materials_scope), encoding="utf-8")
+    craft_path.write_text(
+        craft_template(source_label, args.source_kind, args.rights_status, args.materials_scope, source_url),
+        encoding="utf-8",
+    )
     design_path.write_text(original_design_template(source_label), encoding="utf-8")
     print(f"Initialized metadata-only source analysis at {analysis_dir}")
     return 0

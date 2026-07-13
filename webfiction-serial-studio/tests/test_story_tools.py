@@ -331,6 +331,57 @@ class StoryToolTests(unittest.TestCase):
             self.assertEqual(ledger["chunks"][0]["evidence_grade"], "authorized_text")
             self.assertFalse(ledger["chunks"][0]["source_text_stored"])
 
+    def test_public_web_analysis_needs_no_rights_declaration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = self.run_script(
+                "init_source_analysis.py",
+                "--project-dir", str(root),
+                "--source-kind", "public_web",
+                "--source-label", "公开番茄样本",
+                "--source-url", "https://fanqienovel.com/page/7644073932164697113",
+                "--materials-scope", "sampled_public_chapters",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            manifest = json.loads((root / "reference-analysis" / "source-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["source_kind"], "public_web")
+            self.assertIsNone(manifest["rights_status"])
+            self.assertFalse(manifest["source_text_stored"])
+            record = self.run_script(
+                "record_source_analysis_chunk.py",
+                "--project-dir", str(root),
+                "--chunk-id", "opening-01",
+                "--scope-label", "第1-5章",
+                "--evidence-grade", "public_chapter",
+                "--dimensions", "story_engine,opening_starter,short_loop,chapter_rhythm",
+                "--abstract-finding", "连续章节以意外关系绑定启动，通过家庭与校园场景反复验证双方立场。",
+            )
+            self.assertEqual(record.returncode, 0, record.stderr)
+            ledger = json.loads((root / "reference-analysis" / "analysis-ledger.json").read_text(encoding="utf-8"))
+            self.assertEqual(ledger["chunks"][0]["evidence_grade"], "public_chapter")
+
+    def test_public_web_analysis_rejects_non_fanqie_or_wrong_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bad_url = self.run_script(
+                "init_source_analysis.py",
+                "--project-dir", str(root),
+                "--source-kind", "public_web",
+                "--source-label", "错误来源",
+                "--source-url", "https://example.com/book/1",
+                "--materials-scope", "sampled_public_chapters",
+            )
+            self.assertNotEqual(bad_url.returncode, 0)
+            wrong_scope = self.run_script(
+                "init_source_analysis.py",
+                "--project-dir", str(root),
+                "--source-kind", "public_web",
+                "--source-label", "错误范围",
+                "--source-url", "https://fanqienovel.com/page/123",
+                "--materials-scope", "full_text",
+            )
+            self.assertNotEqual(wrong_scope.returncode, 0)
+
     def test_rhythm_audit_flags_overdue_promises_and_repeated_patterns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
