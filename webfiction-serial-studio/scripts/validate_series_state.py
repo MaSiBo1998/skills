@@ -45,9 +45,11 @@ def validate(state: dict) -> list[str]:
         return ["project must be an object"]
     if project.get("status") not in VALID_STATUSES:
         errors.append(f"project.status must be one of {sorted(VALID_STATUSES)}")
-    for key in ("slug", "title", "selected_genre"):
+    for key in ("slug", "title"):
         if not str(project.get(key, "")).strip():
             errors.append(f"project.{key} is required")
+    if not str(project.get("story_type") or project.get("selected_genre") or "").strip():
+        errors.append("project.story_type is required for new projects; legacy selected_genre is also accepted")
     if not isinstance(project.get("current_chapter", 0), int) or project.get("current_chapter", 0) < 0:
         errors.append("project.current_chapter must be a non-negative integer")
     if not isinstance(project.get("current_volume", 1), int) or project.get("current_volume", 1) < 1:

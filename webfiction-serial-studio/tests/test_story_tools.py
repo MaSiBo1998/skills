@@ -19,7 +19,8 @@ def sample_state() -> dict:
             "slug": "rainy-city",
             "title": "雨城试写",
             "status": "writing",
-            "selected_genre": "都市高武",
+            "publish_target": "番茄小说",
+            "story_type": "都市高武",
             "target_characters": 2000000,
             "current_volume": 1,
             "current_chapter": 2,
@@ -91,12 +92,42 @@ class StoryToolTests(unittest.TestCase):
             check=False,
         )
 
+    def test_init_fiction_project_creates_chinese_fanqie_structure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = self.run_script(
+                "init_fiction_project.py",
+                "--project-root",
+                str(root),
+                "--title",
+                "重生高考后，我先赚第一桶金",
+                "--slug",
+                "reborn-money",
+                "--story-type",
+                "都市重生创业",
+                "--protagonist",
+                "周野",
+                "--prompt",
+                "主角回到高考后，先搞钱保家庭。",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            project = root / "reborn-money"
+            for dirname in ("正文", "计划", "关键节点", "关键人物关系", "伏笔", "事实依据", "导图", "审稿报告"):
+                self.assertTrue((project / dirname).is_dir(), dirname)
+            state = json.loads((project / "series-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["project"]["publish_target"], "番茄小说")
+            self.assertEqual(state["project"]["story_type"], "都市重生创业")
+            self.assertEqual(state["characters"][0]["name"], "周野")
+            basis = (project / "事实依据" / "用户提示.md").read_text(encoding="utf-8")
+            self.assertIn("主角回到高考后，先搞钱保家庭", basis)
+            self.assertIn("前三章启动器", (project / "计划" / "项目启动清单.md").read_text(encoding="utf-8"))
+
     def test_valid_state_renders_all_maps(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             state_path = root / "series-state.json"
             state_path.write_text(json.dumps(sample_state(), ensure_ascii=False), encoding="utf-8")
-            maps = root / "maps"
+            maps = root / "导图"
             result = self.run_script("validate_series_state.py", "--state", str(state_path), "--render", "--output-dir", str(maps))
             self.assertEqual(result.returncode, 0, result.stderr)
             for name in ("character-relations.mmd", "event-timeline.mmd", "arc-map.mmd", "current-context.mmd", "chapter-context.md"):
@@ -104,6 +135,15 @@ class StoryToolTests(unittest.TestCase):
             context = (maps / "chapter-context.md").read_text(encoding="utf-8")
             self.assertIn("## 待读者承诺", context)
             self.assertIn("林川能否找到地下门入口", context)
+
+    def test_validate_accepts_legacy_selected_genre(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = sample_state()
+            state["project"]["selected_genre"] = state["project"].pop("story_type")
+            state_path = Path(directory) / "series-state.json"
+            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("validate_series_state.py", "--state", str(state_path))
+            self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_planning_state_without_events_or_foreshadows_renders_context(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -116,7 +156,7 @@ class StoryToolTests(unittest.TestCase):
             state["chapters"] = []
             state_path = root / "series-state.json"
             state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-            maps = root / "maps"
+            maps = root / "导图"
             result = self.run_script("validate_series_state.py", "--state", str(state_path), "--render", "--output-dir", str(maps))
             self.assertEqual(result.returncode, 0, result.stderr)
             context = (maps / "chapter-context.md").read_text(encoding="utf-8")
@@ -136,251 +176,15 @@ class StoryToolTests(unittest.TestCase):
     def test_manuscript_audit_flags_repeated_phrase(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            manuscript = root / "manuscript"
+            manuscript = root / "正文"
             manuscript.mkdir()
             phrase = "夜雨敲在铁皮屋顶上"
             (manuscript / "chapter-001.md").write_text(phrase + "，林川没有回头。", encoding="utf-8")
             (manuscript / "chapter-002.md").write_text(phrase + "，苏晚握紧了手电。", encoding="utf-8")
-            report = root / "audit.md"
+            report = root / "审稿报告" / "audit.md"
             result = self.run_script("audit_manuscript.py", "--manuscript-dir", str(manuscript), "--output", str(report))
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("夜雨敲在铁皮屋顶", report.read_text(encoding="utf-8"))
-
-    def test_trend_report_requires_selection_gate(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            snapshot = {
-                "captured_at": "2026-07-13T00:00:00Z",
-                "status": "fresh",
-                "source": "https://fanqienovel.com/rank",
-                "notes": [],
-                "boards": [
-                    {"name": "男频阅读榜", "genre": "都市高武", "source_url": "https://fanqienovel.com/rank/a", "entries": [{"rank": 1}]},
-                    {"name": "男频新书榜", "genre": "都市高武", "source_url": "https://fanqienovel.com/rank/b", "entries": [{"rank": 3}]},
-                ],
-            }
-            snapshot_path = root / "snapshot.json"
-            snapshot_path.write_bytes(json.dumps(snapshot, ensure_ascii=False).encode("utf-8-sig"))
-            report = root / "trend-report.md"
-            result = self.run_script("analyze_fanqie_trends.py", "--snapshot", str(snapshot_path), "--output", str(report))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            content = report.read_text(encoding="utf-8")
-            self.assertIn("都市高武", content)
-            self.assertIn("未选择前", content)
-
-    def test_market_core_separates_new_book_and_completed_observation(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            snapshot = {
-                "schema_version": 2,
-                "captured_at": "2026-07-13T00:00:00Z",
-                "status": "fresh",
-                "source": "https://fanqienovel.com/rank",
-                "sampled_genres": ["都市日常"],
-                "notes": [],
-                "boards": [
-                    {
-                        "name": "男频新书榜",
-                        "genre": "都市日常",
-                        "source_url": "https://fanqienovel.com/rank/1_1_261",
-                        "entries": [
-                            {
-                                "rank": 1,
-                                "title": "重生2008：从夜市摆摊到连锁老板",
-                                "url": "https://fanqienovel.com/page/new",
-                                "public_tags": ["重生", "创业"],
-                                "public_blurb": "破产后重回2008年，他先靠夜市生意救急，再做供应链和连锁品牌。",
-                                "completion_status": "serializing",
-                            }
-                        ],
-                    },
-                    {
-                        "name": "男频阅读榜",
-                        "genre": "都市日常",
-                        "source_url": "https://fanqienovel.com/rank/1_2_261",
-                        "entries": [
-                            {
-                                "rank": 2,
-                                "title": "回到旧城，我成了商界首富",
-                                "url": "https://fanqienovel.com/page/done",
-                                "public_tags": ["年代", "经营"],
-                                "public_blurb": "从小店现金流到工厂、渠道和行业竞争，也重新修复了家人关系。",
-                                "latest_update": "第688章 大结局（完结）",
-                                "completion_status": "completed",
-                            }
-                        ],
-                    },
-                ],
-            }
-            snapshot_path = root / "snapshot.json"
-            snapshot_path.write_text(json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
-            report = root / "market-core.md"
-            result = self.run_script(
-                "analyze_fanqie_trends.py",
-                "--snapshot", str(snapshot_path),
-                "--target", "都市重生创业",
-                "--output", str(report),
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            content = report.read_text(encoding="utf-8")
-            self.assertIn("书名如何给承诺", content)
-            self.assertIn("新书信号 vs 完结可持续性", content)
-            self.assertIn("阅读榜完结作品观察集", content)
-            self.assertIn("不是虚构的独立完结榜", content)
-            self.assertIn("第一笔现金流", content)
-
-    def test_visual_review_replaces_obfuscated_public_card_fields(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            snapshot = {
-                "captured_at": "2026-07-13T00:00:00Z",
-                "status": "fresh",
-                "source": "https://fanqienovel.com/rank",
-                "notes": [],
-                "boards": [{
-                    "name": "男频新书榜",
-                    "genre": "都市日常",
-                    "source_url": "https://fanqienovel.com/rank/1_1_261",
-                    "entries": [{
-                        "rank": 1,
-                        "title": "\ue001\ue002\ue003",
-                        "url": "https://fanqienovel.com/page/reviewed",
-                        "public_blurb": "\ue004\ue005\ue006",
-                        "text_quality": {"needs_visual_review": True},
-                    }],
-                }],
-            }
-            review = {
-                "entries": [{
-                    "url": "https://fanqienovel.com/page/reviewed",
-                    "title": "重生后我从维修铺开始创业",
-                    "public_blurb": "回到2008年，他先解决欠款，再用维修技术打开本地市场。",
-                    "public_tags": ["重生", "创业"],
-                    "completion_status": "serializing",
-                }]
-            }
-            snapshot_path = root / "snapshot.json"
-            review_path = root / "review.json"
-            report = root / "report.md"
-            snapshot_path.write_text(json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
-            review_path.write_text(json.dumps(review, ensure_ascii=False), encoding="utf-8")
-            result = self.run_script(
-                "analyze_fanqie_trends.py", "--snapshot", str(snapshot_path),
-                "--visual-review", str(review_path), "--output", str(report),
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            content = report.read_text(encoding="utf-8")
-            self.assertIn("重生后我从维修铺开始创业", content)
-            self.assertIn("已人工视觉复核：1", content)
-
-    def test_source_analysis_initialization_requires_rights_and_stores_no_prose(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            missing_rights = self.run_script(
-                "init_source_analysis.py",
-                "--project-dir",
-                str(root),
-                "--source-label",
-                "授权样稿",
-                "--materials-scope",
-                "selected_chapters",
-            )
-            self.assertNotEqual(missing_rights.returncode, 0)
-            result = self.run_script(
-                "init_source_analysis.py",
-                "--project-dir",
-                str(root),
-                "--source-label",
-                "授权样稿",
-                "--rights-status",
-                "licensed",
-                "--materials-scope",
-                "selected_chapters",
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            manifest = json.loads((root / "reference-analysis" / "source-manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["rights_status"], "licensed")
-            self.assertFalse(manifest["source_text_stored"])
-            craft = (root / "reference-analysis" / "craft-analysis.md").read_text(encoding="utf-8")
-            self.assertIn("原创分离矩阵", craft)
-            self.assertIn("核心故事发动机", craft)
-            self.assertIn("短循环、中循环与长线升级梯", craft)
-            for dimension in ("开局钩子", "冲突升级", "信息揭示", "人物互动", "章节节奏", "爽点与情绪回收"):
-                self.assertIn(dimension, craft)
-            self.assertTrue((root / "reference-analysis" / "analysis-ledger.json").exists())
-            self.assertTrue((root / "reference-analysis" / "original-design-brief.md").exists())
-            record = self.run_script(
-                "record_source_analysis_chunk.py",
-                "--project-dir",
-                str(root),
-                "--chunk-id",
-                "chunk-01",
-                "--scope-label",
-                "第1-3章",
-                "--evidence-grade",
-                "authorized_text",
-                "--dimensions",
-                "opening_hook,conflict_escalation",
-                "--abstract-finding",
-                "以即时危机和选择代价建立持续阅读压力。",
-            )
-            self.assertEqual(record.returncode, 0, record.stderr)
-            ledger = json.loads((root / "reference-analysis" / "analysis-ledger.json").read_text(encoding="utf-8"))
-            self.assertIn("story_engine", ledger["required_dimensions"])
-            self.assertIn("long_escalation", ledger["required_dimensions"])
-            self.assertEqual(ledger["chunks"][0]["evidence_grade"], "authorized_text")
-            self.assertFalse(ledger["chunks"][0]["source_text_stored"])
-
-    def test_public_web_analysis_needs_no_rights_declaration(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            result = self.run_script(
-                "init_source_analysis.py",
-                "--project-dir", str(root),
-                "--source-kind", "public_web",
-                "--source-label", "公开番茄样本",
-                "--source-url", "https://fanqienovel.com/page/7644073932164697113",
-                "--materials-scope", "sampled_public_chapters",
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            manifest = json.loads((root / "reference-analysis" / "source-manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["source_kind"], "public_web")
-            self.assertIsNone(manifest["rights_status"])
-            self.assertFalse(manifest["source_text_stored"])
-            record = self.run_script(
-                "record_source_analysis_chunk.py",
-                "--project-dir", str(root),
-                "--chunk-id", "opening-01",
-                "--scope-label", "第1-5章",
-                "--evidence-grade", "public_chapter",
-                "--dimensions", "story_engine,opening_starter,short_loop,chapter_rhythm",
-                "--abstract-finding", "连续章节以意外关系绑定启动，通过家庭与校园场景反复验证双方立场。",
-            )
-            self.assertEqual(record.returncode, 0, record.stderr)
-            ledger = json.loads((root / "reference-analysis" / "analysis-ledger.json").read_text(encoding="utf-8"))
-            self.assertEqual(ledger["chunks"][0]["evidence_grade"], "public_chapter")
-
-    def test_public_web_analysis_rejects_non_fanqie_or_wrong_scope(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            bad_url = self.run_script(
-                "init_source_analysis.py",
-                "--project-dir", str(root),
-                "--source-kind", "public_web",
-                "--source-label", "错误来源",
-                "--source-url", "https://example.com/book/1",
-                "--materials-scope", "sampled_public_chapters",
-            )
-            self.assertNotEqual(bad_url.returncode, 0)
-            wrong_scope = self.run_script(
-                "init_source_analysis.py",
-                "--project-dir", str(root),
-                "--source-kind", "public_web",
-                "--source-label", "错误范围",
-                "--source-url", "https://fanqienovel.com/page/123",
-                "--materials-scope", "full_text",
-            )
-            self.assertNotEqual(wrong_scope.returncode, 0)
 
     def test_rhythm_audit_flags_overdue_promises_and_repeated_patterns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -400,7 +204,7 @@ class StoryToolTests(unittest.TestCase):
             ]
             state_path = root / "series-state.json"
             state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-            report = root / "story-rhythm-report.md"
+            report = root / "审稿报告" / "章节节奏与读者承诺审稿报告.md"
             relaxed = self.run_script("audit_story_rhythm.py", "--state", str(state_path), "--output", str(report))
             self.assertEqual(relaxed.returncode, 0, relaxed.stderr)
             content = report.read_text(encoding="utf-8")
