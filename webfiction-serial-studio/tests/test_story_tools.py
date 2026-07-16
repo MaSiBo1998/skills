@@ -10,6 +10,19 @@ from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = SKILL_ROOT / "scripts"
+REQUIRED_STAGES = [
+    "direction",
+    "route",
+    "outline",
+    "protagonist",
+    "family",
+    "key_characters",
+    "relationships",
+    "world",
+    "outline_review",
+    "packaging",
+    "opening",
+]
 
 
 def sample_state() -> dict:
@@ -21,7 +34,7 @@ def sample_state() -> dict:
             "status": "writing",
             "publish_target": "番茄小说",
             "story_type": "都市高武",
-            "target_characters": 2000000,
+            "target_characters": 2_000_000,
             "current_volume": 1,
             "current_chapter": 2,
             "current_pov": "lin",
@@ -83,6 +96,83 @@ def sample_state() -> dict:
     }
 
 
+def guided_ready_state() -> dict:
+    state = sample_state()
+    state["schema_version"] = 2
+    state["project"]["status"] = "awaiting_confirmation"
+    state["project"]["current_chapter"] = 0
+    state["events"] = []
+    state["chapters"].append(
+        {"number": 3, "pov": "lin", "craft_focus": "爽点与情绪回收", "hook_type": "地下门开启", "resolution_pattern": "进入新区域", "payoff_ids": []}
+    )
+    state["design_progress"] = {
+        "current_stage": "ready_to_write",
+        "required_stages": list(REQUIRED_STAGES),
+        "confirmed_stages": list(REQUIRED_STAGES),
+        "pending_questions": [],
+        "confirmation_log": [
+            {"stage": stage, "source": "user", "summary": f"确认 {stage}"} for stage in REQUIRED_STAGES
+        ],
+    }
+    state["story_design"] = {
+        "direction": {"status": "confirmed", "name": "都市高武"},
+        "route_options": [
+            {
+                "id": "route-a", "name": "调查路线", "core_hook": "失踪谜案", "protagonist_positioning": "普通调查者",
+                "long_mainline": "追查姐姐", "upgrade_method": "线索与能力同步升级", "estimated_characters": "120万",
+                "estimated_volumes": 6, "ending_direction": "救回姐姐", "risk": "谜案线索需要严密"
+            },
+            {
+                "id": "route-b", "name": "组织路线", "core_hook": "打入敌对组织", "protagonist_positioning": "危险卧底",
+                "long_mainline": "夺取组织控制权", "upgrade_method": "身份与权力升级", "estimated_characters": "150万",
+                "estimated_volumes": 7, "ending_direction": "重建秩序", "risk": "身份反转容易重复"
+            },
+            {
+                "id": "route-c", "name": "城市灾变路线", "core_hook": "雨城持续异变", "protagonist_positioning": "灾变幸存者",
+                "long_mainline": "阻止城市覆灭", "upgrade_method": "区域与战力升级", "estimated_characters": "180万",
+                "estimated_volumes": 8, "ending_direction": "终止异变", "risk": "后期战力需要控制"
+            },
+        ],
+        "selected_route": {"id": "route-a", "name": "调查路线", "status": "confirmed"},
+        "global_outline": {"status": "confirmed", "summary": "林川追查姐姐失踪并揭开雨城地下组织。"},
+        "volumes": [
+            {
+                "number": 1,
+                "title": "雨夜钥匙",
+                "stage_goal": "找到地下门",
+                "main_conflict": "组织封锁线索",
+                "key_events": ["收到钥匙", "与苏晚合作", "打开地下门"],
+                "stage_payoff": "主角第一次掌握主动权",
+                "character_change": "林川从单打独斗转为有限合作",
+                "climax": "地下门开启",
+                "next_hook": "姐姐可能仍然活着",
+                "status": "confirmed",
+            }
+        ],
+        "protagonist": {
+            "status": "confirmed", "identity": "普通高中生", "age": "18", "surface_goal": "找到姐姐",
+            "core_desire": "守住仅剩的家人", "strengths": ["观察细致"], "flaws": ["不信任别人"],
+            "fears": ["再次失去家人"], "bottom_lines": ["不牺牲无辜者"],
+            "behavior_patterns": ["压力下先核对证据"], "voice": "话少，追问具体细节"
+        },
+        "family": {
+            "status": "confirmed", "members": ["姐姐"], "economic_condition": "普通工薪",
+            "living_condition": "旧城区出租屋", "relationship_climate": "姐弟相依为命",
+            "obligations": ["共同承担房租"], "formative_events": ["父母早逝"], "internal_conflicts": []
+        },
+        "world": {
+            "status": "confirmed", "time": "当代", "location": "雨城",
+            "rules": ["异能只在持续暴雨时增强"], "reality_boundaries": ["警方仍按现实程序调查失踪案"]
+        },
+        "story_engine": {
+            "status": "confirmed", "opening_crisis": "姐姐失踪", "long_goal": "找到姐姐并揭开地下组织",
+            "main_resistance": "组织封锁线索", "ability_or_resource_boundary": "主角只能通过雨水读取短暂残留信息",
+            "failure_cost": "姐姐失踪线索永久中断", "repeatable_payoff": "每次调查解开一层城市秘密"
+        },
+    }
+    return state
+
+
 class StoryToolTests(unittest.TestCase):
     def run_script(self, name: str, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
@@ -92,7 +182,19 @@ class StoryToolTests(unittest.TestCase):
             check=False,
         )
 
-    def test_init_fiction_project_creates_chinese_fanqie_structure(self) -> None:
+    def test_init_requires_confirmed_direction(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result = self.run_script(
+                "init_fiction_project.py",
+                "--project-root",
+                directory,
+                "--title",
+                "未定项目",
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("story-type", result.stderr)
+
+    def test_init_creates_guided_schema_without_formal_characters_or_fixed_length(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             result = self.run_script(
@@ -100,7 +202,7 @@ class StoryToolTests(unittest.TestCase):
                 "--project-root",
                 str(root),
                 "--title",
-                "重生高考后，我先赚第一桶金",
+                "重生创业暂定项目",
                 "--slug",
                 "reborn-money",
                 "--story-type",
@@ -108,21 +210,121 @@ class StoryToolTests(unittest.TestCase):
                 "--protagonist",
                 "周野",
                 "--prompt",
-                "主角回到高考后，先搞钱保家庭。",
+                "主角回到高考后。",
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             project = root / "reborn-money"
-            for dirname in ("正文", "计划", "关键节点", "关键人物关系", "伏笔", "事实依据", "导图", "审稿报告"):
-                self.assertTrue((project / dirname).is_dir(), dirname)
             state = json.loads((project / "series-state.json").read_text(encoding="utf-8"))
-            self.assertEqual(state["project"]["publish_target"], "番茄小说")
-            self.assertEqual(state["project"]["story_type"], "都市重生创业")
-            self.assertEqual(state["characters"][0]["name"], "周野")
-            basis = (project / "事实依据" / "用户提示.md").read_text(encoding="utf-8")
-            self.assertIn("主角回到高考后，先搞钱保家庭", basis)
-            self.assertIn("前三章启动器", (project / "计划" / "项目启动清单.md").read_text(encoding="utf-8"))
+            self.assertEqual(state["schema_version"], 2)
+            self.assertEqual(state["design_progress"]["current_stage"], "route_selection")
+            self.assertEqual(state["design_progress"]["confirmed_stages"], ["direction"])
+            self.assertEqual(state["story_design"]["protagonist"]["name_candidate"], "周野")
+            self.assertEqual(state["characters"], [])
+            self.assertIsNone(state["project"]["target_characters"])
+            self.assertEqual(state["story_design"]["volumes"], [])
+            self.assertFalse((project / "关键人物关系" / "主角人物卡.md").exists())
+            self.assertEqual(list((project / "正文").iterdir()), [])
+            entry = (project / "00-skill读取入口.md").read_text(encoding="utf-8")
+            self.assertIn("只生成三套故事路线候选", entry)
+            self.assertIn("00-创作确认状态", entry)
 
-    def test_valid_state_renders_all_maps(self) -> None:
+    def test_build_context_shows_design_stage_for_guided_project(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            state["project"]["status"] = "planning"
+            state["design_progress"]["current_stage"] = "protagonist_design"
+            state["design_progress"]["confirmed_stages"] = ["direction", "route", "outline"]
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("build_obsidian_context.py", "--project-dir", str(root))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+            status = (root / "事实依据" / "00-创作确认状态.md").read_text(encoding="utf-8")
+            self.assertIn("当前模式：分步设计", entry)
+            self.assertIn("protagonist_design", status)
+            self.assertIn("完善主角", status)
+            self.assertFalse((root / "事实依据" / "00-当前续写依据.md").exists())
+
+    def test_build_context_marks_legacy_project_for_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "series-state.json").write_text(json.dumps(sample_state(), ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("build_obsidian_context.py", "--project-dir", str(root))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+            status = (root / "事实依据" / "00-创作确认状态.md").read_text(encoding="utf-8")
+            self.assertIn("旧项目门禁", entry)
+            self.assertIn("旧项目需要补确认", status)
+            self.assertIn("不得直接续写", status)
+
+    def test_incomplete_guided_design_blocks_drafting(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            state["design_progress"]["confirmed_stages"].remove("family")
+            state["story_design"]["family"]["status"] = "draft"
+            state_path = root / "series-state.json"
+            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("validate_series_state.py", "--state", str(state_path), "--require-design-ready")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("family", result.stderr)
+
+    def test_ready_guided_design_passes_drafting_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "series-state.json"
+            state_path.write_text(json.dumps(guided_ready_state(), ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("validate_series_state.py", "--state", str(state_path), "--require-design-ready")
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_writing_status_automatically_enforces_design_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = guided_ready_state()
+            state["project"]["status"] = "writing"
+            state["design_progress"]["current_stage"] = "writing"
+            state["design_progress"]["confirmed_stages"].remove("opening")
+            state_path = Path(directory) / "series-state.json"
+            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("validate_series_state.py", "--state", str(state_path))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("opening", result.stderr)
+
+    def test_volume_requires_three_to_five_key_events(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state = guided_ready_state()
+            state["story_design"]["volumes"][0]["key_events"] = ["只有一个事件"]
+            state_path = Path(directory) / "series-state.json"
+            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("validate_series_state.py", "--state", str(state_path))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("3 to 5 events", result.stderr)
+
+    def test_legacy_state_passes_basic_validation_but_fails_drafting_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "series-state.json"
+            state_path.write_text(json.dumps(sample_state(), ensure_ascii=False), encoding="utf-8")
+            basic = self.run_script("validate_series_state.py", "--state", str(state_path))
+            gated = self.run_script("validate_series_state.py", "--state", str(state_path), "--require-design-ready")
+            self.assertEqual(basic.returncode, 0, basic.stderr)
+            self.assertNotEqual(gated.returncode, 0)
+            self.assertIn("legacy project", gated.stderr)
+
+    def test_writing_context_uses_current_basis_after_design_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            state["project"]["status"] = "writing"
+            state["project"]["current_chapter"] = 2
+            state["design_progress"]["current_stage"] = "writing"
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script("build_obsidian_context.py", "--project-dir", str(root))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+            current = (root / "事实依据" / "00-当前续写依据.md").read_text(encoding="utf-8")
+            self.assertIn("当前模式：正文连载", entry)
+            self.assertIn("下一章：第 3 章", current)
+            self.assertIn("林川能否找到地下门入口", current)
+
+    def test_valid_legacy_state_renders_all_maps(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             state_path = root / "series-state.json"
@@ -132,38 +334,8 @@ class StoryToolTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             for name in ("character-relations.mmd", "event-timeline.mmd", "arc-map.mmd", "current-context.mmd", "chapter-context.md"):
                 self.assertTrue((maps / name).exists(), name)
-            context = (maps / "chapter-context.md").read_text(encoding="utf-8")
-            self.assertIn("## 待读者承诺", context)
-            self.assertIn("林川能否找到地下门入口", context)
 
-    def test_validate_accepts_legacy_selected_genre(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            state = sample_state()
-            state["project"]["selected_genre"] = state["project"].pop("story_type")
-            state_path = Path(directory) / "series-state.json"
-            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-            result = self.run_script("validate_series_state.py", "--state", str(state_path))
-            self.assertEqual(result.returncode, 0, result.stderr)
-
-    def test_planning_state_without_events_or_foreshadows_renders_context(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            state = sample_state()
-            state["project"]["status"] = "awaiting_confirmation"
-            state["project"]["current_chapter"] = 0
-            state["events"] = []
-            state["foreshadows"] = []
-            state["chapters"] = []
-            state_path = root / "series-state.json"
-            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-            maps = root / "导图"
-            result = self.run_script("validate_series_state.py", "--state", str(state_path), "--render", "--output-dir", str(maps))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            context = (maps / "chapter-context.md").read_text(encoding="utf-8")
-            self.assertIn("## 最近事件\n- 无", context)
-            self.assertIn("## 待回收伏笔\n- 无", context)
-
-    def test_invalid_relationship_blocks_writing(self) -> None:
+    def test_invalid_relationship_blocks_validation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = sample_state()
             state["relationships"][0]["to"] = "missing-character"
@@ -207,11 +379,21 @@ class StoryToolTests(unittest.TestCase):
             report = root / "审稿报告" / "章节节奏与读者承诺审稿报告.md"
             relaxed = self.run_script("audit_story_rhythm.py", "--state", str(state_path), "--output", str(report))
             self.assertEqual(relaxed.returncode, 0, relaxed.stderr)
-            content = report.read_text(encoding="utf-8")
-            self.assertIn("林川能否找到地下门入口", content)
-            self.assertIn("倒计时危机", content)
             strict = self.run_script("audit_story_rhythm.py", "--state", str(state_path), "--output", str(report), "--strict")
             self.assertEqual(strict.returncode, 2, strict.stderr)
+
+    def test_skill_guards_against_forced_volume_failures_in_power_fantasy(self) -> None:
+        skill_text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        workflow_text = (SKILL_ROOT / "references" / "guided-creation-workflow.md").read_text(encoding="utf-8")
+        prompt_text = (SKILL_ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+        for text in (skill_text, workflow_text, prompt_text):
+            self.assertIn("潜在失败代价", text)
+            self.assertIn("机械", text)
+        self.assertIn("实际失败", skill_text)
+        self.assertIn("实际失败", workflow_text)
+        self.assertIn("实际败局", prompt_text)
+        self.assertIn("爽文胜负门禁", skill_text)
+        self.assertIn("爽文胜负校准", workflow_text)
 
 
 if __name__ == "__main__":

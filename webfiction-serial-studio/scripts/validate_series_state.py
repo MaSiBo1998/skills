@@ -20,6 +20,45 @@ VALID_CRAFT_FOCUSES = {
     "章节节奏",
     "爽点与情绪回收",
 }
+REQUIRED_DESIGN_STAGES = {
+    "direction",
+    "route",
+    "outline",
+    "protagonist",
+    "family",
+    "key_characters",
+    "relationships",
+    "world",
+    "outline_review",
+    "packaging",
+    "opening",
+}
+VALID_DESIGN_SECTION_STATUSES = {"not_started", "draft", "needs_revision", "confirmed"}
+VALID_VOLUME_STATUSES = {"draft", "needs_revision", "confirmed"}
+REQUIRED_VOLUME_FIELDS = {
+    "number",
+    "title",
+    "stage_goal",
+    "main_conflict",
+    "key_events",
+    "stage_payoff",
+    "character_change",
+    "climax",
+    "next_hook",
+    "status",
+}
+REQUIRED_ROUTE_FIELDS = {
+    "id",
+    "name",
+    "core_hook",
+    "protagonist_positioning",
+    "long_mainline",
+    "upgrade_method",
+    "estimated_characters",
+    "estimated_volumes",
+    "ending_direction",
+    "risk",
+}
 
 
 def load_json(path: Path) -> dict:
@@ -38,7 +77,180 @@ def ensure_list(state: dict, key: str, errors: list[str]) -> list:
     return value
 
 
-def validate(state: dict) -> list[str]:
+def validate_guided_design(state: dict, errors: list[str]) -> None:
+    if state.get("schema_version", 1) < 2:
+        return
+    progress = state.get("design_progress")
+    design = state.get("story_design")
+    if not isinstance(progress, dict):
+        errors.append("schema v2 requires design_progress")
+        return
+    if not isinstance(design, dict):
+        errors.append("schema v2 requires story_design")
+        return
+
+    if not str(progress.get("current_stage", "")).strip():
+        errors.append("design_progress.current_stage is required")
+    required_stages = progress.get("required_stages")
+    if not isinstance(required_stages, list) or len(required_stages) != len(REQUIRED_DESIGN_STAGES) or set(required_stages) != REQUIRED_DESIGN_STAGES:
+        errors.append("design_progress.required_stages must contain the complete guided design stage set")
+    confirmed_stages = progress.get("confirmed_stages")
+    if not isinstance(confirmed_stages, list):
+        errors.append("design_progress.confirmed_stages must be an array")
+    elif any(stage not in REQUIRED_DESIGN_STAGES for stage in confirmed_stages):
+        errors.append("design_progress.confirmed_stages contains an unknown stage")
+    if not isinstance(progress.get("pending_questions"), list):
+        errors.append("design_progress.pending_questions must be an array")
+    confirmation_log = progress.get("confirmation_log")
+    if not isinstance(confirmation_log, list):
+        errors.append("design_progress.confirmation_log must be an array")
+    else:
+        for index, entry in enumerate(confirmation_log):
+            if not isinstance(entry, dict):
+                errors.append(f"design_progress.confirmation_log[{index}] must be an object")
+                continue
+            if entry.get("source") not in {"user", "user_delegated"}:
+                errors.append(f"design_progress.confirmation_log[{index}].source must be user or user_delegated")
+            for key in ("stage", "summary"):
+                if not str(entry.get(key, "")).strip():
+                    errors.append(f"design_progress.confirmation_log[{index}].{key} is required")
+
+    direction = design.get("direction")
+    if not isinstance(direction, dict) or direction.get("status") not in VALID_DESIGN_SECTION_STATUSES:
+        errors.append("story_design.direction must be an object with a valid status")
+    elif direction.get("status") == "confirmed" and not str(direction.get("name", "")).strip():
+        errors.append("confirmed story_design.direction requires name")
+    route_options = design.get("route_options")
+    if not isinstance(route_options, list):
+        errors.append("story_design.route_options must be an array")
+    elif route_options and len(route_options) != 3:
+        errors.append("story_design.route_options must contain exactly three routes when populated")
+    else:
+        route_ids: set[str] = set()
+        for index, route in enumerate(route_options):
+            if not isinstance(route, dict):
+                errors.append(f"story_design.route_options[{index}] must be an object")
+                continue
+            missing = REQUIRED_ROUTE_FIELDS - set(route)
+            if missing:
+                errors.append(f"story_design.route_options[{index}] missing fields: {sorted(missing)}")
+                continue
+            route_id = route.get("id")
+            if not isinstance(route_id, str) or not route_id or route_id in route_ids:
+                errors.append(f"story_design.route_options[{index}].id must be a unique non-empty string")
+            else:
+                route_ids.add(route_id)
+            if not isinstance(route.get("estimated_volumes"), int) or route["estimated_volumes"] < 1:
+                errors.append(f"story_design.route_options[{index}].estimated_volumes must be a positive integer")
+            for key in REQUIRED_ROUTE_FIELDS - {"estimated_volumes"}:
+                if not str(route.get(key, "")).strip():
+                    errors.append(f"story_design.route_options[{index}].{key} is required")
+    selected_route = design.get("selected_route")
+    if selected_route is not None and not isinstance(selected_route, dict):
+        errors.append("story_design.selected_route must be null or an object")
+    elif isinstance(selected_route, dict) and route_options:
+        option_ids = {item.get("id") for item in route_options if isinstance(item, dict)}
+        if selected_route.get("id") not in option_ids:
+            errors.append("story_design.selected_route.id must match one of route_options")
+
+    outline = design.get("global_outline")
+    if not isinstance(outline, dict) or outline.get("status") not in VALID_DESIGN_SECTION_STATUSES:
+        errors.append("story_design.global_outline must be an object with a valid status")
+    volumes = design.get("volumes")
+    if not isinstance(volumes, list):
+        errors.append("story_design.volumes must be an array")
+    else:
+        numbers: set[int] = set()
+        for index, volume in enumerate(volumes):
+            if not isinstance(volume, dict):
+                errors.append(f"story_design.volumes[{index}] must be an object")
+                continue
+            missing = REQUIRED_VOLUME_FIELDS - set(volume)
+            if missing:
+                errors.append(f"story_design.volumes[{index}] missing fields: {sorted(missing)}")
+                continue
+            number = volume.get("number")
+            if not isinstance(number, int) or number < 1 or number in numbers:
+                errors.append(f"story_design.volumes[{index}].number must be a unique positive integer")
+            else:
+                numbers.add(number)
+            if volume.get("status") not in VALID_VOLUME_STATUSES:
+                errors.append(f"story_design.volumes[{index}].status must be one of {sorted(VALID_VOLUME_STATUSES)}")
+            key_events = volume.get("key_events")
+            if not isinstance(key_events, list) or not 3 <= len(key_events) <= 5:
+                errors.append(f"story_design.volumes[{index}].key_events must contain 3 to 5 events")
+            for key in REQUIRED_VOLUME_FIELDS - {"number", "key_events", "status"}:
+                if not str(volume.get(key, "")).strip():
+                    errors.append(f"story_design.volumes[{index}].{key} is required")
+
+    for key in ("protagonist", "family", "world", "story_engine"):
+        section = design.get(key)
+        if not isinstance(section, dict) or section.get("status") not in VALID_DESIGN_SECTION_STATUSES:
+            errors.append(f"story_design.{key} must be an object with a valid status")
+
+
+def validate_design_ready(state: dict) -> list[str]:
+    errors: list[str] = []
+    if state.get("schema_version", 1) < 2 or not isinstance(state.get("design_progress"), dict):
+        return ["legacy project requires guided design confirmation before drafting正文"]
+    progress = state["design_progress"]
+    design = state.get("story_design", {})
+    confirmed = set(progress.get("confirmed_stages", [])) if isinstance(progress.get("confirmed_stages"), list) else set()
+    missing = sorted(REQUIRED_DESIGN_STAGES - confirmed)
+    if missing:
+        errors.append(f"guided design stages are not confirmed: {missing}")
+    if progress.get("current_stage") not in {"ready_to_write", "writing"}:
+        errors.append("design_progress.current_stage must be ready_to_write or writing before drafting正文")
+    target_characters = state.get("project", {}).get("target_characters")
+    if not isinstance(target_characters, int) or target_characters < 1:
+        errors.append("project.target_characters must be confirmed after route selection")
+    selected_route = design.get("selected_route")
+    if not isinstance(selected_route, dict) or selected_route.get("status") != "confirmed":
+        errors.append("story_design.selected_route must be confirmed")
+    outline = design.get("global_outline")
+    if not isinstance(outline, dict) or outline.get("status") != "confirmed" or not str(outline.get("summary", "")).strip():
+        errors.append("story_design.global_outline must be confirmed and non-empty")
+    volumes = design.get("volumes")
+    if not isinstance(volumes, list) or not volumes or any(item.get("status") != "confirmed" for item in volumes if isinstance(item, dict)):
+        errors.append("all dynamic volume outlines must be confirmed")
+    for key in ("protagonist", "family", "world", "story_engine"):
+        section = design.get(key)
+        if not isinstance(section, dict) or section.get("status") != "confirmed":
+            errors.append(f"story_design.{key} must be confirmed")
+    protagonist = design.get("protagonist", {})
+    for key in ("identity", "age", "surface_goal", "core_desire", "voice"):
+        if not str(protagonist.get(key, "")).strip():
+            errors.append(f"confirmed story_design.protagonist.{key} is required")
+    for key in ("strengths", "flaws", "fears", "bottom_lines", "behavior_patterns"):
+        if not isinstance(protagonist.get(key), list) or not protagonist[key]:
+            errors.append(f"confirmed story_design.protagonist.{key} must be a non-empty array")
+    family = design.get("family", {})
+    if not isinstance(family.get("members"), list) or not family["members"]:
+        errors.append("confirmed story_design.family.members must be a non-empty array")
+    for key in ("economic_condition", "living_condition", "relationship_climate"):
+        if not str(family.get(key, "")).strip():
+            errors.append(f"confirmed story_design.family.{key} is required")
+    for key in ("obligations", "formative_events", "internal_conflicts"):
+        if not isinstance(family.get(key), list):
+            errors.append(f"confirmed story_design.family.{key} must be an array")
+    world = design.get("world", {})
+    for key in ("time", "location"):
+        if not str(world.get(key, "")).strip():
+            errors.append(f"confirmed story_design.world.{key} is required")
+    for key in ("rules", "reality_boundaries"):
+        if not isinstance(world.get(key), list) or not world[key]:
+            errors.append(f"confirmed story_design.world.{key} must be a non-empty array")
+    engine = design.get("story_engine", {})
+    for key in ("opening_crisis", "long_goal", "main_resistance", "ability_or_resource_boundary", "failure_cost", "repeatable_payoff"):
+        if not str(engine.get(key, "")).strip():
+            errors.append(f"confirmed story_design.story_engine.{key} is required")
+    chapters = state.get("chapters")
+    if not isinstance(chapters, list) or len(chapters) < 3:
+        errors.append("at least three confirmed opening chapter cards are required")
+    return errors
+
+
+def validate(state: dict, require_design_ready: bool = False) -> list[str]:
     errors: list[str] = []
     project = state.get("project")
     if not isinstance(project, dict):
@@ -54,6 +266,8 @@ def validate(state: dict) -> list[str]:
         errors.append("project.current_chapter must be a non-negative integer")
     if not isinstance(project.get("current_volume", 1), int) or project.get("current_volume", 1) < 1:
         errors.append("project.current_volume must be a positive integer")
+
+    validate_guided_design(state, errors)
 
     characters = ensure_list(state, "characters", errors)
     character_ids: set[str] = set()
@@ -219,12 +433,14 @@ def validate(state: dict) -> list[str]:
 
     if event_chapters and max(event_chapters) > project.get("current_chapter", 0):
         errors.append("project.current_chapter cannot be behind the latest recorded event")
-    if chapter_numbers and max(chapter_numbers) > project.get("current_chapter", 0):
+    if state.get("schema_version", 1) < 2 and chapter_numbers and max(chapter_numbers) > project.get("current_chapter", 0):
         errors.append("project.current_chapter cannot be behind the latest chapter card")
     if project.get("current_pov") and project.get("current_pov") not in character_ids:
         errors.append("project.current_pov must reference an existing character id")
-    if project.get("status") == "writing" and project.get("current_chapter", 0) == 0:
+    if state.get("schema_version", 1) < 2 and project.get("status") == "writing" and project.get("current_chapter", 0) == 0:
         errors.append("writing projects require an initialized first chapter state")
+    if require_design_ready or (state.get("schema_version", 1) >= 2 and project.get("status") == "writing"):
+        errors.extend(validate_design_ready(state))
     return errors
 
 
@@ -233,6 +449,7 @@ def main() -> int:
     parser.add_argument("--state", required=True, type=Path)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--require-design-ready", action="store_true")
     args = parser.parse_args()
 
     try:
@@ -241,7 +458,7 @@ def main() -> int:
         print(f"Invalid state file: {exc}", file=sys.stderr)
         return 1
 
-    errors = validate(state)
+    errors = validate(state, require_design_ready=args.require_design_ready)
     if errors:
         print("State validation failed:", file=sys.stderr)
         for error in errors:

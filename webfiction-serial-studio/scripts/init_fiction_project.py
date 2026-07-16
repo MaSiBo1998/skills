@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize a Fanqie-publishing-oriented fiction project from a user prompt."""
+"""Initialize a guided Fanqie fiction project after its direction is confirmed."""
 
 from __future__ import annotations
 
@@ -16,8 +16,24 @@ CHINESE_DIRS = [
     "关键人物关系",
     "伏笔",
     "事实依据",
+    "事实依据/现实与市场资料",
     "导图",
     "审稿报告",
+    "归档",
+]
+
+REQUIRED_DESIGN_STAGES = [
+    "direction",
+    "route",
+    "outline",
+    "protagonist",
+    "family",
+    "key_characters",
+    "relationships",
+    "world",
+    "outline_review",
+    "packaging",
+    "opening",
 ]
 
 
@@ -31,14 +47,28 @@ def write(path: Path, content: str) -> None:
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
 
+def frontmatter(note_type: str, project: str, status: str = "planning") -> str:
+    return "\n".join(
+        [
+            "---",
+            f"type: {note_type}",
+            f"project: {project}",
+            f"status: {status}",
+            "source_of_truth: series-state.json",
+            "---",
+            "",
+        ]
+    )
+
+
 def build_state(args: argparse.Namespace) -> dict:
     prompt = args.prompt.strip()
-    constraints = []
+    constraints = ["发表目标：番茄小说读者入口、开局留存与章节追读。"]
     if prompt:
-        constraints.append(f"用户原始提示：{prompt}")
-    constraints.append("发表目标：番茄小说读者入口、开局留存与章节追读。")
+        constraints.insert(0, f"用户原始提示：{prompt}")
+    protagonist_candidate = args.protagonist.strip() if args.protagonist else ""
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "project": {
             "slug": args.slug,
             "title": args.title,
@@ -48,31 +78,74 @@ def build_state(args: argparse.Namespace) -> dict:
             "target_characters": args.target_characters,
             "current_volume": 1,
             "current_chapter": 0,
-            "current_pov": "protagonist",
+            "current_pov": None,
         },
-        "characters": [
-            {
-                "id": "protagonist",
-                "name": args.protagonist,
-                "aliases": [],
-                "current_location": args.start_location,
-                "goal": args.protagonist_goal,
-                "status": "active",
-            }
-        ],
+        "design_progress": {
+            "current_stage": "route_selection",
+            "required_stages": REQUIRED_DESIGN_STAGES,
+            "confirmed_stages": ["direction"],
+            "pending_questions": ["请从三套明显不同的故事路线中选择一套，或提出修改意见。"],
+            "confirmation_log": [
+                {
+                    "stage": "direction",
+                    "source": "user",
+                    "summary": f"用户确认小说方向为：{args.story_type}",
+                }
+            ],
+        },
+        "story_design": {
+            "direction": {"status": "confirmed", "name": args.story_type},
+            "route_options": [],
+            "selected_route": None,
+            "global_outline": {"status": "not_started", "summary": ""},
+            "volumes": [],
+            "protagonist": {
+                "status": "not_started",
+                "name_candidate": protagonist_candidate,
+                "identity": "",
+                "age": "",
+                "surface_goal": "",
+                "core_desire": "",
+                "strengths": [],
+                "flaws": [],
+                "fears": [],
+                "bottom_lines": [],
+                "behavior_patterns": [],
+                "voice": "",
+            },
+            "family": {
+                "status": "not_started",
+                "members": [],
+                "economic_condition": "",
+                "living_condition": "",
+                "relationship_climate": "",
+                "obligations": [],
+                "formative_events": [],
+                "internal_conflicts": [],
+            },
+            "world": {
+                "status": "not_started",
+                "time": "",
+                "location": "",
+                "rules": [],
+                "reality_boundaries": [],
+            },
+            "story_engine": {
+                "status": "not_started",
+                "opening_crisis": "",
+                "long_goal": "",
+                "main_resistance": "",
+                "ability_or_resource_boundary": "",
+                "failure_cost": "",
+                "repeatable_payoff": "",
+            },
+        },
+        "characters": [],
         "relationships": [],
         "events": [],
         "foreshadows": [],
         "reader_promises": [],
-        "plot_threads": [
-            {
-                "id": "main-thread",
-                "name": "主线",
-                "volume": 1,
-                "goal": args.main_goal,
-                "status": "active",
-            }
-        ],
+        "plot_threads": [],
         "constraints": constraints,
         "chapters": [],
     }
@@ -81,19 +154,18 @@ def build_state(args: argparse.Namespace) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", type=Path, default=Path("fiction-projects"))
-    parser.add_argument("--title", required=True)
+    parser.add_argument("--title", required=True, help="暂定项目名；正式书名在 packaging 阶段确认")
     parser.add_argument("--slug")
-    parser.add_argument("--story-type", default="待定")
-    parser.add_argument("--protagonist", default="主角")
+    parser.add_argument("--story-type", required=True, help="用户已经确认的小说方向")
+    parser.add_argument("--protagonist", default="", help="可选姓名候选，不会自动创建正式角色")
     parser.add_argument("--prompt", default="")
-    parser.add_argument("--target-characters", type=int, default=2_000_000)
-    parser.add_argument("--start-location", default="起始地点待定")
-    parser.add_argument("--protagonist-goal", default="尽快建立清晰的眼前目标")
-    parser.add_argument("--main-goal", default="完成第一阶段局面升级并兑现开局承诺")
+    parser.add_argument("--target-characters", type=int, default=None)
     args = parser.parse_args()
 
-    if args.target_characters < 1:
-        parser.error("--target-characters must be positive")
+    if args.target_characters is not None and args.target_characters < 1:
+        parser.error("--target-characters must be positive when provided")
+    if not args.story_type.strip() or args.story_type.strip() == "待定":
+        parser.error("--story-type must be a user-confirmed fiction direction")
     args.slug = slugify(args.slug or args.title)
     project_dir = args.project_root / args.slug
     for dirname in CHINESE_DIRS:
@@ -111,40 +183,91 @@ def main() -> int:
                 args.prompt or "待补充",
                 "",
                 "## 已确认事实",
-                f"- 发表目标：番茄小说",
-                f"- 暂定书名：{args.title}",
-                f"- 类型提示：{args.story_type}",
-                f"- 主角：{args.protagonist}",
+                "- 发表目标：番茄小说",
+                f"- 小说方向：{args.story_type}",
                 "",
-                "## 合理推断",
-                "- 需要优先保证读者入口、前三章留存、章节追读和爽点兑现。",
+                "## 草案，不得视为事实",
+                f"- 暂定项目名：{args.title}",
+                f"- 主角姓名候选：{args.protagonist or '尚未设计'}",
                 "",
-                "## 待确认假设",
-                "- 书名、简介、前三章启动器、卷纲和主要人物关系仍需用户确认。",
+                "## 当前待确认",
+                "- 三套故事路线、目标字数、动态卷数和结局方向。",
             ]
         ),
     )
     write(
-        project_dir / "计划" / "项目启动清单.md",
-        "\n".join(
-            [
-                "# 项目启动清单",
-                "",
-                "- [ ] 书名候选与读者承诺",
-                "- [ ] 番茄发表向简介",
-                "- [ ] 一句话故事发动机",
-                "- [ ] 前三章启动器",
-                "- [ ] 卷纲与前 30 章剧情卡",
-                "- [ ] 关键节点、关键人物关系、伏笔和事实依据",
-                "- [ ] 用户确认后进入正文",
-            ]
-        ),
+        project_dir / "计划" / "00-方向与路线选择.md",
+        "# 方向与路线选择\n\n"
+        f"- 已确认方向：{args.story_type}\n"
+        "- 当前阶段：生成三套明显不同的故事路线，等待用户选择。\n"
+        "- 路线必须包含核心看点、主角基本定位、长期主线、升级方式、预计字数、预计卷数和结局方向。\n",
     )
-    write(project_dir / "计划" / "前三章启动器.md", "# 前三章启动器\n\n待补：危机、欲望、能力边界、第一波爽点、三章末大钩子。")
-    write(project_dir / "关键节点" / "关键节点.md", "# 关键节点\n\n待补。")
-    write(project_dir / "关键人物关系" / "人物关系.md", "# 关键人物关系\n\n待补。")
-    write(project_dir / "伏笔" / "伏笔清单.md", "# 伏笔清单\n\n待补。")
-    print(f"Initialized Fanqie fiction project at {project_dir}")
+    write(project_dir / "计划" / "01-整书大纲.md", "# 整书大纲\n\n待选定故事路线后生成。")
+    write(
+        project_dir / "计划" / "02-分卷大纲.md",
+        "# 分卷大纲\n\n待整书路线选定后按故事规模动态生成，不固定十卷。",
+    )
+    write(
+        project_dir / "计划" / "03-前三章启动器.md",
+        "# 前三章启动器\n\n待大纲、人物、家庭、关系、事实边界和大纲回看全部确认后生成。",
+    )
+    write(project_dir / "关键节点" / "关键节点.md", "# 关键节点\n\n待大纲与人物稳定后生成。")
+    write(project_dir / "伏笔" / "伏笔清单.md", "# 伏笔清单\n\n待大纲与人物稳定后生成。")
+    write(
+        project_dir / "关键人物关系" / "00-人物关系索引.md",
+        frontmatter("character-index", args.slug)
+        + "# 人物关系索引\n\n"
+        + "> 大纲确认前不创建正式人物卡；结构化事实以 [[series-state.json]] 为准。\n",
+    )
+    write(
+        project_dir / "事实依据" / "00-创作确认状态.md",
+        frontmatter("design-status", args.slug)
+        + f"# {args.title}｜创作确认状态\n\n"
+        + "- 当前阶段：route_selection\n"
+        + f"- 已确认：direction（{args.story_type}）\n"
+        + "- 下一步：生成三套路线候选并等待用户选择。\n"
+        + "- 门禁：不得生成整书大纲、正式人物卡、前三章或正文。\n",
+    )
+    write(
+        project_dir / "事实依据" / "01-硬门禁.md",
+        frontmatter("hard-gates", args.slug)
+        + "# 硬门禁\n\n"
+        + "- 方向未确认，不创建项目。\n"
+        + "- 路线未选择，不生成整书与分卷大纲。\n"
+        + "- 大纲未确认，不创建正式人物卡。\n"
+        + "- 人物、家庭、关系、世界、大纲回看和前三章未确认，不写正文。\n"
+        + "- 草案不得写进正文事实源。\n",
+    )
+    write(
+        project_dir / "事实依据" / "02-现实边界索引.md",
+        frontmatter("reality-index", args.slug) + "# 现实边界索引\n\n待世界与事实边界阶段补充。\n",
+    )
+    write(
+        project_dir / "00-项目总览.md",
+        frontmatter("project-moc", args.slug)
+        + f"# {args.title}｜项目总览\n\n"
+        + "## 当前入口\n\n"
+        + "- [[00-skill读取入口]]\n"
+        + "- [[事实依据/00-创作确认状态]]\n"
+        + "- [[计划/00-方向与路线选择]]\n"
+        + "- [[series-state.json]]：唯一结构化事实源。\n\n"
+        + "## 尚未开放\n\n"
+        + "- 正式人物卡、伏笔、关键节点、前三章和正文均受阶段确认门禁控制。\n",
+    )
+    write(
+        project_dir / "00-skill读取入口.md",
+        frontmatter("skill-entry", args.slug)
+        + f"# {args.title}｜skill读取入口\n\n"
+        + "## 设计期必读\n\n"
+        + "1. [[事实依据/00-创作确认状态]]\n"
+        + "2. [[事实依据/用户提示]]\n"
+        + "3. [[计划/00-方向与路线选择]]\n"
+        + "4. [[series-state.json]]\n\n"
+        + "## 当前动作\n\n"
+        + "- 只生成三套故事路线候选，等待用户选择。\n"
+        + "- 用户说“继续”只推进当前设计阶段，不得创建正文。\n",
+    )
+    print(f"Initialized guided Fanqie fiction project at {project_dir}")
     return 0
 
 

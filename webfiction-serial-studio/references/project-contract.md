@@ -1,88 +1,173 @@
-# 番茄发表向长篇项目状态合同
+# 番茄分步创作项目状态合同
 
 ## 默认目录
 
 ```text
 fiction-projects/<book-slug>/
-├── 正文/                           # 确认开始正文后保存章节
-├── 计划/                           # 书名简介、前三章启动器、卷纲、章节卡、写作规则
-├── 关键节点/                       # 阶段升级、事业/感情/成长/战力/商业节点
-├── 关键人物关系/                   # 人物立场、双向看法、关系张力与变化
-├── 伏笔/                           # 伏笔清单、读者承诺、待回收冲突
-├── 事实依据/                       # 用户提示、已确认设定、正文事实、现实边界、待确认假设
-├── 导图/                           # 由状态文件生成，禁止手工当作事实编辑
-├── 审稿报告/                       # 字数、重复、节奏和人工审稿报告
-└── series-state.json               # 唯一事实源
+├── 正文/                         # 设计与前三章确认后才允许写入
+├── 计划/
+│   ├── 00-方向与路线选择.md
+│   ├── 01-整书大纲.md
+│   ├── 02-分卷大纲.md
+│   └── 03-前三章启动器.md
+├── 关键节点/
+├── 关键人物关系/                 # 大纲确认后才创建正式人物卡
+├── 伏笔/
+├── 事实依据/
+│   ├── 00-创作确认状态.md         # 设计期快速入口
+│   ├── 00-当前续写依据.md         # 正文期快速入口
+│   └── 现实与市场资料/
+├── 导图/
+├── 审稿报告/
+├── 归档/
+├── 00-项目总览.md
+├── 00-skill读取入口.md
+└── series-state.json             # 唯一结构化事实源
 ```
 
-`事实依据/` 记录的是本书内部创作依据：用户原始提示、用户确认过的设定、正文已经发生的事实、现实常识边界、待确认假设和番茄发表向判断依据。它不是拆书证据库，也不保存外部作品正文。
+方向未确认前不创建项目。初始化只创建目录、方向记录和路线选择入口；不会自动创建主角、家庭、远期人物、固定十卷或正文。
 
-无论目录怎么整理，`series-state.json` 仍是唯一事实源。若移动正文文件，必须同步更新 `chapters[].manuscript_path`；若移动导图目录，运行 `validate_series_state.py --render --output-dir <项目>/导图`；若移动正文目录，运行 `audit_manuscript.py --manuscript-dir <项目>/正文`。
-
-## `series-state.json` 的最小结构
+## schema v2
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project": {
     "slug": "example-book",
-    "title": "示例书名",
+    "title": "暂定项目名",
     "status": "planning",
     "publish_target": "番茄小说",
-    "story_type": "都市重生创业",
-    "target_characters": 2000000,
+    "story_type": "用户确认的方向",
+    "target_characters": null,
     "current_volume": 1,
     "current_chapter": 0,
-    "current_pov": "protagonist"
+    "current_pov": null
   },
-  "characters": [
-    {
-      "id": "protagonist",
-      "name": "主角",
-      "aliases": [],
-      "current_location": "起始地点",
-      "goal": "当前诉求",
-      "status": "active"
-    }
-  ],
+  "design_progress": {
+    "current_stage": "route_selection",
+    "required_stages": [
+      "direction", "route", "outline", "protagonist", "family",
+      "key_characters", "relationships", "world", "outline_review",
+      "packaging", "opening"
+    ],
+    "confirmed_stages": ["direction"],
+    "pending_questions": ["请从三套故事路线中选择一套"],
+    "confirmation_log": [
+      {
+        "stage": "direction",
+        "source": "user",
+        "summary": "用户确认方向"
+      }
+    ]
+  },
+  "story_design": {
+    "direction": {"status": "confirmed", "name": "都市重生创业"},
+    "route_options": [],
+    "selected_route": null,
+    "global_outline": {"status": "not_started", "summary": ""},
+    "volumes": [],
+    "protagonist": {"status": "not_started"},
+    "family": {"status": "not_started"},
+    "world": {"status": "not_started"},
+    "story_engine": {"status": "not_started"}
+  },
+  "characters": [],
   "relationships": [],
   "events": [],
   "foreshadows": [],
   "reader_promises": [],
-  "plot_threads": [
-    {
-      "id": "main-thread",
-      "name": "主线",
-      "volume": 1,
-      "goal": "本卷目标",
-      "status": "active"
-    }
-  ],
-  "constraints": ["不可违背的既有事实"],
+  "plot_threads": [],
+  "constraints": [],
   "chapters": []
 }
 ```
 
-旧项目若仍使用 `selected_genre`，校验脚本应兼容；新项目优先使用 `story_type`。
+## 确认语义
 
-## 状态门禁
+- `source=user`：用户明确选择或确认。
+- `source=user_delegated`：用户明确让 skill 决定当前阶段。
+- “继续”不等于确认；只表示继续处理当前阶段或进入已经满足门禁的下一阶段。
+- 路线候选、大纲草案和人物候选在确认前不得进入 `constraints`、正式 `characters`、`relationships` 或正文。
 
-- `project.status` 只能是 `planning`、`awaiting_confirmation`、`writing`、`complete`。
-- `planning` 与 `awaiting_confirmation` 禁止在 `正文/` 新建正文。
-- 新项目必须标注 `publish_target` 或默认按 `番茄小说` 处理。
-- 新项目必须有 `story_type`；旧项目可用 `selected_genre` 兼容。
-- 关系必须同时填写 `from_to` 和 `to_from`，用一个双向事实记录两人的不同视角。
-- 每个事件都必须有章节、故事时间、地点、参与者、变化和状态；事件引用与人物关系只能引用已存在的角色 ID。
-- `reader_promises` 记录读者正在等待的结果、情绪回收和目标兑现章节；到期前必须兑现、调整期限或明确放弃，不能静默遗忘。
-- `chapters` 只保存章节卡的创作元数据：六项创作重心、钩子类型、解决方式、章末小钩子、三章阶段大钩子和兑现的读者承诺；它补充事件事实，不存正文。每章建议填写 `end_hook`；第 3、6、9……章必须填写 `triple_hook`，说明前三章小钩子如何升级为阶段承诺。
-- 每次正文完成后，先更新状态并通过校验，才算该章完成。
+## 路线与分卷结构
 
-## 初始化后必须补齐的计划文件
+`route_options` 一旦生成必须正好三套，三套应在长期主线或升级方式上明显不同。`selected_route` 只有用户选择后才能设置，并使用 `status=confirmed`。
 
-- `计划/书名简介.md`：书名候选、读者承诺、简介、推荐版本。
-- `计划/前三章启动器.md`：危机、欲望、能力边界、第一波爽点和三章末大钩子。
-- `计划/卷纲.md`：阶段目标、阶段反转、爽点兑现和下一阶段承诺。
-- `关键节点/关键节点.md`：影响局面升级的时间点、订单、战斗、身份、关系或资源节点。
-- `关键人物关系/人物关系.md`：主要人物的立场、诉求、双向看法和冲突来源。
-- `伏笔/伏笔清单.md`：伏笔、读者承诺、计划回收章节或卷。
-- `事实依据/用户提示.md`：用户原始提示、已确认事实、合理推断、待确认假设。
+每个 `volumes[]` 必须包含：
+
+```json
+{
+  "number": 1,
+  "title": "暂定卷名",
+  "stage_goal": "本卷结束时的局面变化",
+  "main_conflict": "持续阻力",
+  "key_events": ["事件1", "事件2", "事件3"],
+  "stage_payoff": "主要爽点或情绪回报",
+  "character_change": "人物或关系变化",
+  "climax": "卷末高潮",
+  "next_hook": "下一卷具体承诺",
+  "status": "draft"
+}
+```
+
+`key_events` 必须为 3—5 项。卷数随故事规模动态生成，不设固定十卷。人物调整影响卷级事件时，将受影响卷改为 `needs_revision`，重新确认后才能恢复 `confirmed`。
+
+## 阶段与项目状态
+
+- `planning`：方向、大纲、人物或包装仍在分步设计。
+- `awaiting_confirmation`：全部设计阶段完成，等待明确正文确认。
+- `writing`：用户明确确认开始正文，且正文准备校验通过。
+- `complete`：全书完成。
+
+`planning` 和 `awaiting_confirmation` 期间禁止在 `正文/` 创建章节。
+
+进入 `writing` 前必须确认：
+
+- 方向、路线、整书与所有分卷大纲
+- 主角、家庭、第一卷核心人物和双向关系
+- 世界与事实边界
+- 人物与大纲双向回看
+- 书名简介和前三章
+- 至少三张章节卡
+
+其中结构化内容还必须完整：
+
+- 主角：身份、年龄、表层目标、核心欲望、优点、缺点、恐惧、底线、行为习惯和说话方式。
+- 家庭：至少一名家庭成员、经济状况、居住条件、关系氛围，以及责任、成长事件、内部冲突三个数组；没有冲突时显式写空数组。
+- 世界：故事时间、地点、至少一条世界规则和至少一条现实边界。
+- 故事发动机：开局危机、长期目标、主要阻力、能力或资源边界、失败代价和可重复兑现的爽点。
+
+`失败代价` 表示人物知道失败会失去什么，是动机与风险字段，不是“正文必须安排实际失败”的指令。用户选择爽文或明确要求少失败时，分卷设计仍应保留真实风险，但主要兑现采用识破、反制、抢占、升级和扩大优势；不得机械给每卷补一场败局。
+
+使用：
+
+```powershell
+python scripts/validate_series_state.py --state <项目>/series-state.json --require-design-ready
+```
+
+## Obsidian 入口
+
+设计期读取：
+
+1. `00-skill读取入口.md`
+2. `事实依据/00-创作确认状态.md`
+3. `事实依据/用户提示.md`
+4. 当前阶段对应的计划文件
+5. `series-state.json`
+
+正文期读取：
+
+1. `00-skill读取入口.md`
+2. `事实依据/00-当前续写依据.md`
+3. `事实依据/01-硬门禁.md`
+4. `导图/chapter-context.md`
+5. 当前章节卡、人物关系、伏笔和关键节点
+
+Markdown 是快速入口，不反向覆盖 JSON。每次状态变化后运行 `build_obsidian_context.py`。
+
+## 旧项目兼容
+
+- schema v1 仍通过普通结构校验，避免破坏现有项目。
+- schema v1 或缺少 `design_progress` 的项目执行 `--require-design-ready` 时必须失败。
+- Obsidian 入口要显示“旧项目需要补确认”，先确认既有方向、大纲、主角、家庭和第一卷角色，再决定保留或修订。
+- 不自动删除、迁移或把旧草案改成事实；未确认远期内容不得继续指导新正文。
