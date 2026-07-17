@@ -182,7 +182,7 @@ class StoryToolTests(unittest.TestCase):
             check=False,
         )
 
-    def test_init_requires_confirmed_direction(self) -> None:
+    def test_init_allows_idea_only_and_starts_at_idea_intake(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             result = self.run_script(
                 "init_fiction_project.py",
@@ -191,8 +191,11 @@ class StoryToolTests(unittest.TestCase):
                 "--title",
                 "未定项目",
             )
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("story-type", result.stderr)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            state = json.loads((Path(directory) / "未定项目" / "series-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["schema_version"], 3)
+            self.assertEqual(state["workflow_progress"]["current_stage"], "idea_intake")
+            self.assertEqual(state["story_design"]["direction"]["status"], "draft")
 
     def test_init_creates_guided_schema_without_formal_characters_or_fixed_length(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -215,9 +218,11 @@ class StoryToolTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             project = root / "reborn-money"
             state = json.loads((project / "series-state.json").read_text(encoding="utf-8"))
-            self.assertEqual(state["schema_version"], 2)
+            self.assertEqual(state["schema_version"], 3)
             self.assertEqual(state["design_progress"]["current_stage"], "route_selection")
             self.assertEqual(state["design_progress"]["confirmed_stages"], ["direction"])
+            self.assertEqual(state["workflow_progress"]["current_stage"], "story_positioning")
+            self.assertEqual(state["workflow_progress"]["next_action"], "生成三套明显不同的故事路线，等待用户选择或修改。")
             self.assertEqual(state["story_design"]["protagonist"]["name_candidate"], "周野")
             self.assertEqual(state["characters"], [])
             self.assertIsNone(state["project"]["target_characters"])
@@ -225,7 +230,8 @@ class StoryToolTests(unittest.TestCase):
             self.assertFalse((project / "关键人物关系" / "主角人物卡.md").exists())
             self.assertEqual(list((project / "正文").iterdir()), [])
             entry = (project / "00-skill读取入口.md").read_text(encoding="utf-8")
-            self.assertIn("只生成三套故事路线候选", entry)
+            self.assertIn("自动续接", entry)
+            self.assertIn("生成三套明显不同的故事路线", entry)
             self.assertIn("00-创作确认状态", entry)
 
     def test_build_context_shows_design_stage_for_guided_project(self) -> None:
@@ -241,8 +247,8 @@ class StoryToolTests(unittest.TestCase):
             entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
             status = (root / "事实依据" / "00-创作确认状态.md").read_text(encoding="utf-8")
             self.assertIn("当前模式：分步设计", entry)
-            self.assertIn("protagonist_design", status)
-            self.assertIn("完善主角", status)
+            self.assertIn("character_system", status)
+            self.assertIn("人物体系", status)
             self.assertFalse((root / "事实依据" / "00-当前续写依据.md").exists())
 
     def test_build_context_marks_legacy_project_for_confirmation(self) -> None:
@@ -288,7 +294,7 @@ class StoryToolTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("opening", result.stderr)
 
-    def test_volume_requires_three_to_five_key_events(self) -> None:
+    def test_volume_requires_three_to_eight_key_events(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state = guided_ready_state()
             state["story_design"]["volumes"][0]["key_events"] = ["只有一个事件"]
@@ -296,7 +302,158 @@ class StoryToolTests(unittest.TestCase):
             state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
             result = self.run_script("validate_series_state.py", "--state", str(state_path))
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn("3 to 5 events", result.stderr)
+            self.assertIn("3 to 8 events", result.stderr)
+
+    def test_migration_creates_schema_v3_resume_checkpoint(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            state["project"]["status"] = "writing"
+            state["project"]["current_chapter"] = 3
+            state["design_progress"]["current_stage"] = "writing"
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            result = self.run_script(
+                "migrate_series_state.py",
+                "--project-dir",
+                str(root),
+                "--project-status",
+                "revising",
+                "--current-stage",
+                "serialization",
+                "--current-substage",
+                "opening_reality_revision",
+                "--stage-status",
+                "needs_revision",
+                "--last-completed-action",
+                "已完成第1—3章。",
+                "--next-action",
+                "先处理前三章真实性问题，再准备第4章。",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            migrated = json.loads((root / "series-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(migrated["schema_version"], 3)
+            self.assertEqual(migrated["workflow_progress"]["project_status"], "revising")
+            self.assertEqual(migrated["workflow_progress"]["current_substage"], "opening_reality_revision")
+            entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+            self.assertIn("当前模式：正文修订", entry)
+            self.assertIn("先处理前三章真实性问题", entry)
+
+    def test_update_progress_refreshes_next_action(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            migrate = self.run_script("migrate_series_state.py", "--project-dir", str(root))
+            self.assertEqual(migrate.returncode, 0, migrate.stderr)
+            update = self.run_script(
+                "update_workflow_progress.py",
+                "--project-dir",
+                str(root),
+                "--current-stage",
+                "character_system",
+                "--current-substage",
+                "confirm_protagonist",
+                "--stage-status",
+                "pending_confirmation",
+                "--last-completed-action",
+                "已生成主角草案。",
+                "--next-action",
+                "等待确认主角底线。",
+                "--pending-confirmation",
+                "主角底线",
+            )
+            self.assertEqual(update.returncode, 0, update.stderr)
+            entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+            self.assertIn("等待确认主角底线", entry)
+            self.assertIn("待确认：主角底线", entry)
+
+    def test_revision_impact_marks_downstream_stages(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            migrate = self.run_script("migrate_series_state.py", "--project-dir", str(root))
+            self.assertEqual(migrate.returncode, 0, migrate.stderr)
+            result = self.run_script(
+                "calculate_revision_impact.py",
+                "--project-dir",
+                str(root),
+                "--changed-area",
+                "global_outline",
+                "--reason",
+                "主角终局目标改变",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            changed = json.loads((root / "series-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(changed["workflow_progress"]["project_status"], "revising")
+            self.assertEqual(changed["workflow_progress"]["stage_states"]["volume_design"]["status"], "needs_revision")
+            self.assertEqual(changed["story_design"]["volumes"][0]["status"], "needs_revision")
+
+    def test_minor_detail_does_not_trigger_revision_chain(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            migrate = self.run_script("migrate_series_state.py", "--project-dir", str(root))
+            self.assertEqual(migrate.returncode, 0, migrate.stderr)
+            before = json.loads((root / "series-state.json").read_text(encoding="utf-8"))
+            result = self.run_script(
+                "calculate_revision_impact.py",
+                "--project-dir",
+                str(root),
+                "--changed-area",
+                "minor_detail",
+                "--reason",
+                "普通配角称呼调整",
+                "--apply",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            after = json.loads((root / "series-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(after["workflow_progress"], before["workflow_progress"])
+
+    def test_all_standard_stages_can_be_persisted_and_resumed(self) -> None:
+        stages = [
+            "idea_intake",
+            "story_positioning",
+            "global_outline",
+            "volume_design",
+            "world_research",
+            "character_system",
+            "outline_calibration",
+            "timeline_foreshadow",
+            "packaging_opening",
+            "serialization",
+            "volume_review",
+            "completion",
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = guided_ready_state()
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            migrate = self.run_script("migrate_series_state.py", "--project-dir", str(root))
+            self.assertEqual(migrate.returncode, 0, migrate.stderr)
+            for stage in stages:
+                result = self.run_script(
+                    "update_workflow_progress.py",
+                    "--project-dir",
+                    str(root),
+                    "--current-stage",
+                    stage,
+                    "--current-substage",
+                    "resume_test",
+                    "--stage-status",
+                    "draft",
+                    "--last-completed-action",
+                    f"已进入 {stage}",
+                    "--next-action",
+                    f"继续 {stage}",
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                persisted = json.loads((root / "series-state.json").read_text(encoding="utf-8"))
+                self.assertEqual(persisted["workflow_progress"]["current_stage"], stage)
+                entry = (root / "00-skill读取入口.md").read_text(encoding="utf-8")
+                self.assertIn(f"继续 {stage}", entry)
 
     def test_legacy_state_passes_basic_validation_but_fails_drafting_gate(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -358,6 +515,40 @@ class StoryToolTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("夜雨敲在铁皮屋顶", report.read_text(encoding="utf-8"))
 
+    def test_manuscript_audit_requires_eight_dimension_reality_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manuscript = root / "正文"
+            reviews = root / "审稿报告"
+            manuscript.mkdir()
+            reviews.mkdir()
+            (manuscript / "第001章-开场.md").write_text("正文", encoding="utf-8")
+            report = reviews / "audit.md"
+            missing = self.run_script(
+                "audit_manuscript.py",
+                "--manuscript-dir",
+                str(manuscript),
+                "--output",
+                str(report),
+                "--reality-report-dir",
+                str(reviews),
+                "--require-reality-reports",
+            )
+            self.assertEqual(missing.returncode, 1)
+            dimensions = "\n".join(["职业流程", "因果链", "经济画像", "空间物理", "时代工具", "生活收纳", "身份化台词", "信任与安全"])
+            (reviews / "第001章-现实校验.md").write_text(dimensions, encoding="utf-8")
+            passed = self.run_script(
+                "audit_manuscript.py",
+                "--manuscript-dir",
+                str(manuscript),
+                "--output",
+                str(report),
+                "--reality-report-dir",
+                str(reviews),
+                "--require-reality-reports",
+            )
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+
     def test_rhythm_audit_flags_overdue_promises_and_repeated_patterns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -384,16 +575,14 @@ class StoryToolTests(unittest.TestCase):
 
     def test_skill_guards_against_forced_volume_failures_in_power_fantasy(self) -> None:
         skill_text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
-        workflow_text = (SKILL_ROOT / "references" / "guided-creation-workflow.md").read_text(encoding="utf-8")
+        workflow_text = (SKILL_ROOT / "references" / "story-planning.md").read_text(encoding="utf-8")
         prompt_text = (SKILL_ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
-        for text in (skill_text, workflow_text, prompt_text):
-            self.assertIn("潜在失败代价", text)
+        for text in (workflow_text, prompt_text):
             self.assertIn("机械", text)
-        self.assertIn("实际失败", skill_text)
         self.assertIn("实际失败", workflow_text)
-        self.assertIn("实际败局", prompt_text)
-        self.assertIn("爽文胜负门禁", skill_text)
-        self.assertIn("爽文胜负校准", workflow_text)
+        self.assertIn("爽文", prompt_text)
+        self.assertIn("实际失败", prompt_text)
+        self.assertIn("十二阶段", skill_text)
 
 
 if __name__ == "__main__":

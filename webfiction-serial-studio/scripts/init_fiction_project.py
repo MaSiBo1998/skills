@@ -8,6 +8,8 @@ import json
 import re
 from pathlib import Path
 
+from workflow_state import new_workflow_progress
+
 
 CHINESE_DIRS = [
     "正文",
@@ -67,34 +69,60 @@ def build_state(args: argparse.Namespace) -> dict:
     if prompt:
         constraints.insert(0, f"用户原始提示：{prompt}")
     protagonist_candidate = args.protagonist.strip() if args.protagonist else ""
+    direction = args.story_type.strip()
+    direction_confirmed = bool(direction and direction != "待定")
+    legacy_stage = "route_selection" if direction_confirmed else "direction_selection"
+    confirmed_stages = ["direction"] if direction_confirmed else []
+    pending_questions = (
+        ["请从三套明显不同的故事路线中选择一套，或提出修改意见。"]
+        if direction_confirmed
+        else ["请确认题材方向、核心幻想、目标读者和预计篇幅。"]
+    )
+    confirmation_log = (
+        [{"stage": "direction", "source": "user", "summary": f"用户确认小说方向为：{direction}"}]
+        if direction_confirmed
+        else []
+    )
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "project": {
             "slug": args.slug,
             "title": args.title,
             "status": "planning",
             "publish_target": "番茄小说",
-            "story_type": args.story_type,
+            "story_type": direction,
             "target_characters": args.target_characters,
             "current_volume": 1,
             "current_chapter": 0,
             "current_pov": None,
         },
         "design_progress": {
-            "current_stage": "route_selection",
+            "current_stage": legacy_stage,
             "required_stages": REQUIRED_DESIGN_STAGES,
-            "confirmed_stages": ["direction"],
-            "pending_questions": ["请从三套明显不同的故事路线中选择一套，或提出修改意见。"],
-            "confirmation_log": [
-                {
-                    "stage": "direction",
-                    "source": "user",
-                    "summary": f"用户确认小说方向为：{args.story_type}",
-                }
-            ],
+            "confirmed_stages": confirmed_stages,
+            "pending_questions": pending_questions,
+            "confirmation_log": confirmation_log,
         },
+        "workflow_progress": new_workflow_progress(direction_confirmed=direction_confirmed),
         "story_design": {
-            "direction": {"status": "confirmed", "name": args.story_type},
+            "idea": {
+                "status": "confirmed" if direction_confirmed else "draft",
+                "original_prompt": prompt,
+                "genre_positioning": direction,
+                "core_fantasy": "",
+                "target_readers": "",
+                "estimated_length": "",
+            },
+            "positioning": {
+                "status": "not_started",
+                "reader_promise": "",
+                "tone": "",
+                "power_fantasy_level": "",
+                "romance_ratio": "",
+                "failure_tolerance": "",
+                "forbidden_tropes": [],
+            },
+            "direction": {"status": "confirmed" if direction_confirmed else "draft", "name": direction},
             "route_options": [],
             "selected_route": None,
             "global_outline": {"status": "not_started", "summary": ""},
@@ -129,6 +157,7 @@ def build_state(args: argparse.Namespace) -> dict:
                 "location": "",
                 "rules": [],
                 "reality_boundaries": [],
+                "research_sources": [],
             },
             "story_engine": {
                 "status": "not_started",
@@ -144,6 +173,8 @@ def build_state(args: argparse.Namespace) -> dict:
         "relationships": [],
         "events": [],
         "foreshadows": [],
+        "timeline": [],
+        "milestones": [],
         "reader_promises": [],
         "plot_threads": [],
         "constraints": constraints,
@@ -156,7 +187,7 @@ def main() -> int:
     parser.add_argument("--project-root", type=Path, default=Path("fiction-projects"))
     parser.add_argument("--title", required=True, help="暂定项目名；正式书名在 packaging 阶段确认")
     parser.add_argument("--slug")
-    parser.add_argument("--story-type", required=True, help="用户已经确认的小说方向")
+    parser.add_argument("--story-type", default="", help="可选；用户已经确认的小说方向")
     parser.add_argument("--protagonist", default="", help="可选姓名候选，不会自动创建正式角色")
     parser.add_argument("--prompt", default="")
     parser.add_argument("--target-characters", type=int, default=None)
@@ -164,8 +195,6 @@ def main() -> int:
 
     if args.target_characters is not None and args.target_characters < 1:
         parser.error("--target-characters must be positive when provided")
-    if not args.story_type.strip() or args.story_type.strip() == "待定":
-        parser.error("--story-type must be a user-confirmed fiction direction")
     args.slug = slugify(args.slug or args.title)
     project_dir = args.project_root / args.slug
     for dirname in CHINESE_DIRS:
@@ -184,23 +213,27 @@ def main() -> int:
                 "",
                 "## 已确认事实",
                 "- 发表目标：番茄小说",
-                f"- 小说方向：{args.story_type}",
+                f"- 小说方向：{args.story_type or '待确认'}",
                 "",
                 "## 草案，不得视为事实",
                 f"- 暂定项目名：{args.title}",
                 f"- 主角姓名候选：{args.protagonist or '尚未设计'}",
                 "",
                 "## 当前待确认",
-                "- 三套故事路线、目标字数、动态卷数和结局方向。",
+                "- 题材定位、核心幻想、目标读者、预计篇幅和故事路线。",
             ]
         ),
     )
     write(
         project_dir / "计划" / "00-方向与路线选择.md",
         "# 方向与路线选择\n\n"
-        f"- 已确认方向：{args.story_type}\n"
-        "- 当前阶段：生成三套明显不同的故事路线，等待用户选择。\n"
-        "- 路线必须包含核心看点、主角基本定位、长期主线、升级方式、预计字数、预计卷数和结局方向。\n",
+        f"- 当前方向：{args.story_type or '待确认'}\n"
+        + (
+            "- 当前阶段：生成三套明显不同的故事路线，等待用户选择。\n"
+            if args.story_type.strip()
+            else "- 当前阶段：补齐原始创意、题材定位、核心幻想、目标读者和预计篇幅。\n"
+        )
+        + "- 路线必须包含核心看点、主角基本定位、长期主线、升级方式、预计字数、预计卷数和结局方向。\n",
     )
     write(project_dir / "计划" / "01-整书大纲.md", "# 整书大纲\n\n待选定故事路线后生成。")
     write(
@@ -223,19 +256,23 @@ def main() -> int:
         project_dir / "事实依据" / "00-创作确认状态.md",
         frontmatter("design-status", args.slug)
         + f"# {args.title}｜创作确认状态\n\n"
-        + "- 当前阶段：route_selection\n"
-        + f"- 已确认：direction（{args.story_type}）\n"
-        + "- 下一步：生成三套路线候选并等待用户选择。\n"
-        + "- 门禁：不得生成整书大纲、正式人物卡、前三章或正文。\n",
+        + f"- 当前阶段：{'story_positioning' if args.story_type.strip() else 'idea_intake'}\n"
+        + f"- 已确认：{'direction（' + args.story_type + '）' if args.story_type.strip() else '暂无'}\n"
+        + (
+            "- 下一步：生成三套路线候选并等待用户选择。\n"
+            if args.story_type.strip()
+            else "- 下一步：确认题材方向、核心幻想、目标读者和预计篇幅。\n"
+        )
+        + "- 门禁：关键阶段未确认前不得越级生成后续正式内容。\n",
     )
     write(
         project_dir / "事实依据" / "01-硬门禁.md",
         frontmatter("hard-gates", args.slug)
         + "# 硬门禁\n\n"
-        + "- 方向未确认，不创建项目。\n"
-        + "- 路线未选择，不生成整书与分卷大纲。\n"
-        + "- 大纲未确认，不创建正式人物卡。\n"
-        + "- 人物、家庭、关系、世界、大纲回看和前三章未确认，不写正文。\n"
+        + "- 创意未形成明确方向，不进入故事路线确认。\n"
+        + "- 路线未选择，不生成整书大纲。\n"
+        + "- 整书大纲未确认，不生成正式分卷与核心人物事实。\n"
+        + "- 分卷、世界、人物、校准、时间线和前三章未确认，不写正文。\n"
         + "- 草案不得写进正文事实源。\n",
     )
     write(
@@ -264,9 +301,16 @@ def main() -> int:
         + "3. [[计划/00-方向与路线选择]]\n"
         + "4. [[series-state.json]]\n\n"
         + "## 当前动作\n\n"
-        + "- 只生成三套故事路线候选，等待用户选择。\n"
-        + "- 用户说“继续”只推进当前设计阶段，不得创建正文。\n",
+        + (
+            "- 生成三套故事路线候选，等待用户选择。\n"
+            if args.story_type.strip()
+            else "- 补齐创意输入并确认小说方向。\n"
+        )
+        + "- 用户说“继续”时读取 `workflow_progress.next_action`，只推进当前任务。\n",
     )
+    from build_obsidian_context import refresh_project_context
+
+    refresh_project_context(project_dir)
     print(f"Initialized guided Fanqie fiction project at {project_dir}")
     return 0
 

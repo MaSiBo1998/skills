@@ -1,4 +1,4 @@
-# 番茄分步创作项目状态合同
+# 标准网文生产项目状态合同
 
 ## 默认目录
 
@@ -25,9 +25,39 @@ fiction-projects/<book-slug>/
 └── series-state.json             # 唯一结构化事实源
 ```
 
-方向未确认前不创建项目。初始化只创建目录、方向记录和路线选择入口；不会自动创建主角、家庭、远期人物、固定十卷或正文。
+用户只有创意时即可创建项目并进入 `idea_intake`；方向已确认时直接进入 `story_positioning`。初始化不会自动创建正式人物、固定十卷或正文。
 
-## schema v2
+## schema v3
+
+schema v3 保留既有正文事实字段，并新增统一自动续接状态：
+
+```json
+{
+  "schema_version": 3,
+  "workflow_progress": {
+    "project_status": "designing",
+    "current_stage": "idea_intake",
+    "current_substage": "collect_idea",
+    "stage_status": "draft",
+    "last_completed_action": "已建立小说项目。",
+    "next_action": "补齐原始创意、题材定位、核心幻想、目标读者和预计篇幅。",
+    "pending_confirmation": [],
+    "pending_questions": [],
+    "blocked_by": [],
+    "stage_states": {},
+    "revision_scope": [],
+    "updated_at": "ISO-8601"
+  }
+}
+```
+
+- `project_status`：`designing`、`writing`、`revising`、`complete`。
+- `stage_status`：`not_started`、`draft`、`pending_confirmation`、`confirmed`、`needs_revision`。
+- `stage_states` 必须包含十二个标准阶段。
+- 每次生成、确认或修订后立即更新 `last_completed_action` 和 `next_action`。
+- `00-skill读取入口.md` 由状态生成，不得反向覆盖 JSON。
+
+## legacy schema v2
 
 ```json
 {
@@ -110,13 +140,14 @@ fiction-projects/<book-slug>/
 }
 ```
 
-`key_events` 必须为 3—5 项。卷数随故事规模动态生成，不设固定十卷。人物调整影响卷级事件时，将受影响卷改为 `needs_revision`，重新确认后才能恢复 `confirmed`。
+`key_events` 必须为 3—8 项。卷数随故事规模动态生成，不设固定十卷。人物调整影响卷级事件时，将受影响卷改为 `needs_revision`，重新确认后才能恢复 `confirmed`。
 
 ## 阶段与项目状态
 
 - `planning`：方向、大纲、人物或包装仍在分步设计。
 - `awaiting_confirmation`：全部设计阶段完成，等待明确正文确认。
 - `writing`：用户明确确认开始正文，且正文准备校验通过。
+- `revising`：正文或核心设定正在修订，正常续写位置保留但暂不推进。
 - `complete`：全书完成。
 
 `planning` 和 `awaiting_confirmation` 期间禁止在 `正文/` 创建章节。
@@ -168,6 +199,6 @@ Markdown 是快速入口，不反向覆盖 JSON。每次状态变化后运行 `b
 ## 旧项目兼容
 
 - schema v1 仍通过普通结构校验，避免破坏现有项目。
-- schema v1 或缺少 `design_progress` 的项目执行 `--require-design-ready` 时必须失败。
-- Obsidian 入口要显示“旧项目需要补确认”，先确认既有方向、大纲、主角、家庭和第一卷角色，再决定保留或修订。
-- 不自动删除、迁移或把旧草案改成事实；未确认远期内容不得继续指导新正文。
+- schema v2 使用 `migrate_series_state.py` 无损增加 `workflow_progress`，原 `design_progress` 保留兼容读取。
+- schema v1 或缺少设计确认记录的项目执行 `--require-design-ready` 时必须失败。
+- 迁移不自动删除正文、大纲、人物、关系、伏笔和审稿记录，也不把旧草案改成事实。

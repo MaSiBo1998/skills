@@ -9,8 +9,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from workflow_state import validate_workflow_progress
 
-VALID_STATUSES = {"planning", "awaiting_confirmation", "writing", "complete"}
+VALID_STATUSES = {"planning", "awaiting_confirmation", "writing", "revising", "complete"}
 VALID_PROMISE_STATUSES = {"active", "fulfilled", "adjusted", "dropped"}
 VALID_CRAFT_FOCUSES = {
     "开局钩子",
@@ -83,10 +84,10 @@ def validate_guided_design(state: dict, errors: list[str]) -> None:
     progress = state.get("design_progress")
     design = state.get("story_design")
     if not isinstance(progress, dict):
-        errors.append("schema v2 requires design_progress")
+        errors.append("schema v2+ requires design_progress")
         return
     if not isinstance(design, dict):
-        errors.append("schema v2 requires story_design")
+        errors.append("schema v2+ requires story_design")
         return
 
     if not str(progress.get("current_stage", "")).strip():
@@ -177,8 +178,8 @@ def validate_guided_design(state: dict, errors: list[str]) -> None:
             if volume.get("status") not in VALID_VOLUME_STATUSES:
                 errors.append(f"story_design.volumes[{index}].status must be one of {sorted(VALID_VOLUME_STATUSES)}")
             key_events = volume.get("key_events")
-            if not isinstance(key_events, list) or not 3 <= len(key_events) <= 5:
-                errors.append(f"story_design.volumes[{index}].key_events must contain 3 to 5 events")
+            if not isinstance(key_events, list) or not 3 <= len(key_events) <= 8:
+                errors.append(f"story_design.volumes[{index}].key_events must contain 3 to 8 events")
             for key in REQUIRED_VOLUME_FIELDS - {"number", "key_events", "status"}:
                 if not str(volume.get(key, "")).strip():
                     errors.append(f"story_design.volumes[{index}].{key} is required")
@@ -268,6 +269,10 @@ def validate(state: dict, require_design_ready: bool = False) -> list[str]:
         errors.append("project.current_volume must be a positive integer")
 
     validate_guided_design(state, errors)
+    if state.get("schema_version", 1) >= 3:
+        errors.extend(validate_workflow_progress(state))
+        ensure_list(state, "timeline", errors)
+        ensure_list(state, "milestones", errors)
 
     characters = ensure_list(state, "characters", errors)
     character_ids: set[str] = set()
@@ -439,7 +444,7 @@ def validate(state: dict, require_design_ready: bool = False) -> list[str]:
         errors.append("project.current_pov must reference an existing character id")
     if state.get("schema_version", 1) < 2 and project.get("status") == "writing" and project.get("current_chapter", 0) == 0:
         errors.append("writing projects require an initialized first chapter state")
-    if require_design_ready or (state.get("schema_version", 1) >= 2 and project.get("status") == "writing"):
+    if require_design_ready or (state.get("schema_version", 1) >= 2 and project.get("status") in {"writing", "revising"}):
         errors.extend(validate_design_ready(state))
     return errors
 

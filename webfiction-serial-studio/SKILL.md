@@ -1,130 +1,103 @@
 ---
 name: webfiction-serial-studio
-description: 用于面向番茄小说发表的原创网文分步共创、小说方向选择、三套故事路线、大纲与动态分卷、主角与家庭背景设计、关键人物关系、世界与事实边界、书名简介、前三章启动器、正文续写、伏笔、导图和一致性审稿。用户提到番茄发表、写网文、小说方向、故事路线、整书大纲、分卷大纲、人物性格、家庭背景、人物关系、前三章、章节正文、续写或提高追读时，应使用本 skill；默认先由用户确认方向，再搭大纲，再逐步完善人物，未确认前不写正文，也不默认拆书或扫描榜单。
+description: 用于面向番茄小说发表的原创网文标准化生产、创意扩展、故事路线、整书大纲、分卷设计、世界与时代核验、人物关系、时间线、关键节点、前三章、正文连载、卷末复盘、完结与自动续接。用户提到写网文、番茄发表、小说创意、大纲、分卷、人物、前三章、章节正文、续写、继续这个小说、修改主线或检查现实漏洞时，应使用本 skill；每次优先读取当前小说目录的 series-state.json 和 workflow_progress，自动恢复上次阶段，不让用户重复说明进度。
 ---
 
-# 番茄发表向分步小说创作工作室
+# 标准网文生产与自动续接编排器
 
-本 skill 服务“先把故事设计清楚，再写能让番茄读者持续追读的正文”。核心顺序不可颠倒：
+本文件只负责恢复进度、阶段路由、关键门禁和模块导航。详细业务规则下沉到 references；`series-state.json` 是唯一事实源。
 
-`用户选方向 -> 三套故事路线 -> 用户选路线 -> 整书与分卷大纲 -> 用户确认大纲 -> 逐步完善人物 -> 人物与大纲双向校准 -> 书名简介 -> 前三章 -> 明确确认后写正文`
+## 启动入口
 
-## 最高优先级门禁
+每次进入本 skill 固定执行：
 
-- 用户没有明确小说方向时，只询问方向；不要创建项目，不要生成大纲。
-- 方向确认后才运行初始化脚本。初始化只保存方向并进入 `route_selection`，不创建正式主角、不默认 200 万字、不固定十卷。
-- 路线未选择，不生成整书与分卷大纲；大纲未确认，不创建正式人物卡。
-- 人物、家庭、第一卷核心人物、双向关系、世界事实边界和大纲回看未确认，不生成书名简介与前三章。
-- 未收到“设定和前三章确认，开始正文”等明确确认，不创建正文。用户说“继续”只推进当前设计阶段。
-- 草案、模型推断和路线候选不得写进已确认事实；只有用户确认或用户明确说“你决定”授权当前阶段后，才能写入事实源。
-- 旧项目缺少 schema v2 `design_progress` 时，先进入既有设定补确认，不得直接续写，也不自动删除旧内容。
+1. 在当前小说目录查找 `series-state.json`；一个目录只对应一本小说。
+2. 存在时读取 `workflow_progress`，先用一句话说明项目、阶段、上次完成内容和下一步。
+3. 不存在时从 `idea_intake` 建档，不要求用户先准备完整大纲。
+4. 只执行 `next_action`；用户说“继续”不等于确认。
+5. 每次生成、确认或修改后更新状态，并刷新 `00-skill读取入口.md`。
 
-分步字段、每阶段问题和确认格式见 [分步创作流程](references/guided-creation-workflow.md)，状态结构见 [项目状态合同](references/project-contract.md)。
+自动续接、迁移和脚本见 [自动续接与旧项目迁移](references/resume-migration.md)。
 
-## 阶段 0：方向选择
+## 十二阶段
 
-如果用户只说“想写一本番茄小说”，每轮只问 2—3 个高价值问题，先确认题材方向、核心幻想和主要读者期待。用户已经明确“都市重生创业”“玄幻升级”“年代家庭”等方向时，不重复追问，直接进入路线选择。
+`idea_intake -> story_positioning -> global_outline -> volume_design -> world_research -> character_system -> outline_calibration -> timeline_foreshadow -> packaging_opening -> serialization -> volume_review -> completion`
 
-方向未确认时不运行脚本，不创建文件夹。
+完整阶段产物和确认规则见 [标准网文生产流程](references/standard-process.md)。
 
-## 阶段 1：三套故事路线
+## 关键确认门禁
 
-方向确认后初始化项目：
+- 小说方向、最终路线、整书大纲、整体分卷、核心人物、前三章和长期主线变化必须得到用户确认。
+- 普通资料、次要配角、章节卡细节和不影响长期主线的调整由 skill 补齐并记录。
+- 草案、路线候选和模型推断不得写入已确认事实。
+- 用户说“你决定”只授权当前阶段；除非明确授权后续阶段，不得扩大授权。
+- 修改核心设定前先计算影响范围，只重新确认实质变化内容。
+- 设计门禁未完成不得进入正文；修订范围未清空不得静默恢复连载。
 
-```powershell
-python scripts/init_fiction_project.py --title <暂定项目名> --slug <项目slug> --story-type <已确认方向> --prompt "<用户原始提示>"
-```
+## 模块导航
 
-随后提供三套明显不同的路线。每套只包含：
+- 创意、故事路线、读者承诺和整书大纲：[创意、定位与整书大纲](references/story-planning.md)
+- 分卷简纲、逐卷深化和卷末复盘：[分卷设计与卷末复盘](references/volume-design.md)
+- 年代、地点、职业、经济和联网资料：[世界、时代与现实资料](references/world-research.md)
+- 主角、家庭、角色关系、时间线和伏笔：[人物、关系、时间线与伏笔](references/character-timeline.md)
+- 书名简介和前三章启动器：[包装与前三章生产](references/opening-production.md)
+- 单章生产、状态回写和周期门禁：[正文连载生产链](references/serialization-production.md)
+- 八维真实性审稿和高风险反例：[真实性与综合审稿门禁](references/reality-grounding.md)
+- 章节字数、标题、因果和行文细则：[章节质量检查](references/chapter-quality.md)
+- 多视角审稿顺序：[编辑审稿视角](references/editorial-review-lenses.md)
+- 读者承诺和节奏：[读者承诺与节奏](references/reader-promise-and-rhythm.md)
 
-- 核心看点与持续读者承诺
-- 主角基本定位，不展开完整人物档案
-- 长期主线与主要升级方式
-- 预计字数区间与动态卷数
-- 结局方向
+## 新项目
 
-等待用户选择或修改。不要同时展开三套分卷大纲，不要擅自混合路线。
-
-## 阶段 2：整书与动态分卷
-
-用户选定路线后，先生成一版完整整书大纲，再按故事规模动态决定卷数。不得为了格式固定十卷。
-
-每卷必须包含：阶段目标、主要矛盾、3—5 个关键事件、阶段爽点、人物变化、卷末高潮和下一卷钩子。所有内容标记为草案，等用户确认后才把 `route` 与 `outline` 写进 `confirmed_stages`。
-
-### 爽文胜负门禁
-
-- 用户选择爽文时，`主要矛盾` 和 `潜在失败代价` 只说明风险成立，不代表每卷必须安排一次实际失败。
-- 禁止机械套用“先吃大亏再成长”的固定模板填满分卷；主角的大方向应持续赢，常规阻力优先转化为反杀、打脸、抢市场、抢人才、规则升级或更大收益。
-- 小阻力应在有限剧情节点内兑现结果，不连续制造低谷；真正改变主线的大败是可选剧情，只有符合用户指定爽感和后续回报时才设计。
-- 用户明确要求“少失败”“一路赢”或类似爽文强度时，该要求优先于通用的挫折成长习惯；不得为了所谓真实感擅自加硬件召回、平台崩盘、市场退出或公开重大事故。
-- 现实感用信息来源、钱、账、合同、归因、结算、供应链、时代能力和可控机会成本证明，不靠反复让主角判断错误。
-
-大纲未确认时，用户说“继续”表示继续修改或确认大纲，不进入人物设计。
-
-## 阶段 3：按大纲逐步完善人物
-
-大纲确认后，每轮只处理一个主题并询问 2—3 个问题：
-
-1. 主角：身份、年龄、欲望、优缺点、恐惧、底线、行为习惯和说话方式。
-2. 家庭：成员、职业、经济状况、居住环境、亲疏关系、责任、创伤和内部矛盾。
-3. 第一卷核心人物：只创建第一卷真正需要出场的配角、对手和帮助者。
-4. 双向关系：双方怎么看彼此、利益冲突、误解、信任变化和关系节点。
-5. 世界事实：时代、地点、职业、技术、商业或世界规则的可验证边界。
-
-先听用户想法，信息不足时才给 2—3 个候选。用户说“你决定”只授权当前阶段，并在 `confirmation_log.source` 记录为 `user_delegated`。
-
-禁止根据远期大纲提前堆大学伙伴、投资人、未来高管或技术专家；未进入当前卷的人物只保留角色功能占位，不写成正式人物事实。
-
-## 阶段 4：人物与大纲双向校准
-
-人物确认后逐卷检查：关键行动是否符合人物欲望、缺点、知识边界、家庭压力和潜在失败代价。潜在代价用于证明人物知道自己在冒什么风险，不等于正文必须让风险实际发生。若人物与大纲冲突，不能强迫人物按旧大纲行动，也不能静默改大纲；将相关卷标记 `needs_revision`，修改后重新让用户确认。
-
-完成后确认 `outline_review`，再生成书名简介、第一阶段关键节点、伏笔、读者承诺和前三章。
-
-## 阶段 5：包装与前三章
-
-- 书名必须给出明确读者承诺，不能像内部设定名。
-- 简介必须说清主角、开局危机、翻盘依据、持续爽点和长期追读理由。
-- 前三章必须完成危机、欲望、能力或资源边界、第一波爽点和下一章钩子。
-- 章节名必须像读者入口，不像作者备注、产品流程或 AI 总结。
-
-先确认书名简介，再确认前三章卡。只有 `opening` 已确认、至少三张章节卡已写入状态，才能把当前阶段设为 `ready_to_write`。
-
-进入正文前运行：
+用户只有创意时即可初始化：
 
 ```powershell
-python scripts/validate_series_state.py --state <项目>/series-state.json --require-design-ready
+python scripts/init_fiction_project.py --title <暂定项目名> --slug <项目slug> --prompt "<用户创意>"
 ```
 
-## 阶段 6：正文连载
-
-收到明确正文确认后，把项目状态改为 `writing`、设计阶段改为 `writing`，再按以下顺序执行：
-
-1. 运行状态校验并渲染导图。
-2. 读取 `00-skill读取入口.md`、`事实依据/00-当前续写依据.md`、硬门禁、当前章节卡、人物关系、伏笔和关键节点。
-3. 写约 2,500 个中文字符；默认控制在 2,400—2,650。
-4. 先按 [章节质量检查](references/chapter-quality.md) 和 [编辑审稿镜头](references/editorial-review-lenses.md) 查结构、人物、现实逻辑和连续性，再润行文。
-5. 更新事件、人物关系、地点、道具、伏笔、读者承诺和章节元数据到 `series-state.json`。
-6. 刷新 Obsidian 上下文、导图、正文审稿和节奏审稿。
-
-正文必须保留反弱智逻辑、信息来源触发链、现实行为、生活台词、章节名和去 AI 味门禁。题材专属例子只在实际命中对应题材时使用，不把都市创业案例套给其他小说。
-
-## Obsidian 读取规则
-
-- 设计期先读 `事实依据/00-创作确认状态.md`，只处理当前阶段。
-- 正文期先读 `事实依据/00-当前续写依据.md`，再读本章相关索引。
-- `series-state.json` 是唯一结构化事实源；Markdown 是快速入口和人读索引，不反向覆盖 JSON。
-- `归档/` 默认不读，除非用户明确要求回看旧方案。
-
-刷新入口：
+用户已经确认方向时附加：
 
 ```powershell
-python scripts/build_obsidian_context.py --project-dir <项目>
+--story-type <已确认方向>
 ```
 
-## 验收
+初始化后必须按 `workflow_progress.next_action` 推进，不手写另一套阶段记录。
+
+## 状态更新
+
+每轮结束更新至少四项：
+
+- `last_completed_action`
+- `next_action`
+- `pending_confirmation` / `pending_questions`
+- `current_stage` / `current_substage` / `stage_status`
+
+使用：
 
 ```powershell
-python C:\Users\11731\.codex\skills\.system\skill-creator\scripts\quick_validate.py <skill目录>
-python -m unittest discover -s <skill目录>\tests -v
+python scripts/update_workflow_progress.py --project-dir <项目目录> --current-stage <阶段> --current-substage <子任务> --stage-status <状态> --last-completed-action "<完成内容>" --next-action "<下一步>"
+python scripts/build_obsidian_context.py --project-dir <项目目录>
 ```
+
+核心设定变化时使用 `calculate_revision_impact.py`，不得只改正文而不更新下游状态。
+
+## 正文门禁
+
+每章固定执行：状态与上一章 -> 本卷与人物依据 -> 章节卡 -> 场景事实卡 -> 联网核验 -> 正文 -> 结构/人物/因果/连续性/真实性/行文审稿 -> 自动修正 -> 保存报告与事实 -> 更新下一章。
+
+- 明确错误必须修改，不能只标风险后交稿。
+- 只有可靠来源冲突或无法证实的疑点允许保留，并在现实校验报告中标注。
+- 每章必须生成 `审稿报告/第XXX章-现实校验.md`，包含职业流程、因果链、经济画像、空间物理、时代工具、生活收纳、身份化台词、信任与安全八项。
+- 每三章检查阶段大钩子，每卷结束执行卷末复盘。
+- 不模仿在世作者个人风格，不协助规避 AI 检测；改为原创自然文风和可验证场景。
+
+## 校验
+
+```powershell
+python scripts/validate_series_state.py --state <项目目录>/series-state.json
+python scripts/validate_series_state.py --state <项目目录>/series-state.json --require-design-ready
+python scripts/audit_manuscript.py --manuscript-dir <项目目录>/正文 --output <项目目录>/审稿报告/正文机械审稿报告.md --reality-report-dir <项目目录>/审稿报告 --require-reality-reports
+python scripts/audit_story_rhythm.py --state <项目目录>/series-state.json --output <项目目录>/审稿报告/章节节奏与读者承诺审稿报告.md --strict
+```
+
+旧项目先运行 `migrate_series_state.py`；迁移不得删除正文、人物、大纲和历史审稿记录。

@@ -10,6 +10,9 @@ from collections import Counter
 from pathlib import Path
 
 
+REALITY_DIMENSIONS = ["职业流程", "因果链", "经济画像", "空间物理", "时代工具", "生活收纳", "身份化台词", "信任与安全"]
+
+
 def chinese_character_count(text: str) -> int:
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
@@ -33,6 +36,33 @@ def repeated_phrases(texts: list[str], ngram: int = 8) -> list[dict]:
     ]
 
 
+def chapter_number(path: Path) -> int | None:
+    match = re.search(r"第0*(\d+)章", path.stem)
+    return int(match.group(1)) if match else None
+
+
+def reality_report_risks(chapters: list[Path], report_dir: Path | None) -> dict:
+    if report_dir is None:
+        return {"checked": False, "missing": [], "incomplete": []}
+    reports = list(report_dir.glob("*现实校验*.md")) if report_dir.exists() else []
+    by_number = {chapter_number(path): path for path in reports if chapter_number(path) is not None}
+    missing: list[int] = []
+    incomplete: list[dict] = []
+    for chapter in chapters:
+        number = chapter_number(chapter)
+        if number is None:
+            continue
+        report = by_number.get(number)
+        if report is None:
+            missing.append(number)
+            continue
+        text = report.read_text(encoding="utf-8")
+        absent = [dimension for dimension in REALITY_DIMENSIONS if dimension not in text]
+        if absent:
+            incomplete.append({"chapter": number, "missing_dimensions": absent})
+    return {"checked": True, "missing": missing, "incomplete": incomplete}
+
+
 def markdown_report(report: dict) -> str:
     lines = [
         "# 正文机械审稿报告",
@@ -49,6 +79,17 @@ def markdown_report(report: dict) -> str:
         lines.extend(f"- `{item['phrase']}`：{item['count']} 次" for item in duplicates)
     else:
         lines.append("- 未发现重复 8 字短语。")
+    reality = report["reality_reports"]
+    lines.extend(["", "## 真实性报告门禁", ""])
+    if not reality["checked"]:
+        lines.append("- 未启用真实性报告检查。")
+    else:
+        lines.append(f"- 缺失报告章节：{reality['missing'] or '无'}")
+        if reality["incomplete"]:
+            for item in reality["incomplete"]:
+                lines.append(f"- 第 {item['chapter']} 章缺少维度：{'、'.join(item['missing_dimensions'])}")
+        else:
+            lines.append("- 已有报告均包含八个真实性维度。")
     lines.extend([
         "",
         "## 人工复核",
@@ -64,6 +105,8 @@ def main() -> int:
     parser.add_argument("--manuscript-dir", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--recent-chapters", type=int, default=10)
+    parser.add_argument("--reality-report-dir", type=Path)
+    parser.add_argument("--require-reality-reports", action="store_true")
     args = parser.parse_args()
     if args.recent_chapters < 1:
         parser.error("--recent-chapters must be at least 1")
@@ -76,11 +119,15 @@ def main() -> int:
         "total_chinese_characters": sum(chinese_character_count(text) for text in chapter_texts),
         "checked_chapters": len(checked),
         "repeated_phrases": repeated_phrases(checked),
+        "reality_reports": reality_report_risks(chapters, args.reality_report_dir),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.with_suffix(".json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     args.output.write_text(markdown_report(report), encoding="utf-8")
     print(f"Wrote {args.output}")
+    reality = report["reality_reports"]
+    if args.require_reality_reports and (not reality["checked"] or reality["missing"] or reality["incomplete"]):
+        return 1
     return 0
 
 
