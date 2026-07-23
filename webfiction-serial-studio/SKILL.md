@@ -42,6 +42,7 @@ description: 用于面向番茄小说发表的原创网文标准化生产、创�
 - 主角、家庭、角色关系、时间线和伏笔：[人物、关系、时间线与伏笔](references/character-timeline.md)
 - 书名简介和前三章启动器：[包装与前三章生产](references/opening-production.md)
 - 单章生产、状态回写和周期门禁：[正文连载生产链](references/serialization-production.md)
+- 三候选、匿名比较、独立重写和新鲜读者测试：[创意生成 V2](references/creative-generation-v2.md)
 - 八维真实性审稿和高风险反例：[真实性与综合审稿门禁](references/reality-grounding.md)
 - 章节字数、标题、因果和行文细则：[章节质量检查](references/chapter-quality.md)
 - 多视角审稿顺序：[编辑审稿视角](references/editorial-review-lenses.md)
@@ -83,7 +84,7 @@ python scripts/build_obsidian_context.py --project-dir <项目目录>
 
 ## 正文门禁
 
-每章固定执行：状态与上一章 -> 本卷与人物依据 -> 章节卡 -> 场景事实卡 -> 联网核验 -> 正文 -> 结构/人物/因果/连续性/真实性/行文审稿 -> 自动修正 -> 保存报告与事实 -> 更新下一章。
+前三章重写、重点章和用户明确认为正文平庸时，固定执行创意生成 V2：最小场景简报 -> 三套差异化路线与正文 -> 匿名两两比较 -> 独立重写 -> 硬事实校验 -> 新鲜读者测试 -> 保存最终正文。普通连载章节可按风险使用单稿流程，但不得让同一份正文仅靠自评宣布质量通过。
 
 - 明确错误必须修改，不能只标风险后交稿。
 - 只有可靠来源冲突或无法证实的疑点允许保留，并在现实校验报告中标注。
@@ -98,6 +99,7 @@ python scripts/validate_series_state.py --state <项目目录>/series-state.json
 python scripts/validate_series_state.py --state <项目目录>/series-state.json --require-design-ready
 python scripts/audit_manuscript.py --manuscript-dir <项目目录>/正文 --output <项目目录>/审稿报告/正文机械审稿报告.md --reality-report-dir <项目目录>/审稿报告 --require-reality-reports
 python scripts/audit_story_rhythm.py --state <项目目录>/series-state.json --output <项目目录>/审稿报告/章节节奏与读者承诺审稿报告.md --strict
+python scripts/validate_creative_generation.py --project-dir <项目目录> --run-dir <项目目录>/创作实验/本轮目录
 ```
 
 旧项目先运行 `migrate_series_state.py`；迁移不得删除正文、人物、大纲和历史审稿记录。

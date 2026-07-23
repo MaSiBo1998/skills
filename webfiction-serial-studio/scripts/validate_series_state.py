@@ -78,6 +78,37 @@ def ensure_list(state: dict, key: str, errors: list[str]) -> list:
     return value
 
 
+def validate_creative_generation_state(state: dict, errors: list[str]) -> None:
+    generation = state.get("creative_generation")
+    if generation is None:
+        return
+    if not isinstance(generation, dict):
+        errors.append("creative_generation must be an object")
+        return
+    if generation.get("version") != 2:
+        errors.append("creative_generation.version must be 2")
+    if generation.get("candidate_count") != 3:
+        errors.append("creative_generation.candidate_count must be 3")
+    if generation.get("evaluation_mode") != "anonymous_pairwise":
+        errors.append("creative_generation.evaluation_mode must be anonymous_pairwise")
+    if generation.get("status") not in {"in_progress", "complete"}:
+        errors.append("creative_generation.status must be in_progress or complete")
+    chapters = generation.get("chapters")
+    if not isinstance(chapters, list):
+        errors.append("creative_generation.chapters must be an array")
+        return
+    for index, chapter in enumerate(chapters):
+        if not isinstance(chapter, dict):
+            errors.append(f"creative_generation.chapters[{index}] must be an object")
+            continue
+        if chapter.get("winner") not in {"X", "Y", "Z"}:
+            errors.append(f"creative_generation.chapters[{index}].winner must be X, Y or Z")
+        if not isinstance(chapter.get("wins"), int) or chapter["wins"] < 2:
+            errors.append(f"creative_generation.chapters[{index}].wins must be at least 2")
+        if not str(chapter.get("final_file", "")).strip():
+            errors.append(f"creative_generation.chapters[{index}].final_file is required")
+
+
 def validate_guided_design(state: dict, errors: list[str]) -> None:
     if state.get("schema_version", 1) < 2:
         return
@@ -269,6 +300,7 @@ def validate(state: dict, require_design_ready: bool = False) -> list[str]:
         errors.append("project.current_volume must be a positive integer")
 
     validate_guided_design(state, errors)
+    validate_creative_generation_state(state, errors)
     if state.get("schema_version", 1) >= 3:
         errors.extend(validate_workflow_progress(state))
         ensure_list(state, "timeline", errors)

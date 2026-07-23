@@ -584,6 +584,81 @@ class StoryToolTests(unittest.TestCase):
         self.assertIn("实际失败", prompt_text)
         self.assertIn("十二阶段", skill_text)
 
+    def test_creative_generation_v2_accepts_complete_distinct_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            run = root / "创作实验" / "前三章-v2"
+            candidates = run / "候选"
+            candidates.mkdir(parents=True)
+            state = sample_state()
+            state["creative_generation"] = {
+                "version": 2,
+                "status": "complete",
+                "candidate_count": 3,
+                "evaluation_mode": "anonymous_pairwise",
+                "chapters": [
+                    {"number": number, "winner": "Y", "wins": 2, "final_file": f"正文/第{number:03d}章.md"}
+                    for number in range(1, 4)
+                ],
+            }
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            (run / "00-最小场景简报.md").write_text("欲望、阻力、失败代价和章末承诺", encoding="utf-8")
+            for number in range(1, 4):
+                for label, suffix in (("X", "难堪"), ("Y", "误读"), ("Z", "倒计时")):
+                    text = "\n".join(
+                        [
+                            f"开场动作：{suffix}开场{number}",
+                            f"主要冲突：{suffix}冲突{number}",
+                            f"关系转折：{suffix}转折{number}",
+                            f"章末钩子：{suffix}钩子{number}",
+                            "正文候选。",
+                        ]
+                    )
+                    (candidates / f"第{number:03d}章-{label}.md").write_text(text, encoding="utf-8")
+            reports = {
+                "01-匿名两两评审.md": "X 对 Y\nX 对 Z\nY 对 Z\n胜出：Y",
+                "02-新鲜读者测试.md": "是否愿意继续读\n第一次想跳读\n最像模型生成\n能记住哪些人物",
+                "03-事实与连续性校验.md": "人物 情节 逻辑 时间 空间 时代",
+                "04-新旧版本盲测.md": "整体胜出：新版\n单章比较：新版胜出三章",
+            }
+            for filename, text in reports.items():
+                (run / filename).write_text(text, encoding="utf-8")
+            result = self.run_script(
+                "validate_creative_generation.py", "--project-dir", str(root), "--run-dir", str(run)
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_creative_generation_v2_rejects_synonym_candidates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            run = root / "run"
+            candidates = run / "候选"
+            candidates.mkdir(parents=True)
+            state = sample_state()
+            state["creative_generation"] = {
+                "version": 2,
+                "status": "complete",
+                "candidate_count": 3,
+                "evaluation_mode": "anonymous_pairwise",
+                "chapters": [
+                    {"number": number, "winner": "X", "wins": 2, "final_file": f"正文/{number}.md"}
+                    for number in range(1, 4)
+                ],
+            }
+            (root / "series-state.json").write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            (run / "00-最小场景简报.md").write_text("简报", encoding="utf-8")
+            same = "开场动作：同一开场\n主要冲突：同一冲突\n关系转折：同一转折\n章末钩子：同一钩子"
+            for number in range(1, 4):
+                for label in ("X", "Y", "Z"):
+                    (candidates / f"第{number:03d}章-{label}.md").write_text(same, encoding="utf-8")
+            for filename in ("01-匿名两两评审.md", "02-新鲜读者测试.md", "03-事实与连续性校验.md", "04-新旧版本盲测.md"):
+                (run / filename).write_text("占位", encoding="utf-8")
+            result = self.run_script(
+                "validate_creative_generation.py", "--project-dir", str(root), "--run-dir", str(run)
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("too similar", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
