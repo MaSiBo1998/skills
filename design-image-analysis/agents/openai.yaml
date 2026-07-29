@@ -1,4 +1,7 @@
 interface:
   display_name: "设计图图片解析"
   short_description: "按375宽基准解析design设计图的布局视觉规格"
-  default_prompt: "使用 design-image-analysis 读取项目 design 文件夹里的设计图图片，按 375px 宽基准解析布局、间距、颜色、文字、切图需求，并输出复原规格清单；资产候选优先扫描 src/assets，也要按项目结构检查 public、assets 等常见目录，并说明页面顺序判断依据。"
+  default_prompt: >-
+    使用 design-image-analysis 按 375px 宽基准解析设计图。设计图可以来自项目 design 文件夹，也可以是用户本轮直接提供的截图。
+    用户提供单张截图且目标组件或状态分支明确时，进入快速解析：只输出本次所需的宽高、滚动、间距、字体、输入框、按钮等差异清单，不做整页审计，不搜索其他项目；没有新增或替换切图时不扫描 src/assets、public、assets。
+    只有用户未提供图片时才读取 design 文件夹，只有确有切图需求时才扫描资源候选；多图场景仍说明页面顺序判断依据。
