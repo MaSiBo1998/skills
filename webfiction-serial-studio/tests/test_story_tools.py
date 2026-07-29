@@ -182,6 +182,11 @@ class StoryToolTests(unittest.TestCase):
             check=False,
         )
 
+    def test_init_default_root_points_to_write_skill_partition(self) -> None:
+        result = self.run_script("init_fiction_project.py", "--help")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(r"C:\Users\11731\Desktop\write-skill\小说创作\项目", result.stdout)
+
     def test_init_allows_idea_only_and_starts_at_idea_intake(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             result = self.run_script(

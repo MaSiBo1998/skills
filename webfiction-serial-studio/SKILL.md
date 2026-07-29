@@ -50,7 +50,7 @@ description: 用于面向番茄小说发表的原创网文标准化生产、创�
 
 ## 新项目
 
-用户只有创意时即可初始化：
+用户只有创意时即可初始化。未传 `--project-root` 时，项目固定创建到 `C:\Users\11731\Desktop\write-skill\小说创作\项目`：
 
 ```powershell
 python scripts/init_fiction_project.py --title <暂定项目名> --slug <项目slug> --prompt "<用户创意>"
@@ -63,6 +63,8 @@ python scripts/init_fiction_project.py --title <暂定项目名> --slug <项目s
 ```
 
 初始化后必须按 `workflow_progress.next_action` 推进，不手写另一套阶段记录。
+
+只有用户明确指定其他创作仓库或测试目录时才传 `--project-root` 覆盖默认位置；不得因为当前 shell 工作目录不同，把正式小说散落到其他 `fiction-projects` 目录。
 
 ## 状态更新
 

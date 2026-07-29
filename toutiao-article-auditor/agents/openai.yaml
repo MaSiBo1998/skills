@@ -1,0 +1,5 @@
+interface:
+  display_name: "专业头条文章审核员"
+  short_description: "逐段审核今日头条长文的AI痕迹，打分并生成整篇重写任务"
+  default_prompt: "使用 toutiao-article-auditor 审核正式今日头条文章。先读取用户原始观点、事实边界、目标账号、5个标题、摘要、正文、最近三篇文章模式和当前重写轮次，再按 references/scoring-rubric.md 逐段评分。重点检查用户观点是否被原顺序复制成目录、多个章节是否重复观点解释建议总结闭环、开头之后是否切换成说明文、历史案例是否被写成百科背景、后半篇是否过度完整。只有总分不低于85、风险为低且无硬性失败时才能 pass；否则引用具体原句，生成3到5条可执行 rewrite_brief 交回 wechat-humor-article 从空白稿重写。第3轮仍未通过时输出 manual_review。不要直接代写全文，不调用第三方AI检测器，也不承诺人工特征百分比。"
+

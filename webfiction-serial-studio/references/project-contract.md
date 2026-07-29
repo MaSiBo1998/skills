@@ -3,7 +3,7 @@
 ## 默认目录
 
 ```text
-fiction-projects/<book-slug>/
+C:\Users\11731\Desktop\write-skill\小说创作\项目\<book-slug>\
 ├── 正文/                         # 设计与前三章确认后才允许写入
 ├── 计划/
 │   ├── 00-方向与路线选择.md

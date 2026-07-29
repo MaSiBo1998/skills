@@ -222,6 +222,12 @@
       "prompt": "三稿比较后，X、Y、Z各赢一场，平均分非常接近。",
       "expected_output": "判定无明显胜者并重新生成差异更大的候选；不得按微小平均分强行融合或宣布胜出。",
       "files": []
+    },
+    {
+      "id": 38,
+      "prompt": "新建一本番茄小说项目；如果我没有指定保存目录，就按默认工作区创建，但测试时我会显式传临时目录。",
+      "expected_output": "未传 --project-root 时默认创建到 C:\\Users\\11731\\Desktop\\write-skill\\小说创作\\项目；显式传入 --project-root 时必须使用调用方给定目录，便于测试或用户指定其他仓库。不得再根据当前 shell 目录创建新的 fiction-projects。",
+      "files": ["SKILL.md", "references/project-contract.md", "scripts/init_fiction_project.py", "agents/openai.yaml"]
     }
   ]
 }

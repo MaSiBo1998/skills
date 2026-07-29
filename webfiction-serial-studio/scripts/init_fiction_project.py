@@ -11,6 +11,9 @@ from pathlib import Path
 from workflow_state import new_workflow_progress
 
 
+DEFAULT_PROJECT_ROOT = Path(r"C:\Users\11731\Desktop\write-skill\小说创作\项目")
+
+
 CHINESE_DIRS = [
     "正文",
     "计划",
@@ -183,8 +186,13 @@ def build_state(args: argparse.Namespace) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--project-root", type=Path, default=Path("fiction-projects"))
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=DEFAULT_PROJECT_ROOT,
+        help="小说项目根目录；显式传入时覆盖默认 write-skill 中文分区",
+    )
     parser.add_argument("--title", required=True, help="暂定项目名；正式书名在 packaging 阶段确认")
     parser.add_argument("--slug")
     parser.add_argument("--story-type", default="", help="可选；用户已经确认的小说方向")
