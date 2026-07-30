@@ -7,6 +7,7 @@
 - `fact-risk.md`
 - `originality.md`
 - `reader-attraction.md`
+- `corpus-distribution-calibrator.md`
 - 根级 Skill `toutiao-article-auditor`（正式今日头条唯一 AI 痕迹审核）
 - `platform-growth.md`
 
@@ -17,9 +18,10 @@
 2. 事实评审输出 `veto` 时，跳过吸引力和增长优化，只汇总 P0 事实修改并交回写作流程完整重写。
 3. 原创不足时先补素材、利益关系、规则拆解或原创框架，不能只增强情绪。
 4. 第一阶段通过后，运行用户吸引力、平台增长评审，并调用根级 `toutiao-article-auditor`。审核输入必须包含用户原始观点、事实边界、目标账号、文章规格、5个标题、摘要、正文、最近三篇文章的开头/小标题/结尾和当前重写轮次。
-5. 合并全部修改并按 `P0 → P1 → P2 → P3` 排序。
-6. `toutiao-article-auditor` 返回 `rewrite` 时，把它的 `rewrite_brief`、`preserve`、`discard` 和 `next_round_focus` 纳入唯一修改单，交给主写作流程从空白稿完整重写，不使用局部同义词补丁；旧标题、小标题、章节顺序和结尾默认作废。
-7. 每轮重写后重新运行全部评审，最多 3 轮。
+5. AI 痕迹审核完成后，运行 `corpus-distribution-calibrator.md` 的6项分布指标检测。分布指标不达标时，将修改建议纳入统一修改单。
+6. 合并全部修改并按 `P0 → P1 → P2 → P3` 排序。
+7. `toutiao-article-auditor` 返回 `rewrite` 时，把它的 `rewrite_brief`、`preserve`、`discard` 和 `next_round_focus` 纳入唯一修改单，交给主写作流程从空白稿完整重写，不使用局部同义词补丁；旧标题、小标题、章节顺序和结尾默认作废。
+8. 每轮重写后重新运行全部评审，最多 3 轮。
 
 ## 优先级
 
@@ -34,6 +36,7 @@
 - 平台增长不低于 75。
 - 原创增量不低于 75 且至少两项真实增量。
 - `toutiao-article-auditor` 不低于 85、风险为低、`hard_failures` 为空且 `verdict=pass`。
+- `corpus-distribution-calibrator` 6项分布指标全部达标（`decision=pass`）；分布不达标时不影响其他评审分数，但修改建议必须纳入修改单，重写稿须重新检测。
 - 事实质量不低于 90 且无 `veto`。
 - 加权总分不低于 80。
 

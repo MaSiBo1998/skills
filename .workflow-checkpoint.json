@@ -720,9 +720,39 @@
                               "summary":  "No new source skill edits were required; recurring audit revalidated current workflow state and external runtime drift blocker.",
                               "validation":  "quick_validate.py passed for all 16 local skills; filtered reference scan 104 candidates/0 missing; regression 26 cases passed; runtime drift 24 entries remains external-blocked",
                               "at":  "2026-06-10T02:15:03.3369563+08:00"
+                          },
+                          {
+                              "skill":  "front-workflow",
+                              "files":  [
+                                            "agents/openai.yaml",
+                                            "references/execution-chain.md"
+                                        ],
+                              "summary":  "Added the auditable fast-lane checkpoint gate, batch snapshots, logical strong-reference limit, and mandatory edit/exit stop decisions.",
+                              "validation":  "quick_validate.py passed; diff check passed; four runtime mirrors are ok-junction",
+                              "at":  "2026-07-30T16:00:55.1937002+08:00"
+                          },
+                          {
+                              "skill":  "h5-testing-checklist",
+                              "files":  [
+                                            "agents/openai.yaml",
+                                            "references/checkpoint.md",
+                                            "references/testing-workflow.md"
+                                        ],
+                              "summary":  "Added the seven-field fast_lane_guard schema, append-only batch snapshots, and fail-fast validation rules for budget violations.",
+                              "validation":  "quick_validate.py passed; diff check passed; four runtime mirrors are ok-junction",
+                              "at":  "2026-07-30T16:00:55.1937002+08:00"
+                          },
+                          {
+                              "skill":  "workflow-self-improvement",
+                              "files":  [
+                                            "references/workflow-regression-evaluation.md"
+                                        ],
+                              "summary":  "Added a multi-page first/reloan regression case covering supporting-skill over-chaining and repeated KB/Flutter/screenshot exploration.",
+                              "validation":  "quick_validate.py passed; regression suite counted 69 cases with dynamic pass line 304/345; targeted judge 20/20; four runtime mirrors are ok-junction",
+                              "at":  "2026-07-30T16:00:55.1937002+08:00"
                           }
                       ],
-    "last_run_at":  "2026-06-10T02:15:03.3369563+08:00",
+    "last_run_at":  "2026-07-30T16:02:04.8015295+08:00",
     "completed_steps":  [
                             {
                                 "step":  "workflow_improvement_spec",
@@ -4322,6 +4352,42 @@
                                 "status":  "completed",
                                 "summary":  "Normalized runtime hash comparison checked 232 key files and verified 24 drift entries; synchronization remains blocked by writable roots.",
                                 "at":  "2026-06-10T03:16:46.4203385+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_spec_2026-07-30T15_57_30_1662191+08_00",
+                                "status":  "completed",
+                                "summary":  "Confirmed flow-tuning spec: make the existing two-batch and one-reference fast-lane budget auditable through checkpoint state, validation gates, and a targeted regression case.",
+                                "at":  "2026-07-30T15:57:30.1662191+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_orchestration_2026-07-30T15_57_30_1662191+08_00",
+                                "status":  "completed",
+                                "summary":  "Assigned stop decisions to front-workflow, durable state to checkpoint, violation checks to h5-testing-checklist, and regression protection to workflow-self-improvement.",
+                                "at":  "2026-07-30T15:57:30.1662191+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_source_updates_2026-07-30T15_57_30_1662191+08_00",
+                                "status":  "completed",
+                                "summary":  "Updated execution-chain, front-workflow prompt, checkpoint schema, validation workflow, testing prompt, and targeted regression case without touching Platayuda business code.",
+                                "at":  "2026-07-30T15:57:30.1662191+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_validation_2026-07-30T16_00_55_1937002+08_00",
+                                "status":  "completed",
+                                "summary":  "All three modified skills passed quick_validate; regression structure counted 69 cases with pass line 304/345; four targeted fast-lane cases scored 20/20 with no failures.",
+                                "at":  "2026-07-30T16:00:55.1937002+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_runtime_check_2026-07-30T16_00_55_1937002+08_00",
+                                "status":  "completed",
+                                "summary":  "front-workflow, h5-testing-checklist, and workflow-self-improvement are valid junctions in Codex, Trae, Claude, and active .agents runtimes; no repair was needed.",
+                                "at":  "2026-07-30T16:00:55.1937002+08:00"
+                            },
+                            {
+                                "step":  "fast_lane_guard_delivery_2026-07-30T16_02_04_8015295+08_00",
+                                "status":  "completed",
+                                "summary":  "Confirmed workflow sedimentation is complete: source rules, checkpoint schema, validation gate, regression coverage, focused validation, and runtime visibility are all closed.",
+                                "at":  "2026-07-30T16:02:04.8015295+08:00"
                             }
                         ],
     "assumptions":  [
@@ -4483,55 +4549,61 @@
                                  "at":  "2026-06-10T00:28:24.9443206+08:00"
                              }
                          ],
-    "last_completed_step":  "runtime_drift_2026-06-10T03_16_46_4203385+08_00",
+    "last_completed_step":  "fast_lane_guard_delivery_2026-07-30T16_02_04_8015295+08_00",
     "workflow_improvement_spec":  {
-                                      "objective":  "Recurring workflow full audit follow-up: verify source workflow rules, rerun discovery/reference/evaluation/validation/runtime drift checks, correct stale regression count state, and avoid duplicate source edits when no new high-value issue appears.",
+                                      "objective":  "Turn the existing fast-lane two-batch and one-reference guidance into an auditable checkpoint gate that stops repeated project, KB, screenshot, and reference exploration once implementation evidence is ready.",
                                       "scope":  [
-                                                    "automation memory fallback read/write",
-                                                    "workflow source diff re-audit",
-                                                    "recursive skill discovery",
-                                                    "filtered internal reference scan",
-                                                    "workflow regression evaluation",
-                                                    "quick_validate for source and auxiliary skills",
-                                                    "runtime drift comparison including active .agents runtime"
+                                                    "front-workflow execution-chain and default prompt",
+                                                    "h5-testing-checklist checkpoint schema, validation workflow, and default prompt",
+                                                    "workflow-self-improvement targeted regression case",
+                                                    "focused validation and runtime junction CheckOnly"
                                                 ],
                                       "success_criteria":  [
-                                                               "automation memory is read from the resolved fallback path",
-                                                               "recursive discovery covers SKILL.md, references/*.md, agents/openai.yaml, and hidden .agents/skills helper skills",
-                                                               "filtered token-level internal reference scan has no script errors and 0 true missing refs",
-                                                               "regression suite counts 25 cases only in the evaluation section and passes dynamic threshold",
-                                                               "all discovered local skill directories pass quick_validate.py",
-                                                               "runtime drift is verified or synced, with permission blockers recorded",
-                                                               "automation memory is written for the next run"
+                                                               "fast_lane_guard uses the confirmed seven fields and is updated after every exploration batch",
+                                                               "active fast lanes fail on more than two batches, more than one optional strong reference, evidence-ready re-exploration, or missing edit/exit decision",
+                                                               "the multi-page first/reloan regression case prevents mechanical supporting-skill chaining and repeated KB/Flutter/screenshot scans",
+                                                               "front-workflow, h5-testing-checklist, and workflow-self-improvement pass quick_validate.py",
+                                                               "targeted regression counting and judge review pass",
+                                                               "Codex, Trae, Claude, and active .agents runtime links remain valid junctions"
                                                            ],
                                       "boundaries":  [
-                                                         "do not revert existing uncommitted source changes",
-                                                         "do not write runtime directories outside writable roots",
-                                                         "do not repeat source edits for already-known runtime sync blocker"
+                                                         "do not modify Platayuda business code or its project checkpoint",
+                                                         "do not modify unrelated dirty skills in Desktop skills",
+                                                         "do not add or rename skills or repair runtime links",
+                                                         "do not update the personal knowledge base"
                                                      ],
                                       "blocking_questions":  [
 
                                                              ],
-                                      "optimization_level":  "全量巡检",
-                                      "updated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                                      "optimization_level":  "流程调优",
+                                      "updated_at":  "2026-07-30T15:57:30.1662191+08:00"
                                   },
     "orchestration_audit":  {
-                                "workflow_boundary":  "front-workflow remains the orchestrator; workflow-self-improvement owns scene H audit closure; h5-testing-checklist owns validation wording.",
-                                "activity_boundary":  "This run corrected stale checkpoint regression counts and reran discovery, token-level reference scan, regression evaluation, validation, and drift comparison as independent audit activities.",
-                                "checkpoint_recovery":  "Automation memory and .workflow-checkpoint.json were read before scanning; stale eval count was refreshed from the current regression file instead of treated as a source rule gap.",
-                                "failure_recovery":  "Runtime mirror sync remains outside writable roots, so verified drift is recorded instead of repeatedly attempting blocked writes.",
-                                "idempotency":  "Repeated runs should keep 0 true missing internal refs, 25 passing regression cases, and the same verified runtime drift until runtime directories become writable or source/runtime files change.",
-                                "updated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                                "workflow_boundary":  "front-workflow decides whether exploration continues, implementation starts, or the fast lane exits; it does not absorb business-skill details.",
+                                "activity_boundary":  "Project and reference reads are exploration activities, checkpoint writes persist the budget state, and h5-testing-checklist independently validates violations before normal quality checks.",
+                                "checkpoint_recovery":  "fast_lane_guard records batch count, logical reference sources, evidence readiness, next action, exit reason, and violation so an interrupted run does not restart exploration from zero.",
+                                "failure_recovery":  "Evidence gaps exit the fast lane with a concrete reason and upgraded scope; budget violations stop new exploration instead of silently continuing.",
+                                "idempotency":  "Repeated checkpoint updates overwrite the current fast_lane_guard state while completed_steps stays append-only; runtime junctions expose source changes without copy-based resynchronization.",
+                                "updated_at":  "2026-07-30T15:57:30.1662191+08:00"
                             },
     "eval_results":  {
-                         "case_count":  25,
-                         "total_points":  125,
-                         "pass_line":  110,
-                         "score":  125,
+                         "case_count":  69,
+                         "total_points":  345,
+                         "pass_line":  304,
+                         "score":  345,
+                         "targeted_case_count":  4,
+                         "targeted_total_points":  20,
+                         "targeted_score":  20,
+                         "targeted_cases":  [
+                                                "单图局部样式快速通道",
+                                                "同功能视觉反馈复用",
+                                                "快速通道证据不足退出",
+                                                "多页面首复贷快速通道门禁"
+                                            ],
                          "failed_cases":  [
 
                                           ],
-                         "evaluated_at":  "2026-06-10T03:16:46.4203385+08:00"
+                         "evaluated_at":  "2026-07-30T16:00:55.1937002+08:00"
                      },
     "runtime_drift":  {
                           "blocked_runtime_dirs":  [
@@ -4593,7 +4665,7 @@
                               "note":  "Follow-up audit corrected stale checkpoint regression count to 25 cases; all local skills validated, reference scan clean, runtime drift remains external-blocked.",
                               "last_write_at":  "2026-06-10T03:17:33.0669209+08:00"
                           },
-    "updated_at":  "2026-06-10T03:16:46.4203385+08:00",
+    "updated_at":  "2026-07-30T16:02:04.8015295+08:00",
     "external_blockers":  [
                               {
                                   "type":  "runtime_sync_outside_writable_roots",
