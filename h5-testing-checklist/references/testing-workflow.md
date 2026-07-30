@@ -27,6 +27,18 @@
 - 任意 H5 页面改动只要涉及真实 `input`、`textarea`、`contentEditable`、固定底部按钮、弹层选择器、内部滚动容器或键盘输入，就要写入 `constraint_areas=["form-input"]` 并把软键盘遮挡纳入本轮检查；`quick` 只做 diff 风险确认，`focused/full/release` 必须检查实现链路或列出真实设备待验，不能因为页面不是进件/首复贷而跳过。
 - `quick/focused` 到达选定检查预算后必须停止；已通过 diff 审查、静态搜索或最小命令时，不再继续追加 build、全量 lint、dev server、浏览器重试或截图 fallback，除非出现新的阻塞风险或用户明确要求。
 
+## 快速通道门禁验收
+
+checkpoint 存在 `context.fast_lane_guard` 时，验收必须先检查探索预算，再执行当前等级的代码质量检查：
+
+- `enabled=true` 且 `exploration_batches_used > 2`：失败，写明“快速通道探索批次超限”，停止新增探索。
+- `strong_reference_sources` 超过 1 个逻辑来源：失败，写明“强参考来源超限”；用户材料和权威 contract 不作为可选外部参考计数。
+- `evidence_ready=true` 但 `next_required_action` 不是 `edit`，或 `completed_steps` 的批次快照显示证据已齐后仍出现新的业务探索记录：失败，写入 `violation` 并停止新增探索。
+- `exploration_batches_used=2` 且 `evidence_ready=false` 时，必须满足 `enabled=false`、`next_required_action=exit_fast_lane`、`exit_reason` 非空；任一缺失均失败。
+- `violation` 非空时不能把快速通道标为通过；必须先按记录进入实现或退出快速通道，交付时说明违规和收口动作。
+
+快速通道门禁只约束实现前的业务探索，不替代接口、主流程、发布等风险对应的 `full/release` 验收。
+
 ## 公共约束区域
 
 H5 验收先按业务证据确定普通 H5、首复贷、进件、官网、设计图、发布等主场景，再按本次 diff 命中的公共约束区域裁剪公共检查范围。公共区域只影响验收范围和 checkpoint，不抢占业务场景。

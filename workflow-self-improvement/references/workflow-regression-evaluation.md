@@ -66,6 +66,7 @@ workflow/meta 巡检或工作流规则变更后，使用 `llm-evaluation` 的思
 | 同功能视觉反馈复用 | 还是太窄，输入框样式不对 | 复用当前 diff、最新截图和目标文件直接调整；除强制 skill 入口外不重跑完整页面分析，不重新扫描资产、design 目录或参考项目，按 quick/focused 做一次最小验收后停止 |
 | 视觉请求包含原生逻辑 | 弹窗样式按截图修改，同时调整原生返回时的 onNativeBack 逻辑 | 视觉设计只是 supporting capability；因命中原生桥和首复贷业务分支退出视觉快速通道，进入首复贷/WebView 执行链，按实际逻辑风险定级，不用两批探索门禁压缩必要业务检查 |
 | 快速通道证据不足退出 | 页面弹窗有问题帮我改，但两批探索后仍找不到目标组件 | 退出快速通道并记录缺少目标文件或分支的具体原因，升级为最小必要探索或只询问一个阻塞问题；禁止继续无边界分析，也禁止在证据不足时盲改 |
+| 多页面首复贷快速通道门禁 | 一次提交确认贷款、还款、产品列表的多项修改，字段语义和原生截图都已给出 | 主场景 C，接口与截图只作为必要输入或 supporting capability；进入项目后最多两批业务探索并在 checkpoint 持续更新 `fast_lane_guard`，可选外部对照最多一个逻辑来源。目标文件、分支、结果、风险和阻塞项明确后立即实现，不机械串联设计、API 映射等可选 skill，也不重复扫描 KB、Flutter 和截图；因接口或主流程风险需要 full/build 不改变实现前探索门禁 |
 | 原生 Base64 加号 | App 通过 URL query 给 H5 传 AES/Base64 参数，线上发现参数里的 `+` 被 `URLSearchParams` 读成空格 | 识别为原生交互验收缺口，归属到 `h5-apply-flow/references/native-methods.md` 和 `h5-testing-checklist`；要求 App 侧用 `%2B` 编码，或 H5 侧只对指定字段做空格还原 `+`，不得扩大为重写 bridge 协议或新增无关 WebView 通道 |
 | 首复贷明确接口结构 | 用户给出审核倒计时接口字段和固定 JSON 字符串结构，希望页面展示接口文案 | 主场景 C；接口结构、用户示例或现有类型已明确时按固定结构直接取值或解析，避免复杂通用兜底、字段探测、多层 helper 或本地业务文案替代接口文案；只有真实返回格式会崩溃时才做最小格式修正 |
 | App WebView 默认兼容 | 用户只说改一个 App 内嵌 H5 小功能，没有明确提低版本手机，但页面会被 App WebView 打开 | 主场景按业务归属执行，交付前仍必须调用 `h5-testing-checklist` 的 App WebView 兼容专项；检查 legacy/nomodule 或等价旧包、旧 WebView 常缺 API 降级、辅助能力不阻塞首屏、CSS fallback，并把真实 App WebView 验证列为人工待验 |

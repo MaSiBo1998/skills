@@ -20,6 +20,7 @@
 - `completed_steps` 是恢复和交付说明的完整执行轨迹，不能只记录最后一个完成步骤
 - `last_completed_step` 仅作为快速恢复索引，不能替代 `completed_steps`
 - `context` 必须保留场景判断依据，至少按需记录 `discovered_facts`、`assumptions`、`blocking_questions`、`scene_confidence`、`selected_scene_reason`、`skipped_skills`
+- 进入快速通道时，`context.fast_lane_guard` 必须在首批业务探索前初始化，并在每批探索后立即更新，同时向 `completed_steps` 追加 `fast_lane_exploration_batch_<N>` 快照；禁止交付时一次性补记探索预算
 - **禁止**将 checkpoint 写成仅包含当前步骤信息的单条记录（如 `{ "step": 3, "stepName": "xxx" }`）
 - **禁止**用新的步骤记录覆盖旧的 `completed_steps`；如果同一步重复执行，追加新记录并在 `note` 中说明 rerun/修正原因
 
@@ -108,11 +109,44 @@
 | `constraint_areas` | H5 公共约束区域数组，可为空；允许值为 `form-input`、`interaction`、`webview`、`visual-layout`、`assets-performance`、`api-data` |
 | `constraint_area_reason` | 每个命中区域的证据说明，用于续跑时恢复为什么只验这些区域 |
 | `validation_scope` | 本轮验收范围说明，记录 `quick/focused/full/release` 与区域裁剪关系 |
+| `fast_lane_guard` | 快速通道探索预算门禁；未进入快速通道时可省略 |
 | `workflow_improvement_spec` | workflow/meta 巡检时由 `spec-driven-development` 产出的轻量规格：目标、范围、边界、成功标准、阻塞问题 |
 | `orchestration_audit` | workflow/meta 巡检时由 `workflow-orchestration-patterns` 产出的编排审查：workflow/activity 边界、checkpoint、失败恢复、幂等性 |
 | `eval_cases` | workflow/meta 巡检时由 `llm-evaluation` 维护的回归样例 |
 | `eval_results` | workflow/meta 巡检时由 `llm-evaluation` 输出的指标、失败项和处理结果 |
 | `automation_memory` | 自动化续跑时使用的 memory 路径、读取状态、写回状态、剩余运行时漂移和下一轮关注点 |
+
+### 快速通道门禁字段
+
+进入快速通道时，`context.fast_lane_guard` 使用固定结构：
+
+```json
+{
+  "enabled": true,
+  "exploration_batches_used": 1,
+  "strong_reference_sources": [
+    "D:\\code\\flutter\\platayuda"
+  ],
+  "evidence_ready": true,
+  "next_required_action": "edit",
+  "exit_reason": null,
+  "violation": null
+}
+```
+
+| 字段 | 规则 |
+|------|------|
+| `enabled` | 仍在快速通道时为 `true`；写明退出原因并切换到升级后的探索范围时改为 `false` |
+| `exploration_batches_used` | 业务探索批次数，允许值为 `0`、`1`、`2`；一次工具调用并行读取多个直接相关文件仍算一批 |
+| `strong_reference_sources` | 可选外部对照来源，按仓库、站点或文档集合去重，最多 1 项；用户材料和权威 contract 不占该名额 |
+| `evidence_ready` | 目标文件、目标分支、预期结果、风险等级均明确且 `blocking_questions=[]` 时为 `true` |
+| `next_required_action` | 仅允许 `continue_exploration`、`edit`、`exit_fast_lane`；证据已齐必须为 `edit`，批次用满但证据不足必须为 `exit_fast_lane` |
+| `exit_reason` | 退出快速通道时记录仍缺少的目标文件、分支、结果或风险结论；未退出时为 `null` |
+| `violation` | 仍在快速通道却超过两批、证据已齐仍继续探索、或批次用满未进入 `edit` / `exit_fast_lane` 时记录违规原因；正常时为 `null` |
+
+目标代码、用户材料、KB contract 或外部参考实现的读取属于业务探索；平台强制的 skill/reference、checkpoint 读取、Git 状态和实现后验收命令不计入。每批探索完成后必须先写入本对象，再决定下一动作。
+
+每个 `fast_lane_exploration_batch_<N>` 完成记录的 `note` 必须包含当批结束后的 `exploration_batches_used`、`strong_reference_sources`、`evidence_ready` 和 `next_required_action`。`fast_lane_guard` 保存当前状态，`completed_steps` 保存判断历史；验收通过历史快照判断是否在证据已齐后又追加了业务探索。
 
 各场景在执行过程中应将关键决策和输入路径写入 context，以便跨会话恢复时无需重新收集：
 
