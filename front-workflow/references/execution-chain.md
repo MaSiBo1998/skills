@@ -24,8 +24,10 @@
 ## 执行链规则
 
 - 修改任何需求时默认先走最小改动：优先沿已有数据流、调用点、接口层和配置层就地接入，减少修改文件和跨模块耦合。
+- 项目定位是进入业务 skill 和快速通道之前的前置 activity。需求出现项目名、App 名、官网、协议、公司官网或本地目录定位语义时，必须先按 `knowledge-layer.md` 读取 KB 项目索引，并在 checkpoint/context 记录 `project_resolution`：`user_phrase`、`project_purpose`、`kb_source`、`candidates`、`selected_path`、`selection_reason`。缺少任一决定性字段时，`evidence_ready` 不得设为 `true`，不得编辑候选仓库。
+- 同一品牌存在普通官网与公司官网时，按 KB 用途精确分流：“官网/协议”不能推断为“公司官网”；只有用户明确说“公司官网”或给出公司主体时才选公司官网。目录名后缀只能用于核对，不能替代 KB 用途证据。
 - 小需求进入快速通道：当目标组件、目标业务分支和预期结果已经明确时，完成必要的目标文件确认后立即实现，不把局部样式、文案、单张图片替换或单组件调整扩展成长文档审计、全盘参考项目搜索、浏览器排障或生产构建。
-- 快速通道只读取当前实现所需的最小证据：需要参考实现时找到一个与目标结构、业务分支或视觉规格直接相关的强证据来源后停止；不继续扫描多个参考项目，也不继续读取与当前改动无关的 KB、reference 或可选 skill。
+- 快速通道只读取当前实现所需的最小证据：需要参考实现时找到一个与目标结构、业务分支或视觉规格直接相关的强证据来源后停止；不继续扫描多个参考项目，也不继续读取与当前改动无关的 KB、reference 或可选 skill。项目路径索引、接口 contract 等按规则必须读取的权威 KB 不属于“无关 KB”，不能被快速通道跳过。
 - 快速通道使用可检查的动作预算：平台要求的 skill 入口和路由 reference 读取不计入探索批次；进入目标项目后最多执行 2 批业务探索，每批可以在一次工具调用中并行读取多个直接相关文件，但全部批次最多只采用 1 个强参考来源。工具执行速度或单批文件数量不能成为继续探索的理由。
 - 进入快速通道时必须在项目 checkpoint 的 `context.fast_lane_guard` 初始化门禁状态；每完成一批业务探索，立即更新 `exploration_batches_used`、`strong_reference_sources`、`evidence_ready` 和 `next_required_action`，并向 `completed_steps` 追加 `fast_lane_exploration_batch_<N>` 快照，不能等到交付时补记。业务探索包括为决定实现而读取目标代码、用户材料、KB contract 或外部参考实现；平台强制的 skill/reference、checkpoint 自身、Git 状态和实现后的验收命令不计入批次。
 - `strong_reference_sources` 只记录可选的外部对照来源，并按仓库、站点或文档集合计为一个逻辑来源；用户直接提供的材料和按规则必须读取的权威 contract 仍属于业务探索证据，但不占用“一个强参考来源”名额。

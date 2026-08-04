@@ -11,6 +11,7 @@
 - `skipped_skills`：本轮跳过的可选 skill 及原因。
 - `scene_confidence`：方向和场景判断置信度。
 - `assumptions`：默认选择及风险说明。
+- `project_resolution`：涉及项目定位时记录用户说法、页面/项目用途、KB 命中路径、候选路径和最终选择依据；未完成时不得编辑目标项目。
 - `blocking_questions`：当前唯一阻塞继续执行的问题。
 
 ## 固定流程
